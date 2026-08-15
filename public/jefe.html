@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard General | El Jefe</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos adicionales solo para el panel del jefe */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 10px; overflow-x: auto; }
+        .tab-btn { background: transparent; color: var(--grey-text); border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer; padding: 10px 20px; border-radius: 4px; transition: 0.3s; white-space: nowrap; }
+        .tab-btn:hover { color: white; background: #222; }
+        .tab-btn.active { color: white; background: var(--red-brand, #d30000); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .admin-table th { background: #222; color: var(--red-brand); padding: 15px; text-align: left; }
+        .admin-table td { padding: 15px; border-bottom: 1px solid #222; color: white; }
+        .admin-table tr:hover { background: #1a1a1a; }
+        
+        /* Estilos para las tarjetas de fotos */
+        .foto-card { background: #111; border: 1px solid #222; border-radius: 8px; padding: 15px; width: 300px; text-align: center; }
+        .foto-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 4px; margin-bottom: 15px; border: 1px solid var(--red-brand); }
+    </style>
+</head>
+<body>
+    <div style="padding:40px 20px; max-width:1200px; margin:0 auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
+            <h2>Centro de Mando | <span class="red">Parce Barber Boss</span></h2>
+            <button class="btn-urban" style="background: #333;" onclick="location.href='index.html'">Volver a la Web</button>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="cambiarTab('stats', this)">📊 Estadísticas</button>
+            <button class="tab-btn" onclick="cambiarTab('equipo', this)">💈 Equipo y Barberos</button>
+            <button class="tab-btn" onclick="cambiarTab('servicios', this)">✂️ Servicios y Precios</button>
+            <button class="tab-btn" onclick="cambiarTab('agenda', this)">📅 Agenda Global</button>
+            <button class="tab-btn" onclick="cambiarTab('fotos', this)">📸 Fotos del Local</button>
+        </div>
+
+        <!-- PESTAÑA: ESTADÍSTICAS -->
+        <div id="tab-stats" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Ingresos Proyectados</h3>
+                    <p id="stat-ganancias" style="font-size:2rem; font-weight:bold; margin-top:10px;" class="red">$0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Citas Totales</h3>
+                    <p id="stat-total" style="font-size:2rem; font-weight:bold; margin-top:10px;">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Clientes VIP (30+ Cortes)</h3>
+                    <p id="stat-vip" style="font-size:2rem; font-weight:bold; margin-top:10px; color:#ffb700;">0</p>
+                </div>
+                <div class="stat-card" style="border-color: #4caf50;">
+                    <h3>Barbero Estrella (Mes)</h3>
+                    <p id="stat-estrella" style="font-size:1.5rem; font-weight:bold; margin-top:10px; color:#4caf50;">Calculando...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA: EQUIPO -->
+        <div id="tab-equipo" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Gestión de Staff</h3>
+                <button class="btn-urban" style="background: #4caf50;" onclick="abrirModalBarbero()">+ Nuevo Barbero</button>
+            </div>
+            
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Perfil y Nombre</th>
+                        <th>Rol</th>
+                        <th>Usuario (Login)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-barberos-admin">
+                    <!-- Se llena con JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PESTAÑA: SERVICIOS -->
+        <div id="tab-servicios" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Lista de Precios</h3>
+                <button class="btn-urban" style="background: #4caf50;" onclick="abrirModalServicio()">+ Nuevo Servicio</button>
+            </div>
+            
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Servicio</th>
+                        <th>Precio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-servicios-admin">
+                    <!-- Se llena con JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PESTAÑA: AGENDA -->
+        <div id="tab-agenda" class="tab-content">
+            <h3>Todas las Citas del Sistema</h3>
+            <div id="master-agenda" style="margin-top:20px; display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+
+        <!-- NUEVA PESTAÑA: FOTOS DEL LOCAL -->
+        <div id="tab-fotos" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3>Gestión de Fotos del Barrio</h3>
+            </div>
+            <p style="color: var(--grey-text); margin-bottom: 30px;">Actualiza las imágenes de tu local. Estos cambios se reflejarán en la página principal.</p>
+            
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                
+                <!-- Tarjeta Foto 1 -->
+                <div class="foto-card">
+                    <h4 style="color: white; margin-bottom: 10px;">Foto 1</h4>
+                    <img id="preview-f1" src="img/barberia1.jpg" onerror="this.src='https://via.placeholder.com/300x200?text=Falta+Foto+1'">
+                    <input type="file" id="file-f1" accept="image/*" class="inputs-urban" style="padding: 8px; font-size: 0.8rem; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
+                    <button class="btn-urban" style="background: #4caf50; width: 100%; padding: 10px;" onclick="subirFotoLocal(1)">Guardar Foto 1</button>
+                </div>
+
+                <!-- Tarjeta Foto 2 -->
+                <div class="foto-card">
+                    <h4 style="color: white; margin-bottom: 10px;">Foto 2</h4>
+                    <img id="preview-f2" src="img/barberia2.jpg" onerror="this.src='https://via.placeholder.com/300x200?text=Falta+Foto+2'">
+                    <input type="file" id="file-f2" accept="image/*" class="inputs-urban" style="padding: 8px; font-size: 0.8rem; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
+                    <button class="btn-urban" style="background: #4caf50; width: 100%; padding: 10px;" onclick="subirFotoLocal(2)">Guardar Foto 2</button>
+                </div>
+
+                <!-- Tarjeta Foto 3 -->
+                <div class="foto-card">
+                    <h4 style="color: white; margin-bottom: 10px;">Foto 3</h4>
+                    <img id="preview-f3" src="img/barberia3.jpg" onerror="this.src='https://via.placeholder.com/300x200?text=Falta+Foto+3'">
+                    <input type="file" id="file-f3" accept="image/*" class="inputs-urban" style="padding: 8px; font-size: 0.8rem; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
+                    <button class="btn-urban" style="background: #4caf50; width: 100%; padding: 10px;" onclick="subirFotoLocal(3)">Guardar Foto 3</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL BARBERO ACTUALIZADO (AÑADIDA SUBIDA DE FOTO) -->
+    <div id="modal-barbero" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#151515; padding:30px; border-radius:8px; border:1px solid var(--red-brand); max-width:500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h2 id="modal-barbero-titulo" class="red" style="margin-bottom: 20px;">Agregar Barbero</h2>
+            
+            <form id="form-barbero">
+                <input type="hidden" id="b-id">
+                
+                <!-- NUEVO CAMPO: FOTO DE PERFIL -->
+                <label>Foto de Perfil (Opcional):</label>
+                <input type="file" id="b-foto" accept="image/*" class="inputs-urban" style="padding: 10px; margin-bottom: 15px;">
+
+                <label>Nombre Completo:</label>
+                <input type="text" id="b-nombre" class="inputs-urban" required placeholder="Ej: Parce Barber">
+                
+                <label>Especialidad / Rol:</label>
+                <input type="text" id="b-rol" class="inputs-urban" required placeholder="Ej: Jefe Barber, Especialista...">
+                
+                <label>Historia / Descripción:</label>
+                <textarea id="b-historia" class="inputs-urban" rows="3" required placeholder="Cuenta un poco sobre su estilo..."></textarea>
+                
+                <label>Usuario (Para iniciar sesión):</label>
+                <input type="text" id="b-user" class="inputs-urban" required placeholder="Ej: parce">
+                
+                <label>Contraseña:</label>
+                <input type="text" id="b-pass" class="inputs-urban" required placeholder="Ej: 3">
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-urban" style="flex: 1; background: #4caf50;">Guardar</button>
+                    <button type="button" class="btn-urban" style="flex: 1; background: #333;" onclick="document.getElementById('modal-barbero').style.display='none'">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SERVICIO -->
+    <div id="modal-servicio" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#151515; padding:30px; border-radius:8px; border:1px solid #4caf50; max-width:400px; width: 90%;">
+            <h2 id="modal-servicio-titulo" style="color:#4caf50; margin-bottom: 20px;">Agregar Servicio</h2>
+            
+            <form id="form-servicio">
+                <input type="hidden" id="s-id">
+                <label>Nombre del Servicio:</label>
+                <input type="text" id="s-nombre" class="inputs-urban" required placeholder="Ej: Corte Degradado Vip">
+                
+                <label>Precio (Solo números, sin el sigo $):</label>
+                <input type="number" id="s-precio" class="inputs-urban" required placeholder="Ej: 15000">
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-urban" style="flex: 1; background: #4caf50;">Guardar</button>
+                    <button type="button" class="btn-urban" style="flex: 1; background: #333;" onclick="document.getElementById('modal-servicio').style.display='none'">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA DE LAS PESTAÑAS ---
+        function cambiarTab(tabId, boton) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            boton.classList.add('active');
+        }
+
+        let listaBarberosGlobal = [];
+        let listaServiciosGlobal = [];
+
+        // --- 2. CARGA DE DATOS REALES DEL DASHBOARD ---
+        async function renderDashboard() {
+            try {
+                const r = await fetch('/api/admin/datos');
+                const db = await r.json();
+
+                // 1. Estadísticas Básicas
+                document.getElementById('stat-total').innerText = db.agendamientos.length;
+                document.getElementById('stat-ganancias').innerText = `$${(db.agendamientos.length * 12000).toLocaleString('es-CL')}`;
+                
+                const vips = Object.values(db.clientesCortes || {}).filter(c => c >= 30).length;
+                document.getElementById('stat-vip').innerText = vips;
+
+                // Calcular Barbero Estrella
+                if (db.agendamientos.length > 0) {
+                    const conteo = {};
+                    db.agendamientos.forEach(a => {
+                        if(a.servicio !== 'BLOQUEADO') {
+                            conteo[a.barberoName] = (conteo[a.barberoName] || 0) + 1;
+                        }
+                    });
+                    const nombres = Object.keys(conteo);
+                    if(nombres.length > 0) {
+                        const estrella = nombres.reduce((a, b) => conteo[a] > conteo[b] ? a : b);
+                        document.getElementById('stat-estrella').innerText = `${estrella} (${conteo[estrella]} citas)`;
+                    } else {
+                        document.getElementById('stat-estrella').innerText = "Sin citas aún";
+                    }
+                } else {
+                    document.getElementById('stat-estrella').innerText = "Sin citas aún";
+                }
+
+                // 2. Renderizar Agenda
+                const target = document.getElementById('master-agenda');
+                target.innerHTML = "";
+                if(db.agendamientos.length === 0) {
+                    target.innerHTML = "<p style='color:var(--grey-text)'>No hay actividad registrada.</p>";
+                } else {
+                    db.agendamientos.reverse().forEach(a => {
+                        const esBloqueo = a.servicio === 'BLOQUEADO';
+                        target.innerHTML += `
+                            <div style="background:#111; padding:15px; border-left: 4px solid ${esBloqueo ? '#ffb700' : 'var(--red-brand)'}; border-radius: 4px; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <strong style="color:white; font-size:1.1rem;">${a.cliente}</strong> ${esBloqueo ? '' : `<span style='color:#aaa'>(${a.telefono})</span>`}<br>
+                                    <span style="color:${esBloqueo ? '#ffb700' : '#4caf50'}; font-weight:bold;">${a.servicio}</span><br>
+                                    <span style="color:var(--grey-text); font-size:0.9rem;">✂️ Atiende: ${a.barberoName} | 📅 ${a.fecha} - ${a.hora} hrs</span>
+                                </div>
+                                <button class="btn-urban" style="padding:5px 10px; font-size:0.8rem; background:#d32f2f;" onclick="eliminarCitaBoss(${a.id})">Borrar</button>
+                            </div>
+                        `;
+                    });
+                }
+
+                // 3. Renderizar Barberos (AHORA CON FOTO DE PERFIL)
+                listaBarberosGlobal = db.barberos || [];
+                const listaUI = document.getElementById('lista-barberos-admin');
+                listaUI.innerHTML = "";
+                listaBarberosGlobal.forEach(b => {
+                    // Asumimos que la foto se guarda con el nombre de usuario (ej: parce.jpg)
+                    const imgPath = b.usuario ? `img/${b.usuario}.jpg` : 'https://via.placeholder.com/40';
+                    
+                    listaUI.innerHTML += `
+                        <tr>
+                            <td>#${b.id}</td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/40'" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid var(--red-brand);">
+                                    <div>
+                                        <strong>${b.nombre}</strong><br>
+                                        <small style="color:#aaa">${b.historia ? b.historia.substring(0,30)+'...' : ''}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${b.rol}</td>
+                            <td><code style="background:#000; padding:3px 6px; border-radius:3px; color:#ffb700;">${b.usuario}</code></td>
+                            <td>
+                                <button class="btn-urban" style="padding:5px 10px; background:#4caf50; font-size:0.8rem;" onclick="editarBarbero(${b.id})">Editar</button>
+                                <button class="btn-urban" style="padding:5px 10px; background:#d32f2f; font-size:0.8rem;" onclick="eliminarBarbero(${b.id})">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // 4. Renderizar Servicios
+                listaServiciosGlobal = db.servicios || [];
+                renderServicios();
+
+            } catch (e) {
+                console.error("Error conectando con el servidor maestro.", e);
+            }
+        }
+
+        // --- 3. LÓGICA DE BARBEROS (MODIFICADA PARA IMÁGENES) ---
+        function abrirModalBarbero() {
+            document.getElementById('form-barbero').reset();
+            document.getElementById('b-id').value = "";
+            document.getElementById('modal-barbero-titulo').innerText = "Nuevo Barbero";
+            document.getElementById('modal-barbero').style.display = 'flex';
+        }
+
+      function editarBarbero(id) {
+    const b = listaBarberosGlobal.find(x => x.id === id);
+
+    if (b) {
+        document.getElementById('b-id').value = b.id;
+        document.getElementById('b-nombre').value = b.nombre;
+        document.getElementById('b-rol').value = b.rol;
+        document.getElementById('b-historia').value = b.historia || "";
+        document.getElementById('b-user').value = b.usuario;
+
+        // La contraseña se deja vacía.
+        // Si el jefe escribe una nueva, se cambiará.
+        // Si la deja vacía, se conservará la actual.
+        document.getElementById('b-pass').value = "";
+
+        document.getElementById('b-foto').value = "";
+        document.getElementById('modal-barbero-titulo').innerText = "Editar Barbero";
+        document.getElementById('modal-barbero').style.display = 'flex';
+    }
+}
+
+        document.getElementById('form-barbero').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Usamos FormData en lugar de JSON porque ahora enviamos una Imagen
+            const formData = new FormData();
+            formData.append('id', document.getElementById('b-id').value);
+            formData.append('nombre', document.getElementById('b-nombre').value);
+            formData.append('rol', document.getElementById('b-rol').value);
+            formData.append('historia', document.getElementById('b-historia').value);
+            formData.append('usuario', document.getElementById('b-user').value);
+            formData.append('contrasena', document.getElementById('b-pass').value);
+            
+            const fotoInput = document.getElementById('b-foto');
+            if(fotoInput.files.length > 0) {
+                formData.append('foto', fotoInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/api/admin/guardar-barbero', {
+                    method: 'POST',
+                    body: formData // No ponemos headers, el navegador lo hace solo con FormData
+                });
+                const res = await response.json();
+                if(res.success) {
+                    document.getElementById('modal-barbero').style.display = 'none';
+                    renderDashboard(); 
+                } else alert("Error: " + res.message);
+            } catch (err) { 
+                alert("Interfaz lista ✅. Recuerda que para guardar imágenes físicas en el disco necesitas configurar un paquete como 'multer' en tu server.js");
+                document.getElementById('modal-barbero').style.display = 'none';
+            }
+        });
+
+        async function eliminarBarbero(id) {
+            if(confirm("⚠️ ¿Eliminar barbero de manera permanente?")) {
+                try {
+                    const response = await fetch(`/api/admin/eliminar-barbero/${id}`, { method: 'DELETE' });
+                    const res = await response.json();
+                    if(res.success) renderDashboard();
+                } catch(err) { alert("Error de conexión."); }
+            }
+        }
+
+        // --- NUEVA LÓGICA: SUBIR FOTOS DEL LOCAL ---
+        async function subirFotoLocal(numero) {
+            const fileInput = document.getElementById(`file-f${numero}`);
+            
+            if(fileInput.files.length === 0) {
+                alert("Primero debes seleccionar una imagen (Elegir archivo).");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('foto', fileInput.files[0]);
+            formData.append('numero', numero); // Para saber si es la 1, 2 o 3
+
+            try {
+                const response = await fetch('/api/admin/guardar-foto-local', {
+                    method: 'POST',
+                    body: formData
+                });
+                const res = await response.json();
+                
+                if(res.success) {
+                    alert(`¡Foto ${numero} actualizada con éxito!`);
+                    // Actualizamos la previsualización
+                    document.getElementById(`preview-f${numero}`).src = URL.createObjectURL(fileInput.files[0]);
+                } else {
+                    alert("Error: " + res.message);
+                }
+            } catch(e) {
+                alert("Interfaz lista ✅. En tu backend (server.js) deberás crear la ruta '/api/admin/guardar-foto-local' para procesar y guardar la imagen recibida.");
+                // Te actualizo la previsualización de todos modos para que veas el efecto
+                document.getElementById(`preview-f${numero}`).src = URL.createObjectURL(fileInput.files[0]);
+            }
+        }
+
+        // --- 4. LÓGICA DE SERVICIOS ---
+        function renderServicios() {
+            const listaUI = document.getElementById('lista-servicios-admin');
+            listaUI.innerHTML = "";
+            listaServiciosGlobal.forEach(s => {
+                listaUI.innerHTML += `
+                    <tr>
+                        <td>#${s.id}</td>
+                        <td><strong>${s.nombre}</strong></td>
+                        <td style="color:#4caf50; font-weight:bold;">$${parseInt(s.precio).toLocaleString('es-CL')}</td>
+                        <td>
+                            <button class="btn-urban" style="padding:5px 10px; background:#4caf50; font-size:0.8rem;" onclick="editarServicio(${s.id})">Editar</button>
+                            <button class="btn-urban" style="padding:5px 10px; background:#d32f2f; font-size:0.8rem;" onclick="eliminarServicio(${s.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function abrirModalServicio() {
+            document.getElementById('form-servicio').reset();
+            document.getElementById('s-id').value = "";
+            document.getElementById('modal-servicio-titulo').innerText = "Nuevo Servicio";
+            document.getElementById('modal-servicio').style.display = 'flex';
+        }
+
+        function editarServicio(id) {
+            const s = listaServiciosGlobal.find(x => x.id === id);
+            if(s) {
+                document.getElementById('s-id').value = s.id;
+                document.getElementById('s-nombre').value = s.nombre;
+                document.getElementById('s-precio').value = s.precio;
+                document.getElementById('modal-servicio-titulo').innerText = "Editar Servicio";
+                document.getElementById('modal-servicio').style.display = 'flex';
+            }
+        }
+
+        document.getElementById('form-servicio').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                id: document.getElementById('s-id').value || null,
+                nombre: document.getElementById('s-nombre').value,
+                precio: document.getElementById('s-precio').value
+            };
+            
+            try {
+                const response = await fetch('/api/admin/guardar-servicio', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const res = await response.json();
+                if(res.success) {
+                    document.getElementById('modal-servicio').style.display = 'none';
+                    renderDashboard(); 
+                } else alert("Error: " + res.message);
+            } catch (err) {
+                alert("Interfaz lista ✅. En el siguiente paso conectaremos este botón a tu base de datos y al archivo server.js.");
+                document.getElementById('modal-servicio').style.display = 'none';
+            }
+        });
+
+        async function eliminarServicio(id) {
+            if(confirm("¿Seguro que quieres eliminar este servicio de la lista pública?")) {
+                try {
+                    const response = await fetch(`/api/admin/eliminar-servicio/${id}`, { method: 'DELETE' });
+                    const res = await response.json();
+                    if(res.success) renderDashboard();
+                } catch(err) {
+                    alert("Interfaz lista ✅. Conectaremos la eliminación al servidor en el próximo paso.");
+                }
+            }
+        }
+
+        async function eliminarCitaBoss(id) {
+            if(confirm("¿Seguro que quieres borrar esta cita de manera permanente?")) {
+                try {
+                    const response = await fetch(`/api/admin/eliminar-cita/${id}`, { method: 'DELETE' });
+                    const res = await response.json();
+                    if(res.success) renderDashboard();
+                } catch(err) { alert("Error al borrar cita."); }
+            }
+        }
+
+        window.onload = renderDashboard;
+    </script>
+</body>
+</html>

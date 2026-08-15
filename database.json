@@ -1,0 +1,60 @@
+{
+  "barberos": [
+    {
+      "id": 1,
+      "name": "Parce Barber",
+      "role": "Jefe"
+    },
+    {
+      "id": 2,
+      "name": "Jesús Peña",
+      "role": "Barbero"
+    },
+    {
+      "id": 3,
+      "name": "Yuseth Priik",
+      "role": "Barbero"
+    }
+
+  ],
+  "agendamientos": [
+    {
+      "id": 1782703480214,
+      "barberoId": 1,
+      "servicio": "Corte degradado ($12.000)",
+      "fecha": "2026-06-30",
+      "hora": "14:00",
+      "cliente": "ekszdvlvls",
+      "telefono": "+5699999999",
+      "email": "ederthdonoso3@gmail.com",
+      "estado": "Confirmado"
+    },
+    {
+      "id": 1782704007692,
+      "barberoId": 1,
+      "servicio": "Corte degradado ($12.000)",
+      "fecha": "2026-06-13",
+      "hora": "10:00",
+      "cliente": "hjdaska",
+      "telefono": "+5699999999",
+      "email": "ederthdonoso9@gmail.com",
+      "estado": "Confirmado"
+    },
+    {
+      "id": 1782849079411,
+      "barberoId": 1,
+      "servicio": "Corte degradado",
+      "fecha": "2026-06-30",
+      "hora": "16:00",
+      "cliente": "Ederth Donoso",
+      "telefono": "+56999982165",
+      "email": "ederthdonoso3@gmail.com",
+      "estado": "Confirmado"
+    }
+  ],
+  "bloqueos": [],
+  "clientesCortes": {
+    "ederthdonoso3@gmail.com": 2,
+    "ederthdonoso9@gmail.com": 1
+  }
+}

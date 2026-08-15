@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil y Reserva | Parce Barber</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @keyframes popUp {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-content-animated {
+            animation: popUp 0.3s ease-out forwards;
+        }
+
+        /* ESTILO DE LA FOTO DE PERFIL */
+        .foto-perfil {
+            width: 150px; 
+            height: 150px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 3px solid var(--red-brand, #d30000); 
+            box-shadow: 0 4px 15px rgba(211, 0, 0, 0.3); 
+            display: none; /* Se muestra con JS si hay imagen */
+            margin: 0 auto 20px auto;
+        }
+
+        /* =========================================
+           ESTILOS DEL CALENDARIO INTERACTIVO
+        ========================================= */
+        .reserva-interactiva {
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #222;
+            margin-bottom: 20px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .cal-btn {
+            background: #222;
+            color: white;
+            border: 1px solid #333;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .cal-btn:hover { background: var(--red-brand); border-color: var(--red-brand); }
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            color: var(--grey-text);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .cal-day {
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #333;
+            padding: 10px 0;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .cal-day:hover:not(.disabled-day) {
+            border-color: var(--red-brand);
+            background: #2a2a2a;
+        }
+        .cal-day.active-day {
+            background: var(--red-brand);
+            color: white;
+            border-color: var(--red-brand);
+            font-weight: bold;
+        }
+        .disabled-day {
+            color: #444;
+            cursor: not-allowed;
+            background: transparent;
+            border-color: transparent;
+        }
+        /* HORAS DISPONIBLES Y OCUPADAS */
+        .horas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .hora-slot {
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+        .hora-libre {
+            background: #222;
+            color: #fff; 
+            border: 1px solid #444;
+            cursor: pointer;
+        }
+        .hora-libre:hover {
+            border-color: #ffb700;
+            color: #ffb700;
+        }
+        .hora-seleccionada {
+            background: #ffb700 !important;
+            color: #000 !important;
+            border-color: #ffb700 !important;
+        }
+        /* ESTILO PARA HORA OCUPADA/TACHADA */
+        .hora-ocupada {
+            background: #2a1010;
+            color: #ff4d4d;
+            border: 1px solid #701515;
+            text-decoration: line-through;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width:800px; margin: 0 auto; padding: 40px 20px; text-align: center;">
+        
+        <!-- IMAGEN DE PERFIL -->
+        <img id="p-imagen" src="" alt="Foto de perfil del barbero" class="foto-perfil">
+
+        <h1 id="p-nombre">Cargando...</h1>
+        <p id="p-rol" style="color:var(--red-brand); margin-bottom: 30px; font-weight: bold;"></p>
+        
+        <div style="background: #111; padding: 25px; border-radius: 8px; border: 1px solid #222; margin-bottom: 40px;">
+            <h3 style="margin-bottom: 15px;">Su <span class="red">Historia</span></h3>
+            <p id="p-historia" style="color: var(--grey-text); line-height: 1.6;"></p>
+            
+            <a id="btn-whatsapp" href="#" target="_blank" class="btn-urban" style="background: #25D366; color: #fff; border: none; display: inline-block; margin-top: 20px; text-decoration: none; font-weight: bold; padding: 12px 25px; border-radius: 6px; font-size: 1.05rem;">
+                <span style="font-size: 1.2rem; vertical-align: middle;">💬</span> Escribirle por WhatsApp
+            </a>
+        </div>
+
+        <hr style="border-color: #222; margin-bottom: 40px;">
+
+        <h2>Agenda tu hora con <span class="red" id="p-nombre-agenda">Él</span></h2>
+        <br>
+        <form id="form-directo" style="max-width: 500px; margin: 0 auto; text-align: left;">
+            <label>Selecciona Servicio:</label>
+            <select id="d-servicio" class="inputs-urban" style="margin-bottom: 20px;">
+                <option value="Corte degradado">Corte degradado ($12.000)</option>
+                <option value="Corte degradado + cejas">Corte degradado + cejas ($12.000)</option>
+                <option value="Corte degradado + barba">Corte degradado + barba ($16.000)</option>
+                <option value="Corte degradado + cejas + lavado">Corte degradado + cejas + lavado de pelo ($14.000)</option>
+                <option value="Perfilado de barba">Perfilado de barba ($8.000)</option>
+                <option value="Perfilado de barba + cejas">Perfilado de barba + cejas ($8.000)</option>
+                <option value="Lavado de pelo + hidratacion">Lavado de pelo + hidratación ($5.000)</option>
+            </select>
+
+            <input type="hidden" id="d-fecha" required>
+            <input type="hidden" id="d-hora" required>
+
+            <label>Selecciona tu Fecha y Hora:</label>
+            <div class="reserva-interactiva">
+                <div class="custom-calendar">
+                    <div class="calendar-header">
+                        <button type="button" id="prev-month" class="cal-btn">&lt;</button>
+                        <h4 id="month-year" style="margin:0; font-size: 1.1rem;">Cargando...</h4>
+                        <button type="button" id="next-month" class="cal-btn">&gt;</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>Do</div><div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sa</div>
+                    </div>
+                    <div id="calendar-days" class="calendar-days">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <div id="horas-container" style="display: none; margin-top: 25px; border-top: 1px solid #333; padding-top: 20px;">
+                    <h4 style="text-align: center; margin-bottom: 10px;">Horas para el <span style="color:#ffb700;" id="dia-seleccionado-txt">...</span></h4>
+                    <div id="horas-grid" class="horas-grid">
+                        <!-- Generado por JS -->
+                    </div>
+                    <div id="sin-horas-box" style="display: none; text-align: center; margin-top: 20px;">
+                        <p style="color: var(--grey-text); margin-bottom: 10px;">Día sin disponibilidad 🥲</p>
+                        <button type="button" id="btn-next-free" class="btn-urban" style="background: #222; border: 1px solid #555; padding: 10px; font-size: 0.9rem;">
+                            🔍 Buscar próxima fecha libre
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <label style="margin-top: 10px; display:block;">Tus Datos:</label>
+            <input type="text" id="d-nombre" placeholder="Tu Nombre Completo" class="inputs-urban" required>
+            <input type="tel" id="d-telefono" placeholder="WhatsApp (Ej: +569...)" class="inputs-urban" required>
+            <input type="email" id="d-email" placeholder="Correo Electrónico" class="inputs-urban" required>
+
+            <button type="submit" class="btn-urban" style="width:100%; margin-top: 15px; font-size: 1.1rem; padding: 15px;">Confirmar Mi Hora</button>
+        </form>
+        
+        <div id="seccion-vip" style="display: none; margin-top:50px; border-top:1px solid var(--red-brand); padding-top:30px; text-align:center;">
+            <h3>¿Cliente frecuente del Jefe?</h3>
+            <p style="color:var(--grey-text); margin-bottom:15px;">Consulta tus cortes para ver tu Raspe VIP (Exclusivo Parce Barber)</p>
+            <button class="btn-urban" style="background:#ffb700; color:black;" onclick="abrirModalVip()">Verificar Tarjeta VIP</button>
+        </div>
+        
+        <button class="btn-urban" style="background: #333; margin-top: 40px;" onclick="location.href='index.html'">Volver al Inicio</button>
+    </div>
+
+    <!-- MODALES -->
+    <div id="modal-exito" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+        <div class="modal-content-animated" style="background: linear-gradient(145deg, #151515, #0a0a0a); padding: 40px; border-radius: 16px; border: 1px solid #ffb700; text-align: center; max-width: 420px; width: 90%; box-shadow: 0 20px 50px rgba(255, 183, 0, 0.15);">
+            <div style="font-size: 3.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(255,183,0,0.4));">✂️💈</div>
+            <h2 style="color: #ffb700; font-size: 1.8rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Reserva Confirmada</h2>
+            <p style="color: #aaa; margin-bottom: 25px; font-size: 1rem;">Tu lugar en la silla está asegurado.</p>
+            <div id="detalles-exito" style="background: rgba(0,0,0,0.6); border: 1px solid #333; padding: 20px; border-radius: 8px; color: white; font-size: 1.05rem; line-height: 1.8; text-align: left; margin-bottom: 20px;"></div>
+            <p style="color:#4caf50; font-size:0.95rem; margin-bottom: 25px;">✅ Los detalles y opciones de tu reserva han sido enviados a tu correo.</p>
+            <button style="width: 100%; background: #ffb700; color: #000; font-weight: 800; font-size: 1.1rem; padding: 14px; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase;" onclick="location.href='index.html'">¡Nos vemos en la barbería!</button>
+        </div>
+    </div>
+
+    <div id="modal-vip-correo" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+        <div class="modal-content-animated" style="background: var(--panel-dark, #151515); padding: 30px; border-radius: 8px; border: 1px solid #ffb700; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(255, 183, 0, 0.1);">
+            <h2 style="color: #ffb700; margin-bottom: 15px; text-transform: uppercase;">Acceso VIP</h2>
+            <p style="color: #aaa; margin-bottom: 20px; font-size: 0.95rem;">Ingresa el correo electrónico con el que agendaste tus cortes anteriores.</p>
+            <input type="email" id="vip-email-input" class="inputs-urban" placeholder="Tu Correo Electrónico" style="margin-bottom: 20px; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-urban" style="background: #333; width: 50%; color: white; border: 1px solid #555;" onclick="cerrarModalVip()">Cancelar</button>
+                <button class="btn-urban" style="background: #ffb700; width: 50%; color: black; font-weight: bold;" onclick="procesarVerificacionVIP()">Verificar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-vip-estado" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+        <div class="modal-content-animated" style="background: var(--panel-dark, #151515); padding: 30px; border-radius: 8px; border: 1px solid var(--red-brand, #d30000); text-align: center; max-width: 400px; width: 90%;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">✂️</div>
+            <h2 style="color: white; margin-bottom: 15px; text-transform: uppercase;">Progreso VIP</h2>
+            <p id="vip-estado-texto" style="color: #aaa; margin-bottom: 15px; font-size: 1.05rem; line-height: 1.5;"></p>
+            <div style="background: #222; border-radius: 20px; width: 100%; height: 15px; margin-bottom: 25px; overflow: hidden; border: 1px solid #444; position: relative;">
+                <div id="vip-progress-bar" style="background: var(--red-brand, #d30000); height: 100%; width: 0%; transition: width 1s ease-out;"></div>
+            </div>
+            <button class="btn-urban" style="width: 100%; background: #333; border: 1px solid #555;" onclick="cerrarModalEstadoVip()">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const bId = parseInt(urlParams.get('b')) || 1;
+
+        // DICCIONARIO ACTUALIZADO CON RUTAS DE IMÁGENES
+        const perfiles = {
+            1: { nombre: "Parce Barber", rol: "Jefe Barber", historia: "El creador de la marca. Con más de 10 años de experiencia en la calle, Parce domina el fade perfecto, los diseños milimétricos y la atención VIP.", telefono: "56950610831", imagen: "img/parce.jpg" },
+            2: { nombre: "Jesús Peña", rol: "Especialista Clásico", historia: "Jesús mezcla la vieja escuela con las nuevas tendencias. Maestro indiscutible del perfilado de barbas.", telefono: "56992159446", imagen: "img/jesus.jpg" },
+            3: { nombre: "Yuseth Priik", rol: "Especialista en Color", historia: "Especialista en colorimetría, platinados, tintes urbanos y cortes modernos con mucha textura.", telefono: "56999247218", imagen: "img/yuseth.jpg" }
+        };
+        const perfilActual = perfiles[bId] || perfiles[1];
+
+if (!perfiles[bId]) {
+    window.location.replace('index.html');
+}
+
+        // LOGICA PARA ASIGNAR LA FOTO DE PERFIL
+        const imgElement = document.getElementById('p-imagen');
+        if (perfilActual.imagen) {
+            imgElement.src = perfilActual.imagen;
+            imgElement.style.display = 'block';
+        }
+
+        // CARGA DE TEXTOS
+        document.getElementById('p-nombre').innerText = perfilActual.nombre;
+        document.getElementById('p-nombre-agenda').innerText = perfilActual.nombre;
+        document.getElementById('p-rol').innerText = perfilActual.rol;
+        document.getElementById('p-historia').innerText = perfilActual.historia;
+
+        // LÓGICA WHATSAPP
+        const mensajeAmigable = `Hola ${perfilActual.nombre}, vengo desde la página web y tengo una consulta.`;
+        document.getElementById('btn-whatsapp').href = `https://wa.me/${perfilActual.telefono}?text=${encodeURIComponent(mensajeAmigable)}`;
+
+        if (bId === 1) document.getElementById('seccion-vip').style.display = 'block';
+        
+        // SERVICIOS EXCLUSIVOS PARCE (ID 1)
+        if (bId === 1) {
+            const selectServicio = document.getElementById('d-servicio');
+            
+            const optVisos = document.createElement('option');
+            optVisos.value = "Tintura de pelo (visos)";
+            optVisos.text = "Tintura (visos) + Corte, cejas, barba y diseño (Toma 4 horas - $50.000)"; 
+            
+            const optGlobal = document.createElement('option');
+            optGlobal.value = "Tintura de pelo (global)";
+            optGlobal.text = "Tintura (global) + Corte, cejas, barba y diseño (Toma 4 horas - $50.000)";
+            
+            selectServicio.appendChild(optVisos);
+            selectServicio.appendChild(optGlobal);
+        }
+
+        // SERVICIOS EXCLUSIVOS JESÚS PEÑA (ID 2)
+        if (bId === 2) {
+            const selectServicio = document.getElementById('d-servicio');
+            
+            const optRulos = document.createElement('option');
+            optRulos.value = "Rulos permanentes";
+            optRulos.text = "Rulos permanentes (Toma 4 horas - $40.000)"; 
+            
+            const optOndulado = document.createElement('option');
+            optOndulado.value = "Ondulado permanente";
+            optOndulado.text = "Ondulado permanente (Toma 4 horas - $40.000)";
+            
+            selectServicio.appendChild(optRulos);
+            selectServicio.appendChild(optOndulado);
+        }
+
+        // ==========================================
+        // LÓGICA DEL CALENDARIO INTERACTIVO
+        // ==========================================
+        let fechaActual = new Date();
+        let currentMonth = fechaActual.getMonth();
+        let currentYear = fechaActual.getFullYear();
+        let selectedDateStr = null;
+
+        const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const gridDias = document.getElementById("calendar-days");
+        const txtMesAnio = document.getElementById("month-year");
+        
+        function renderCalendar(month, year) {
+            gridDias.innerHTML = "";
+            txtMesAnio.innerText = `${meses[month]} ${year}`;
+
+            let primerDia = new Date(year, month, 1).getDay(); 
+            let diasEnMes = new Date(year, month + 1, 0).getDate(); 
+            let hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            for (let i = 0; i < primerDia; i++) {
+                let emptyDiv = document.createElement("div");
+                gridDias.appendChild(emptyDiv);
+            }
+
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                let fechaIteracion = new Date(year, month, dia);
+                let divDia = document.createElement("div");
+                divDia.innerText = dia;
+                divDia.classList.add("cal-day");
+
+                let diaStr = `${year}-${String(month+1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+
+                if (fechaIteracion < hoy) {
+                    divDia.classList.add("disabled-day");
+                } else {
+                    divDia.addEventListener("click", () => selectDate(divDia, diaStr));
+                    if(selectedDateStr === diaStr) {
+                        divDia.classList.add("active-day");
+                    }
+                }
+                gridDias.appendChild(divDia);
+            }
+        }
+
+        document.getElementById("prev-month").addEventListener("click", () => {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar(currentMonth, currentYear);
+        });
+
+        document.getElementById("next-month").addEventListener("click", () => {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar(currentMonth, currentYear);
+        });
+
+        function selectDate(elementoDOM, fechaStr) {
+            document.querySelectorAll(".cal-day").forEach(el => el.classList.remove("active-day"));
+            if(elementoDOM) elementoDOM.classList.add("active-day");
+
+            selectedDateStr = fechaStr;
+            document.getElementById("d-fecha").value = fechaStr; 
+            document.getElementById("d-hora").value = ""; 
+            
+            let partes = fechaStr.split("-");
+            let textoAmigable = `${parseInt(partes[2])} de ${meses[parseInt(partes[1])-1]}`;
+            
+            document.getElementById("dia-seleccionado-txt").innerText = textoAmigable;
+            document.getElementById("horas-container").style.display = "block";
+
+            cargarHorasDisponiblesPorFecha(fechaStr);
+        }
+
+        async function cargarHorasDisponiblesPorFecha(fecha) {
+            const gridHoras = document.getElementById("horas-grid");
+            const btnNext = document.getElementById("sin-horas-box");
+            gridHoras.innerHTML = "<p style='grid-column: span 3; color:gray;'>Buscando...</p>";
+            btnNext.style.display = "none";
+
+            try {
+                const res = await fetch('/api/horarios-publicos/' + bId + '?fecha=' + fecha);
+                const data = await res.json();
+                
+                gridHoras.innerHTML = "";
+                let horasLibresContador = 0;
+
+                if (data.success && data.horarios && data.horarios.length > 0) {
+                    data.horarios.forEach(item => {
+                        let divHora = document.createElement("div");
+                        
+                        // Detectar si 'item' es un texto ("10:00") o un objeto ({ hora: "10:00", ocupada: true })
+                        let horaTexto = typeof item === 'object' ? item.hora : item;
+                        
+                        // Determinar si la hora está ocupada
+                        let estaOcupada = false;
+                        if (typeof item === 'object') {
+                            estaOcupada = item.ocupada || item.disponible === false;
+                        } else if (data.ocupadas && Array.isArray(data.ocupadas)) {
+                            estaOcupada = data.ocupadas.includes(horaTexto);
+                        }
+
+                        divHora.innerText = horaTexto;
+                        divHora.classList.add("hora-slot");
+
+                        if (estaOcupada) {
+                            divHora.classList.add("hora-ocupada");
+                            divHora.title = "Esta hora ya se encuentra reservada";
+                        } else {
+                            divHora.classList.add("hora-libre");
+                            horasLibresContador++;
+
+                            divHora.addEventListener("click", () => {
+                                document.querySelectorAll(".hora-libre").forEach(el => el.classList.remove("hora-seleccionada"));
+                                divHora.classList.add("hora-seleccionada");
+                                document.getElementById("d-hora").value = horaTexto; 
+                            });
+                        }
+
+                        gridHoras.appendChild(divHora);
+                    });
+                }
+
+                // Si no hay ninguna hora libre disponible en el día, mostrar botón para buscar siguiente fecha
+                if (horasLibresContador === 0) {
+                    btnNext.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error al cargar horas", error);
+                gridHoras.innerHTML = "<p style='color:red;'>Error de conexión.</p>";
+            }
+        }
+
+        document.getElementById("btn-next-free").addEventListener("click", () => {
+            let fechaBuscando = new Date(selectedDateStr + "T00:00:00");
+            fechaBuscando.setDate(fechaBuscando.getDate() + 1);
+            
+            currentMonth = fechaBuscando.getMonth();
+            currentYear = fechaBuscando.getFullYear();
+            renderCalendar(currentMonth, currentYear);
+            
+            let nextDiaStr = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(fechaBuscando.getDate()).padStart(2, '0')}`;
+            
+            setTimeout(() => {
+                let diasDOM = document.querySelectorAll(".cal-day:not(.disabled-day)");
+                let diaEncontrado = Array.from(diasDOM).find(d => d.innerText == fechaBuscando.getDate());
+                if(diaEncontrado) selectDate(diaEncontrado, nextDiaStr);
+            }, 50); 
+        });
+
+        renderCalendar(currentMonth, currentYear);
+
+        // ==========================================
+        // LÓGICA DE AGENDAMIENTO
+        // ==========================================
+        document.getElementById('form-directo').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if(!document.getElementById('d-fecha').value) {
+                alert("Por favor selecciona un día en el calendario.");
+                return;
+            }
+            if(!document.getElementById('d-hora').value) {
+                alert("Por favor selecciona una hora disponible para tu cita.");
+                return;
+            }
+
+            const data = {
+                barberoId: bId,
+                servicio: document.getElementById('d-servicio').value,
+                fecha: document.getElementById('d-fecha').value, 
+                hora: document.getElementById('d-hora').value,   
+                cliente: document.getElementById('d-nombre').value,
+                telefono: document.getElementById('d-telefono').value,
+                email: document.getElementById('d-email').value
+            };
+            
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.innerText = "Confirmando...";
+            btnSubmit.disabled = true;
+
+            try {
+                const response = await fetch('/api/agenda-directa', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const res = await response.json();
+                
+                if(res.success) {
+                    document.getElementById('detalles-exito').innerHTML = `
+                        <strong>Especialista:</strong> ${perfilActual.nombre}<br>
+                        <strong>Servicio:</strong> ${data.servicio}<br>
+                        <strong>Fecha:</strong> ${data.fecha}<br>
+                        <strong>Hora:</strong> <span style="color:#ffb700; font-weight:900; font-size:1.3rem;">${data.hora}</span>
+                    `;
+                    document.getElementById('modal-exito').style.display = 'flex';
+                } else {
+                    alert("❌ " + res.message); 
+                    btnSubmit.innerText = "Confirmar Mi Hora";
+                    btnSubmit.disabled = false;
+                }
+            } catch(error) {
+                alert("Hubo un error de conexión. Intenta de nuevo.");
+                btnSubmit.innerText = "Confirmar Mi Hora";
+                btnSubmit.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // LÓGICA VIP
+        // ==========================================
+        function abrirModalVip() {
+            document.getElementById('vip-email-input').value = '';
+            document.getElementById('modal-vip-correo').style.display = 'flex';
+        }
+
+        function cerrarModalVip() {
+            document.getElementById('modal-vip-correo').style.display = 'none';
+        }
+
+        function cerrarModalEstadoVip() {
+            document.getElementById('modal-vip-estado').style.display = 'none';
+        }
+
+        function procesarVerificacionVIP() {
+            const input = document.getElementById('vip-email-input');
+            const mail = input.value.trim();
+            
+            if(!mail || !mail.includes('@')) {
+                input.style.border = "1px solid red";
+                input.placeholder = "¡Ingresa un correo válido!";
+                return;
+            }
+            
+            input.style.border = ""; 
+            cerrarModalVip();
+
+            fetch('/api/admin/datos').then(r => r.json()).then(db => {
+                const cortes = db.clientesCortes[mail] || 0;
+                if(cortes >= 30) {
+                    location.href = `tarjeta-vip.html?user=${mail}`;
+                } else {
+                    const faltan = 30 - cortes;
+                    const porcentaje = Math.min((cortes / 30) * 100, 100);
+                    
+                    document.getElementById('vip-estado-texto').innerHTML = `Llevas <strong style="color: white; font-size: 1.2rem;">${cortes}</strong> cortes. Te faltan <strong>${faltan}</strong> para desbloquear tu raspe promocional.`;
+                    document.getElementById('modal-vip-estado').style.display = 'flex';
+                    
+                    setTimeout(() => {
+                        document.getElementById('vip-progress-bar').style.width = `${porcentaje}%`;
+                    }, 100);
+                }
+            }).catch(e => {
+                console.error("Error al verificar VIP", e);
+            });
+        }
+    </script>
+</body>
+</html>

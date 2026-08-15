@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARCE BARBER | Mis Citas</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .cita-card { background: #151515; border-left: 4px solid var(--red-brand); padding: 20px; margin-bottom: 15px; border-radius: 8px; text-align: left; }
+        .cita-card h3 { margin: 0 0 10px 0; color: #fff; }
+        .cita-card p { margin: 5px 0; color: #ccc; }
+        .btn-gold { background: #ffb700; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-red { background: var(--red-brand); color: #fff; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+    </style>
+</head>
+<body style="background: #0a0a0a; color: white; font-family: 'Montserrat', sans-serif; text-align: center; padding: 40px 20px;">
+
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">GESTIONAR <span class="red">MI HORA</span></h1>
+    <p style="color: var(--grey-text); margin-bottom: 30px;">Ingresa tu correo para ver, modificar o cancelar tus próximas citas.</p>
+
+    <!-- Buscador de citas -->
+    <div style="max-width: 400px; margin: 0 auto 40px auto;">
+        <input type="email" id="buscar-email" placeholder="Tu correo electrónico" class="inputs-urban" style="margin-bottom: 15px;">
+        <button class="btn-urban" style="width: 100%;" onclick="buscarCitas()">Buscar Mis Citas</button>
+    </div>
+
+    <!-- Contenedor donde aparecerán las citas -->
+    <div id="lista-citas" style="max-width: 500px; margin: 0 auto;"></div>
+
+    <div style="margin-top: 40px;">
+        <a href="index.html" style="color: var(--grey-text); text-decoration: none;">← Volver al Inicio</a>
+    </div>
+
+    <!-- MODAL PARA REPROGRAMAR LA CITA -->
+    <div id="modal-modificar" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:var(--panel-dark, #151515); padding:30px; border-radius:8px; border:1px solid #ffb700; text-align:left; max-width:400px; width: 90%;">
+            <h2 style="color: #ffb700; text-align: center; margin-bottom: 20px;">Reprogramar Cita</h2>
+            
+            <input type="hidden" id="mod-id-cita">
+            
+            <label style="color: var(--grey-text); font-size: 0.9rem;">Nuevo Barbero:</label>
+            <select id="mod-barbero" class="inputs-urban" style="margin-bottom: 15px;">
+                <option value="1">Parce Barber (Jefe)</option>
+                <option value="2">Jesús Peña</option>
+                <option value="3">Yuseth Priik</option>
+            </select>
+
+            <label style="color: var(--grey-text); font-size: 0.9rem;">Nueva Fecha:</label>
+            <input type="date" id="mod-fecha" class="inputs-urban" style="margin-bottom: 15px;" required>
+
+            <label style="color: var(--grey-text); font-size: 0.9rem;">Nueva Hora:</label>
+            <select id="mod-hora" class="inputs-urban" style="margin-bottom: 25px;">
+                <option value="10:00">10:00</option><option value="11:00">11:00</option>
+                <option value="12:00">12:00</option><option value="13:00">13:00</option>
+                <option value="14:00">14:00</option><option value="15:00">15:00</option>
+                <option value="16:00">16:00</option><option value="17:00">17:00</option>
+                <option value="18:00">18:00</option><option value="19:00">19:00</option>
+            </select>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-gold" style="flex: 1;" onclick="guardarCambios()">Guardar</button>
+                <button class="btn-urban" style="flex: 1; background: #333;" onclick="cerrarModal()">Atrás</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT DIRECTA EN LA PÁGINA -->
+    <script>
+        // Restringir el calendario para que no elijan fechas pasadas
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('mod-fecha').setAttribute('min', hoy);
+
+        const perfiles = { 1: "Parce Barber", 2: "Jesús Peña", 3: "Yuseth Priik", 4: "Barbero no disponible" };
+
+        // Función 1: Buscar citas por correo
+        async function buscarCitas() {
+            const email = document.getElementById('buscar-email').value;
+            if(!email) return alert("Por favor ingresa tu correo.");
+
+            const response = await fetch('/api/mis-citas/' + email);
+            const data = await response.json();
+            const contenedor = document.getElementById('lista-citas');
+            contenedor.innerHTML = '';
+
+            if (data.citas.length === 0) {
+                contenedor.innerHTML = '<p style="color:#aaa;">No tienes citas agendadas con este correo.</p>';
+                return;
+            }
+
+            data.citas.forEach(cita => {
+                contenedor.innerHTML += `
+                    <div class="cita-card">
+                        <h3 class="red">${cita.servicio}</h3>
+                        <p><strong>Especialista:</strong> ${perfiles[cita.barberoId]}</p>
+                        <p><strong>Fecha:</strong> ${cita.fecha}</p>
+                        <p><strong>Hora:</strong> <span style="color:#ffb700; font-size:1.1rem; font-weight:bold;">${cita.hora}</span></p>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-gold" onclick="abrirModalModificar(${cita.id}, ${cita.barberoId}, '${cita.fecha}', '${cita.hora}')">Cambiar</button>
+                            <button class="btn-red" onclick="cancelarCita(${cita.id})">Cancelar</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Función 2: Cancelar cita
+        async function cancelarCita(id) {
+
+    if (!confirm("¿Estás seguro de que deseas cancelar esta hora?")) {
+        return;
+    }
+
+    const email = document
+        .getElementById('buscar-email')
+        .value
+        .trim();
+
+    if (!email) {
+        alert("No se encontró el correo del cliente.");
+        return;
+    }
+
+    const res = await fetch('/api/cancelar-cita', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            idCita: id,
+            email: email
+        })
+    });
+
+    const data = await res.json();
+
+    alert(data.message);
+
+    if (data.success) {
+        buscarCitas();
+    }
+}
+
+        // Función 3: Abrir menú de modificación
+        function abrirModalModificar(id, barberoId, fecha, hora) {
+            document.getElementById('mod-id-cita').value = id;
+            document.getElementById('mod-barbero').value = barberoId;
+            document.getElementById('mod-fecha').value = fecha;
+            document.getElementById('mod-hora').value = hora;
+            document.getElementById('modal-modificar').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-modificar').style.display = 'none';
+        }
+
+        // Función 4: Enviar los nuevos datos al servidor
+       async function guardarCambios() {
+
+    const email = document
+        .getElementById('buscar-email')
+        .value
+        .trim();
+
+    const data = {
+        idCita: parseInt(
+            document.getElementById('mod-id-cita').value
+        ),
+        nuevoBarberoId:
+            document.getElementById('mod-barbero').value,
+        nuevaFecha:
+            document.getElementById('mod-fecha').value,
+        nuevaHora:
+            document.getElementById('mod-hora').value,
+        email: email
+    };
+
+
+    if (!email) {
+        return alert(
+            "No se encontró el correo del cliente."
+        );
+    }
+
+
+    if (!data.nuevaFecha) {
+        return alert(
+            "Por favor elige una fecha."
+        );
+    }
+
+
+    const res = await fetch(
+        '/api/modificar-cita',
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+    );
+
+
+    const resultado = await res.json();
+
+
+    if (resultado.success) {
+
+        alert(
+            resultado.message +
+            " Te hemos enviado un correo con la nueva información."
+        );
+
+        cerrarModal();
+        buscarCitas();
+
+    } else {
+
+        alert(
+            "❌ " + resultado.message
+        );
+    }
+}
+    </script>
+</body>
+</html>

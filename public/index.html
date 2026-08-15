@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARCE BARBER | Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- BOTÓN MENÚ -->
+<button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú">
+    ☰
+</button>
+
+<!-- FONDO OSCURO AL ABRIR -->
+<div id="menu-overlay" class="menu-overlay"></div>
+
+<!-- MENÚ LATERAL -->
+<aside id="main-sidebar" class="main-sidebar">
+
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <span>PARCE</span>
+            <strong>BARBER</strong>
+        </div>
+
+        <button id="menu-close" class="menu-close" aria-label="Cerrar menú">
+            ×
+        </button>
+    </div>
+
+    <div class="sidebar-content">
+
+        <a href="index.html" class="sidebar-link">
+            <span>🏠</span>
+            <span>Inicio</span>
+        </a>
+
+        <div class="sidebar-title">
+            CLIENTES
+        </div>
+
+        <a href="#reserva-manual" class="sidebar-link">
+            <span>✂️</span>
+            <span>Agendar cita</span>
+        </a>
+
+        <a href="mis-citas.html" class="sidebar-link">
+            <span>📅</span>
+            <span>Mis horas</span>
+        </a>
+
+        <div class="sidebar-separator"></div>
+
+        <div class="sidebar-title">
+            BARBEROS
+        </div>
+
+        <a href="barbero.html" class="sidebar-link">
+            <span>💈</span>
+            <span>Panel del barbero</span>
+        </a>
+
+    </div>
+
+    <div class="sidebar-footer">
+        PARCE BARBER
+        <small>Estilo callejero & alta barbería</small>
+    </div>
+
+</aside>
+
+    <section class="hero">
+        <h1>PARCE <span class="red">BARBER</span></h1>
+        <p>Estilo Callejero & Alta Barbería</p>
+        
+        <div class="quick-box">
+            <p style="font-size:0.85rem; color:var(--grey-text); margin-bottom:15px;">
+                ⚠️ Al presionar Agendado Rápido, el sistema te asignará la hora libre más cercana con cualquier barbero disponible.
+            </p>
+            
+            <select id="q-servicio" class="inputs-urban" style="margin-bottom: 10px;">
+                <option value="">Cargando servicios...</option>
+            </select>
+
+            <input type="text" id="q-nombre" placeholder="Tu Nombre Completo" class="inputs-urban">
+            <input type="tel" id="q-telefono" placeholder="WhatsApp (Ej: +56912345678)" class="inputs-urban">
+            <input type="email" id="q-email" placeholder="Tu Correo Electrónico" class="inputs-urban">
+            <button class="btn-urban" style="width:100%;" id="btn-quick">Agendado Rápido</button>
+        </div>
+    </section>
+
+    <!-- NUEVO MODAL DE ADVERTENCIA CON DISEÑO -->
+    <div id="advertencia-modal" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:var(--panel-dark, #151515); padding:30px; border-radius:8px; border:1px solid #ffb700; text-align:center; max-width:400px; width: 90%; box-shadow: 0 10px 30px rgba(255, 183, 0, 0.1);">
+            <div style="font-size: 3rem; margin-bottom: 10px;">⚡</div>
+            <h2 style="color: white; margin-bottom: 10px; text-transform: uppercase;">Atención</h2>
+            <p style="color: #aaa; margin-bottom: 25px; font-size: 1rem; line-height: 1.5;">
+                El Agendado Rápido te asignará la hora más cercana con <strong style="color: white;">CUALQUIER</strong> barbero disponible. ¿Estás de acuerdo?
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="btn-aceptar-rapido" class="btn-urban" style="width: 100%; background: #4caf50; color: white; border: none; font-weight: bold; padding: 12px;">✅ Sí, continuar</button>
+                <button id="btn-cancelar-rapido" class="btn-urban" style="width: 100%; background: #333; color: white; border: 1px solid var(--red-brand, #d30000); font-weight: bold; padding: 12px;">❌ No, quiero elegir mi barbero</button>
+            </div>
+        </div>
+    </div>
+    <!-- FIN NUEVO MODAL -->
+
+    <div id="quick-modal" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:var(--panel-dark, #151515); padding:30px; border-radius:8px; border:1px solid var(--red-brand, #d30000); text-align:center; max-width:400px; width: 90%;">
+            <h2 class="red">¡Cita Agendada!</h2>
+            <p id="modal-details" style="margin:20px 0; color: white; line-height: 1.6; font-size: 1.1rem;"></p>
+            <p style="color:#4caf50; font-size:0.9rem; margin-bottom:20px;">⚡ Detalles enviados a tu correo.</p>
+            <button class="btn-urban" onclick="document.getElementById('quick-modal').style.display='none'">Excelente</button>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE BARBEROS CON SUS IMÁGENES -->
+    <section id="reserva-manual" class="barber-section">
+        <h2>Elige a tu <span class="red">Especialista</span></h2>
+        <div class="grid-barberos">
+            <div class="barber-card" onclick="location.href='cliente.html?b=1'">
+                <div class="barber-img" style="background: url('img/parce.jpg') center/cover; border-radius: 50%;"></div>
+                <h3>Parce Barber</h3>
+                <p style="color:var(--red-brand)">Jefe Barber</p>
+            </div>
+            <div class="barber-card" onclick="location.href='cliente.html?b=2'">
+                <div class="barber-img" style="background: url('img/jesus.jpg') center/cover; border-radius: 50%;"></div>
+                <h3>Jesús Peña</h3>
+                <p style="color:var(--grey-text)">Especialista</p>
+            </div>
+            <div class="barber-card" onclick="location.href='cliente.html?b=3'">
+                <div class="barber-img" style="background: url('img/yuseth.jpg') center/cover; border-radius: 50%;"></div>
+                <h3>Yuseth Priik</h3>
+                <p style="color:var(--grey-text)">Especialista</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN EL BARRIO ACTUALIZADA CON FOTOS -->
+    <section style="padding: 60px 20px; background: #0f0f0f; text-align: center; border-top: 1px solid #222;">
+        <div style="max-width: 800px; margin: 0 auto 50px auto;">
+            <h2>NUESTRA <span class="red">HISTORIA</span></h2>
+            <p style="color: var(--grey-text); line-height: 1.6; margin-top: 20px; font-size: 1.1rem;">
+                Nacimos en la calle, inspirados por la cultura urbana. En PARCE BARBER no solo cortamos el pelo, creamos identidad. Cada uno de nuestros especialistas está capacitado para darte el mejor servicio en un ambiente lleno de buena música, estilo y profesionalismo puro.
+            </p>
+        </div>
+        
+        <h2>EL <span class="red">BARRIO</span> (NUESTRO LOCAL)</h2>
+        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px;">
+            <img src="img/barberia1.jpg" alt="Local Parce Barber 1" style="width: 300px; height: 200px; object-fit: cover; border: 1px solid var(--red-brand, #d30000); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <img src="img/barberia2.jpg" alt="Local Parce Barber 2" style="width: 300px; height: 200px; object-fit: cover; border: 1px solid var(--red-brand, #d30000); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <img src="img/barberia3.jpg" alt="Local Parce Barber 3" style="width: 300px; height: 200px; object-fit: cover; border: 1px solid var(--red-brand, #d30000); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+        </div>
+    </section>
+    <!-- FIN SECCIÓN EL BARRIO -->
+
+    <footer>
+        <p>Creado con estilo por 💻 <strong>Ederth</strong></p>
+        
+        <!-- REDES SOCIALES Y CONTACTO -->
+        <p style="margin-top:15px; margin-bottom: 10px;">
+            <a href="https://instagram.com/parce_barberoficial" target="_blank" style="color: var(--red-brand); text-decoration: none;">Instagram: @parce_barberoficial</a> | 
+            <a href="https://wa.me/56950610831" target="_blank" style="color: var(--red-brand); text-decoration: none;">WhatsApp: +56 9 5061 0831</a>
+        </p>
+
+        <!-- MAPA Y UBICACIÓN -->
+        <p style="margin-bottom: 15px;">
+            <a href="https://www.google.com/maps?q=Comercio+185,+San+Joaquín" target="_blank" style="color: white; font-weight: bold; text-decoration: none; display: inline-block; padding: 8px 15px; background: #222; border-radius: 4px; border: 1px solid var(--red-brand);">
+                📍 Ubicación: Comercio 185, San Joaquín
+            </a>
+        </p>
+
+        <div style="margin-top: 20px;">
+            <a href="mis-citas.html" style="color: var(--grey-text); text-decoration: none; font-size: 0.9rem;">Gestionar Mis Horas</a>
+        </div>
+    </footer>
+
+    <script>
+        // 1. CUANDO PRESIONAN EL BOTÓN PRINCIPAL
+        document.getElementById('btn-quick').addEventListener('click', (event) => {
+            event.preventDefault();
+
+            // Verificamos que llenaron los datos ANTES de mostrarles la advertencia
+            const nombre = document.getElementById('q-nombre').value;
+            const telefono = document.getElementById('q-telefono').value;
+            const email = document.getElementById('q-email').value;
+
+            if(!nombre || !telefono || !email) {
+                alert("Por favor, llena todos tus datos para buscarte una hora.");
+                return;
+            }
+
+            // Mostramos el modal de advertencia bonito
+            document.getElementById('advertencia-modal').style.display = 'flex';
+        });
+
+        // 2. SI EN EL MODAL ELIGEN "NO, QUIERO ELEGIR MI BARBERO"
+        document.getElementById('btn-cancelar-rapido').addEventListener('click', () => {
+            // Ocultamos el modal
+            document.getElementById('advertencia-modal').style.display = 'none';
+            
+            // Los mandamos hacia abajo
+            const seccionManual = document.getElementById('reserva-manual'); 
+            if(seccionManual) {
+                seccionManual.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // 3. SI EN EL MODAL ELIGEN "SÍ, CONTINUAR"
+        document.getElementById('btn-aceptar-rapido').addEventListener('click', async () => {
+            // Ocultamos el modal de advertencia
+            document.getElementById('advertencia-modal').style.display = 'none';
+            
+            // Cambiamos el texto del botón principal para que sepan que está cargando
+            const btn = document.getElementById('btn-quick');
+            btn.innerText = "Buscando la mejor hora...";
+            btn.disabled = true;
+
+            const servicio = document.getElementById('q-servicio').value;
+            const nombre = document.getElementById('q-nombre').value;
+            const telefono = document.getElementById('q-telefono').value;
+            const email = document.getElementById('q-email').value;
+
+            const data = { servicio, cliente: nombre, telefono, email };
+
+            try {
+                const response = await fetch('/api/agendado-rapido', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const res = await response.json();
+
+                if(res.success) {
+                    // Si encuentra hora, inyectamos los datos en tu modal de ÉXITO
+                    document.getElementById('modal-details').innerHTML = `
+                        <strong>Barbero Asignado:</strong> ${res.asignado.barbero} <br><br>
+                        <strong>Día:</strong> ${res.asignado.fecha} <br>
+                        <strong style="color:var(--red-brand, #d30000); font-size:1.4rem;">Hora: ${res.asignado.hora} hrs</strong>
+                    `;
+                    document.getElementById('quick-modal').style.display = 'flex';
+                    
+                    // Limpiamos las cajas de texto
+                    document.getElementById('q-nombre').value = '';
+                    document.getElementById('q-telefono').value = '';
+                    document.getElementById('q-email').value = '';
+                } else {
+                    alert("❌ " + res.message);
+                }
+            } catch (error) {
+                alert("Hubo un error de conexión.");
+            } finally {
+                // Devolvemos el botón a la normalidad
+                btn.innerText = "Agendado Rápido";
+                btn.disabled = false;
+            }
+        });
+    </script>
+    
+    <!-- WIDGET DE FEEDBACK FLOTANTE -->
+    <div id="feedback-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <div id="feedback-form" style="display: none; background: #151515; padding: 20px; border: 1px solid var(--red-brand); border-radius: 8px; width: 300px; margin-bottom: 15px; box-shadow: 0px 5px 15px rgba(0,0,0,0.5);">
+            <h3 style="color: white; margin-top: 0; font-size: 1.2rem;">¿Qué podemos mejorar? 🚀</h3>
+            <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 10px;">Tu opinión nos ayuda a crecer.</p>
+            <textarea id="feedback-text" class="inputs-urban" rows="4" placeholder="Escribe tu sugerencia aquí..." style="width: 100%; box-sizing: border-box; margin-bottom: 10px; resize: none;"></textarea>
+            <button onclick="enviarFeedback()" class="btn-urban" style="background: #4caf50; width: 100%; padding: 10px;">Enviar Sugerencia</button>
+        </div>
+        
+        <button onclick="toggleFeedback()" class="btn-urban" style="background: var(--red-brand); border-radius: 50%; width: 60px; height: 60px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; float: right; padding: 0; box-shadow: 0px 4px 10px rgba(0,0,0,0.5);">
+            💬
+        </button>
+    </div>
+
+    <script>
+        function toggleFeedback() {
+            const form = document.getElementById('feedback-form');
+            form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+        }
+
+        function enviarFeedback() {
+            const texto = document.getElementById('feedback-text').value;
+            if(texto.trim() === '') {
+                alert('¡Escribe algo antes de enviar!');
+                return;
+            }
+            // Aquí a futuro lo conectas con fetch() a tu base de datos
+            alert('¡Gracias por tu opinión! Lo tomaremos en cuenta.');
+            document.getElementById('feedback-text').value = '';
+            toggleFeedback();
+        }
+
+        // =======================================================
+        // NUEVO SCRIPT: CARGAR SERVICIOS DESDE LA BASE DE DATOS
+        // =======================================================
+        async function cargarServiciosDinamicos() {
+            try {
+                const response = await fetch('/api/servicios');
+                const data = await response.json();
+                
+                const selectServicio = document.getElementById('q-servicio');
+                selectServicio.innerHTML = ''; // Limpiamos el texto de "Cargando..."
+                
+                if (data.success && data.servicios.length > 0) {
+                    data.servicios.forEach(servicio => {
+                        const option = document.createElement('option');
+                        // Formateamos el precio para que tenga puntos (Ej: 12.000)
+                        const precioCLP = new Intl.NumberFormat('es-CL').format(servicio.precio);
+                        
+                        option.value = servicio.nombre; 
+                        option.textContent = `${servicio.nombre} ($${precioCLP})`;
+                        selectServicio.appendChild(option);
+                    });
+                } else {
+                    selectServicio.innerHTML = '<option value="">No hay servicios disponibles en este momento</option>';
+                }
+            } catch (error) {
+                console.error("Error al obtener los servicios:", error);
+                document.getElementById('q-servicio').innerHTML = '<option value="">Error de conexión</option>';
+            }
+        }
+
+        // Se ejecuta automáticamente al abrir la página
+        document.addEventListener('DOMContentLoaded', cargarServiciosDinamicos);
+    </script>
+
+    <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const menuClose = document.getElementById('menu-close');
+    const sidebar = document.getElementById('main-sidebar');
+    const overlay = document.getElementById('menu-overlay');
+
+    function abrirMenu() {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarMenu() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+
+        document.body.style.overflow = '';
+    }
+
+    menuToggle.addEventListener('click', abrirMenu);
+
+    menuClose.addEventListener('click', cerrarMenu);
+
+    overlay.addEventListener('click', cerrarMenu);
+
+
+    // Cerrar menú al hacer clic en una opción
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', cerrarMenu);
+    });
+
+
+    // Cerrar con la tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            cerrarMenu();
+        }
+    });
+</script>
+
+</body>
+</html>
