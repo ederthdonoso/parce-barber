@@ -641,3 +641,121 @@ footer a {
     }
 
 }
+
+@media (max-width: 768px) {
+
+    .panel-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        border-right: none;
+        border-bottom: 1px solid #222;
+        padding: 20px 15px;
+    }
+
+    .main-content {
+        padding: 20px 15px;
+    }
+}
+
+/* =====================================================
+   PANEL BARBERO - MENÚ RESPONSIVE
+===================================================== */
+
+.barbero-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 10001;
+
+    width: 48px;
+    height: 48px;
+
+    border: none;
+    border-radius: 6px;
+
+    background: #151515;
+    color: var(--red-brand);
+
+    font-size: 26px;
+    cursor: pointer;
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.barbero-menu-overlay {
+    display: none;
+}
+
+
+/* =====================================================
+   CELULAR Y TABLET
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .panel-container {
+        display: block;
+        min-height: 100vh;
+    }
+
+    .barbero-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .panel-container .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+
+        width: 280px;
+        max-width: 85vw;
+        height: 100vh;
+
+        box-sizing: border-box;
+
+        z-index: 10000;
+
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+
+        overflow-y: auto;
+
+        box-shadow: 8px 0 30px rgba(0,0,0,0.5);
+    }
+
+    .panel-container .sidebar.barbero-sidebar-open {
+        transform: translateX(0);
+    }
+
+    .barbero-menu-overlay {
+        display: block;
+
+        position: fixed;
+        inset: 0;
+
+        background: rgba(0,0,0,0.65);
+
+        z-index: 9999;
+
+        opacity: 0;
+        visibility: hidden;
+
+        transition: all 0.3s ease;
+    }
+
+    .barbero-menu-overlay.barbero-overlay-open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .panel-container .main-content {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 80px 15px 30px;
+    }
+}

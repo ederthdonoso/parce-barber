@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control | Barbero</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -86,6 +87,20 @@
     </div>
 
     <div id="panel-barbero" class="panel-container" style="display: none;">
+        <button
+    id="barbero-menu-toggle"
+    class="barbero-menu-toggle"
+    type="button"
+    aria-label="Abrir menú"
+    onclick="abrirMenuBarbero()">
+    ☰
+</button>
+
+<div
+    id="barbero-menu-overlay"
+    class="barbero-menu-overlay"
+    onclick="cerrarMenuBarbero()">
+</div>
         <div class="sidebar">
             <h2 class="red">Barber Pro</h2>
             <p style="color: var(--grey-text); margin-top: 10px;">Hola, <span id="nombre-barbero-activo" style="color:white; font-weight:bold;"></span></p>
@@ -340,6 +355,22 @@ async function bloquearHora() {
     });
     alert("Bloqueo de horario establecido con éxito.");
     cargarAgendaBarbero();
+}
+
+function abrirMenuBarbero() {
+    const sidebar = document.querySelector('#panel-barbero .sidebar');
+    const overlay = document.getElementById('barbero-menu-overlay');
+
+    sidebar.classList.add('barbero-sidebar-open');
+    overlay.classList.add('barbero-overlay-open');
+}
+
+function cerrarMenuBarbero() {
+    const sidebar = document.querySelector('#panel-barbero .sidebar');
+    const overlay = document.getElementById('barbero-menu-overlay');
+
+    sidebar.classList.remove('barbero-sidebar-open');
+    overlay.classList.remove('barbero-overlay-open');
 }
 </script>
 </body>
