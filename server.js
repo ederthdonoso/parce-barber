@@ -11,6 +11,13 @@ const nodemailer = require('nodemailer');
 const mysql = require('mysql2/promise');
 
 const app = express();
+
+app.use(
+    helmet({
+        contentSecurityPolicy: false
+    })
+);
+
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
