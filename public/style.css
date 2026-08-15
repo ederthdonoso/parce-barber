@@ -759,3 +759,378 @@ footer a {
         padding: 80px 15px 30px;
     }
 }
+/* =====================================================
+   DASHBOARD JEFE — CAPA UX/UI
+   Estos estilos solo se activan cuando existe el panel
+   administrativo (#tab-stats), para no afectar las demás páginas.
+===================================================== */
+
+body:has(#tab-stats) {
+    --boss-bg: #090909;
+    --boss-panel: #111111;
+    --boss-panel-2: #151515;
+    --boss-border: #252525;
+    --boss-muted: #858585;
+    --boss-green: #4caf50;
+    background:
+        radial-gradient(circle at 85% 0%, rgba(211, 0, 0, 0.08), transparent 30%),
+        var(--boss-bg);
+}
+
+body:has(#tab-stats) > div:first-child {
+    width: min(1440px, 100%);
+    max-width: 1440px !important;
+    min-height: 100vh;
+    padding: 28px clamp(16px, 3vw, 42px) 50px !important;
+}
+
+body:has(#tab-stats) > div:first-child > div:first-child {
+    position: relative;
+    margin-bottom: 28px !important;
+    padding: 20px 22px;
+    background: rgba(17, 17, 17, 0.88);
+    border: 1px solid var(--boss-border);
+    border-radius: 16px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+body:has(#tab-stats) > div:first-child > div:first-child h2 {
+    font-size: clamp(1.05rem, 2vw, 1.5rem);
+    line-height: 1.25;
+    letter-spacing: 1px;
+}
+
+body:has(#tab-stats) .tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 28px;
+    padding: 7px;
+    border: 1px solid var(--boss-border);
+    border-bottom: 1px solid var(--boss-border);
+    border-radius: 14px;
+    background: #0e0e0e;
+    overflow: visible;
+}
+
+body:has(#tab-stats) .tab-btn {
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #8f8f8f;
+    font-size: 0.82rem;
+    letter-spacing: 0.2px;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+body:has(#tab-stats) .tab-btn:hover {
+    color: #fff;
+    background: #191919;
+    transform: translateY(-1px);
+}
+
+body:has(#tab-stats) .tab-btn.active {
+    color: #fff;
+    background: linear-gradient(135deg, #d30000, #9e0000);
+    box-shadow: 0 7px 20px rgba(211, 0, 0, 0.22);
+}
+
+body:has(#tab-stats) .tab-content.active {
+    animation: bossFadeIn 0.25s ease;
+}
+
+@keyframes bossFadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tarjetas de estadísticas */
+body:has(#tab-stats) .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+body:has(#tab-stats) .stat-card {
+    position: relative;
+    min-height: 132px;
+    padding: 20px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #151515, #0f0f0f);
+    border: 1px solid var(--boss-border);
+    border-left: 3px solid var(--red-brand);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+body:has(#tab-stats) .stat-card::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    right: -45px;
+    bottom: -50px;
+    border-radius: 50%;
+    background: rgba(211, 0, 0, 0.08);
+    pointer-events: none;
+}
+
+body:has(#tab-stats) .stat-card h3 {
+    color: var(--boss-muted);
+    font-size: 0.68rem;
+    letter-spacing: 1.1px;
+}
+
+body:has(#tab-stats) .stat-card p {
+    position: relative;
+    z-index: 1;
+    margin-top: 14px !important;
+    font-size: clamp(1.35rem, 2.2vw, 2rem) !important;
+}
+
+/* Encabezados de secciones */
+body:has(#tab-stats) #tab-equipo > div:first-child,
+body:has(#tab-stats) #tab-servicios > div:first-child,
+body:has(#tab-stats) #tab-fotos > div:first-child {
+    padding: 18px 20px;
+    background: #111;
+    border: 1px solid var(--boss-border);
+    border-radius: 14px;
+}
+
+body:has(#tab-stats) #tab-equipo h3,
+body:has(#tab-stats) #tab-servicios h3,
+body:has(#tab-stats) #tab-agenda > h3,
+body:has(#tab-stats) #tab-fotos h3 {
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+}
+
+/* Botones del panel */
+body:has(#tab-stats) .btn-urban {
+    border-radius: 9px;
+    padding: 11px 16px;
+    box-shadow: none;
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+body:has(#tab-stats) .btn-urban:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Tablas */
+body:has(#tab-stats) .admin-table {
+    margin-top: 14px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    background: #111;
+    border: 1px solid var(--boss-border);
+    border-radius: 14px;
+}
+
+body:has(#tab-stats) .admin-table th {
+    padding: 13px 15px;
+    background: #171717;
+    color: #999;
+    border-bottom: 1px solid var(--boss-border);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+body:has(#tab-stats) .admin-table td {
+    padding: 14px 15px;
+    color: #eee;
+    border-bottom: 1px solid #202020;
+    font-size: 0.86rem;
+}
+
+body:has(#tab-stats) .admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+body:has(#tab-stats) .admin-table tbody tr {
+    transition: background 0.18s ease;
+}
+
+body:has(#tab-stats) .admin-table tbody tr:hover {
+    background: #181818;
+}
+
+/* Agenda */
+body:has(#tab-stats) #master-agenda {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px !important;
+    margin-top: 18px !important;
+}
+
+body:has(#tab-stats) #master-agenda > div {
+    min-width: 0;
+    padding: 16px 18px !important;
+    background: linear-gradient(145deg, #151515, #101010) !important;
+    border: 1px solid var(--boss-border);
+    border-left: 3px solid var(--red-brand) !important;
+    border-radius: 13px !important;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+body:has(#tab-stats) #master-agenda > div:hover {
+    transform: translateY(-2px);
+    border-color: #3a3a3a;
+}
+
+/* Fotos */
+body:has(#tab-stats) .foto-card {
+    width: min(100%, 330px);
+    padding: 14px;
+    background: #111;
+    border: 1px solid var(--boss-border);
+    border-radius: 14px;
+}
+
+body:has(#tab-stats) .foto-card img {
+    height: 190px;
+    border-color: #2c2c2c;
+}
+
+/* Inputs y formularios */
+body:has(#tab-stats) .inputs-urban {
+    min-height: 44px;
+    padding: 11px 13px;
+    background: #0d0d0d;
+    border-color: #292929;
+    border-radius: 9px;
+}
+
+body:has(#tab-stats) textarea.inputs-urban {
+    min-height: 90px;
+    resize: vertical;
+}
+
+body:has(#tab-stats) label {
+    display: block;
+    margin: 0 0 7px;
+    color: #bcbcbc;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+/* Modales */
+body:has(#tab-stats) .modal-overlay > div {
+    background: linear-gradient(145deg, #181818, #101010) !important;
+    border: 1px solid #2b2b2b !important;
+    border-radius: 16px !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Tablet */
+@media (max-width: 1050px) {
+    body:has(#tab-stats) .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body:has(#tab-stats) .tabs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    body:has(#tab-stats) #master-agenda {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Celular */
+@media (max-width: 680px) {
+    body:has(#tab-stats) > div:first-child {
+        padding: 14px 10px 30px !important;
+    }
+
+    body:has(#tab-stats) > div:first-child > div:first-child {
+        align-items: stretch !important;
+        padding: 16px;
+    }
+
+    body:has(#tab-stats) > div:first-child > div:first-child h2 {
+        max-width: 100%;
+    }
+
+    body:has(#tab-stats) > div:first-child > div:first-child .btn-urban {
+        width: 100%;
+    }
+
+    body:has(#tab-stats) .tabs {
+        grid-template-columns: 1fr 1fr;
+        position: sticky;
+        top: 8px;
+        z-index: 20;
+    }
+
+    body:has(#tab-stats) .tab-btn {
+        min-height: 44px;
+        font-size: 0.72rem;
+        padding: 8px 6px;
+    }
+
+    body:has(#tab-stats) .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    body:has(#tab-stats) .stat-card {
+        min-height: 112px;
+        padding: 15px;
+    }
+
+    body:has(#tab-stats) .stat-card h3 {
+        font-size: 0.58rem;
+    }
+
+    body:has(#tab-stats) .stat-card p {
+        font-size: 1.3rem !important;
+    }
+
+    body:has(#tab-stats) #tab-equipo > div:first-child,
+    body:has(#tab-stats) #tab-servicios > div:first-child,
+    body:has(#tab-stats) #tab-fotos > div:first-child {
+        align-items: stretch !important;
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    body:has(#tab-stats) #tab-equipo > div:first-child .btn-urban,
+    body:has(#tab-stats) #tab-servicios > div:first-child .btn-urban {
+        width: 100%;
+    }
+
+    body:has(#tab-stats) .admin-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    body:has(#tab-stats) .admin-table th,
+    body:has(#tab-stats) .admin-table td {
+        padding: 11px 12px;
+    }
+
+    body:has(#tab-stats) #master-agenda > div {
+        padding: 14px !important;
+    }
+
+    body:has(#tab-stats) .foto-card {
+        width: 100%;
+    }
+}
+
+@media (max-width: 390px) {
+    body:has(#tab-stats) .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body:has(#tab-stats) .tabs {
+        grid-template-columns: 1fr;
+    }
+}
