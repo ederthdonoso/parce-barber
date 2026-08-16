@@ -3,375 +3,1914 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control | Barbero</title>
+    <title>Parce Barber | Panel del Barbero</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        #login-screen {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0a0a0a;
-        }
-        .login-box {
-            background: var(--panel-dark);
-            padding: 40px;
-            border-radius: 8px;
-            border-top: 4px solid var(--red-brand);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
-        /* Estilos para la animación de la ventanita del perfil */
-        .modal-perfil {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); 
-            z-index: 9999; 
-            align-items: center; 
-            justify-content: center;
-            backdrop-filter: blur(3px);
-        }
-        .modal-content {
-            background: #1c1c1c; 
-            padding: 30px; 
-            border-radius: 12px; 
-            border-top: 4px solid #ff3b3b; 
-            text-align: center; 
-            width: 90%; 
-            max-width: 350px; 
-            position: relative;
-            box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
-        }
-        .btn-wsp {
-            display: block; 
-            background: #25D366; 
-            color: white; 
-            padding: 12px; 
-            text-decoration: none; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            font-size: 1rem;
-            margin-bottom: 10px;
-            transition: 0.2s;
-        }
-        .btn-wsp:hover { background: #1ebd5a; }
-        
-        .btn-correo {
-            display: block; 
-            background: #007bff; 
-            color: white; 
-            padding: 12px; 
-            text-decoration: none; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            font-size: 1rem;
-            transition: 0.2s;
-        }
-        .btn-correo:hover { background: #0062cc; }
-    </style>
 </head>
-<body>
+<body class="barbero-page">
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>Acceso <span class="red">Barberos</span></h2>
-            <p style="color:var(--grey-text); margin-bottom: 20px;">Ingresa tus credenciales</p>
-            <input type="text" id="login-user" class="inputs-urban" placeholder="Usuario (Ej: parce)">
-            <input type="password" id="login-pass" class="inputs-urban" placeholder="Contraseña">
-            <button class="btn-urban" style="width: 100%; margin-top: 10px;" onclick="iniciarSesion()">Entrar</button>
-            <p id="login-error" style="color: var(--red-brand); margin-top: 15px; display: none;">Credenciales incorrectas.</p>
+<div id="login-screen" class="barbero-login-screen">
+    <div class="barbero-login-glow"></div>
+
+    <div class="barbero-login-box">
+        <div class="barbero-brand-mark">✂</div>
+
+        <div class="barbero-eyebrow">
+            PARCE BARBER
         </div>
-    </div>
 
-    <div id="panel-barbero" class="panel-container" style="display: none;">
+        <h1>
+            Panel de <span class="red">Barbero</span>
+        </h1>
+
+        <p class="barbero-login-copy">
+            Ingresa con tus credenciales para gestionar tu agenda y disponibilidad.
+        </p>
+
+        <label for="login-user">
+            Usuario
+        </label>
+
+        <input
+            type="text"
+            id="login-user"
+            class="inputs-urban"
+            placeholder="Ej: parce"
+            autocomplete="username"
+        >
+
+        <label for="login-pass">
+            Contraseña
+        </label>
+
+        <input
+            type="password"
+            id="login-pass"
+            class="inputs-urban"
+            placeholder="Tu contraseña"
+            autocomplete="current-password"
+        >
+
         <button
-    id="barbero-menu-toggle"
-    class="barbero-menu-toggle"
-    type="button"
-    aria-label="Abrir menú"
-    onclick="abrirMenuBarbero()">
-    ☰
-</button>
+            class="btn-urban barbero-primary-btn"
+            onclick="iniciarSesion()"
+        >
+            Entrar al panel
+            <span>→</span>
+        </button>
+
+        <p id="login-error" class="barbero-login-error"></p>
+    </div>
+</div>
+
 
 <div
-    id="barbero-menu-overlay"
-    class="barbero-menu-overlay"
-    onclick="cerrarMenuBarbero()">
-</div>
-        <div class="sidebar">
-            <h2 class="red">Barber Pro</h2>
-            <p style="color: var(--grey-text); margin-top: 10px;">Hola, <span id="nombre-barbero-activo" style="color:white; font-weight:bold;"></span></p>
-            <a id="btn-panel-jefe" href="/jefe.html" class="btn-urban" style="display: none; background: #ffb700; color: black; margin-top: 12px; width: 100%; text-align: center; box-sizing: border-box;">
-    👑 Panel del jefe
-</a>
-            <button class="btn-urban" style="background:#333; margin-top:30px; width:100%; padding: 10px;" onclick="location.reload()">Cerrar Sesión</button>
-        </div>
-        
-        <div class="main-content">
-            <h2>Gestión de <span class="red">Mis Horas</span></h2>
-            <br>
+    id="panel-barbero"
+    class="barbero-dashboard"
+    style="display:none;"
+>
 
-            <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 30px;">
-                <h3 style="color: #ffb700; margin-bottom: 5px;">⌚ Mi Disponibilidad de Horas</h3>
-                <p style="color:var(--grey-text); font-size: 0.9rem; margin-bottom: 15px;">Escribe tus horas disponibles separadas por coma. Los clientes solo verán estas opciones.</p>
-                <div style="display:flex; gap:10px; flex-wrap: wrap;">
-                    <input type="text" id="b-mis-horarios" class="inputs-urban" style="flex-grow: 1; min-width: 250px;" placeholder="Ej: 10:00, 10:30, 11:00, 12:00, 13:30...">
-                    <button class="btn-urban" style="background: #4caf50; color: white; border: none;" onclick="guardarMisHorarios()">Guardar Horarios</button>
+    <!-- MENÚ MOBILE -->
+
+    <button
+        id="barbero-menu-toggle"
+        class="barbero-menu-toggle"
+        type="button"
+        aria-label="Abrir menú"
+        onclick="abrirMenuBarbero()"
+    >
+        ☰
+    </button>
+
+    <div
+        id="barbero-menu-overlay"
+        class="barbero-menu-overlay"
+        onclick="cerrarMenuBarbero()"
+    ></div>
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="barbero-sidebar">
+
+        <div class="barbero-sidebar-top">
+
+            <div class="barbero-logo">
+
+                <span class="barbero-logo-mark">
+                    ✂
+                </span>
+
+                <span>
+                    PARCE <strong>BARBER</strong>
+                </span>
+
+            </div>
+
+
+            <div class="barbero-user-card">
+
+                <div
+                    class="barbero-avatar"
+                    id="avatar-barbero"
+                >
+                    B
                 </div>
-            </div>
-            
-            <h3>Próximas Citas</h3>
-            <div id="lista-citas" style="margin-top:20px;"></div>
-            
-            <br><hr style="border-color:#222;"><br>
-            
-            <h3>Bloquear Bloque de Hora (Descanso/Inasistencia)</h3>
-            <div style="display:flex; gap:10px; margin-top:15px; flex-wrap: wrap;">
-                <input type="date" id="b-fecha" class="inputs-urban" style="width: auto;">
-                <input type="time" id="b-hora" class="inputs-urban" value="13:00" style="width: auto;">
-                <button class="btn-urban" onclick="bloquearHora()">Bloquear Slot</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- MODAL PERFIL DEL CLIENTE -->
-    <div id="modal-perfil" class="modal-perfil">
-        <div class="modal-content">
-            <button onclick="cerrarPerfilCliente()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer;">&times;</button>
-            
-            <h2 style="margin-bottom: 5px; margin-top: 10px; color: white;" id="perfil-nombre">Nombre Cliente</h2>
-            <p style="color: #aaa; margin-bottom: 20px;">Este cliente lleva <strong style="color:#ffb700;"><span id="perfil-cortes">0</span> cortes</strong>.</p>
-            
+                <div class="barbero-user-copy">
+
+                    <strong id="nombre-barbero-activo">
+                        Barbero
+                    </strong>
+
+                    <span>
+                        <i></i>
+                        Sesión activa
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- NAVEGACIÓN -->
+
+        <nav class="barbero-nav">
+
+            <p class="barbero-nav-label">
+                MENÚ
+            </p>
+
+
+            <a
+                href="#inicio"
+                class="barbero-nav-item active"
+                onclick="cerrarMenuBarbero()"
+            >
+                <span class="barbero-nav-icon">
+                    ▦
+                </span>
+
+                Resumen
+            </a>
+
+
+            <a
+                href="#agenda"
+                class="barbero-nav-item"
+                onclick="cerrarMenuBarbero()"
+            >
+                <span class="barbero-nav-icon">
+                    ◷
+                </span>
+
+                Mi agenda
+            </a>
+
+
+            <a
+                href="#disponibilidad"
+                class="barbero-nav-item"
+                onclick="cerrarMenuBarbero()"
+            >
+                <span class="barbero-nav-icon">
+                    ✓
+                </span>
+
+                Disponibilidad
+            </a>
+
+
+            <a
+                href="#bloqueos"
+                class="barbero-nav-item"
+                onclick="cerrarMenuBarbero()"
+            >
+                <span class="barbero-nav-icon">
+                    ⊘
+                </span>
+
+                Bloquear horario
+            </a>
+
+
+            <p class="barbero-nav-label barbero-nav-label-secondary">
+                SISTEMA
+            </p>
+
+
+            <a
+                id="btn-panel-jefe"
+                href="/jefe.html"
+                class="barbero-nav-item barbero-boss-link"
+                style="display:none;"
+            >
+                <span class="barbero-nav-icon">
+                    ♛
+                </span>
+
+                Panel del jefe
+            </a>
+
+        </nav>
+
+
+        <!-- FOOTER SIDEBAR -->
+
+        <div class="barbero-sidebar-footer">
+
+            <div class="barbero-footer-brand">
+                PARCE BARBER
+            </div>
+
+            <small>
+                Gestión profesional de agenda
+            </small>
+
+            <button
+                class="barbero-logout-btn"
+                onclick="cerrarSesionBarbero()"
+            >
+                Cerrar sesión
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- CONTENIDO -->
+
+    <main class="barbero-main-content">
+
+
+        <!-- HEADER -->
+
+        <section
+            id="inicio"
+            class="barbero-topbar"
+        >
+
             <div>
-                <a id="btn-whatsapp" href="#" target="_blank" class="btn-wsp">💬 Hablar por WhatsApp</a>
-                <a id="btn-correo" href="#" class="btn-correo">✉️ Enviar Correo</a>
+
+                <div class="barbero-section-kicker">
+                    PANEL DE CONTROL
+                </div>
+
+                <h2>
+                    Hola,
+                    <span
+                        class="red"
+                        id="titulo-barbero"
+                    >
+                        Barbero
+                    </span>
+                    👋
+                </h2>
+
+                <p class="barbero-subtitle">
+                    Aquí tienes el resumen de tu agenda y disponibilidad.
+                </p>
+
             </div>
+
+
+            <div class="barbero-topbar-date">
+
+                <span>
+                    HOY
+                </span>
+
+                <strong id="fecha-hoy">
+                    —
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- ESTADÍSTICAS -->
+
+        <section
+            class="barbero-stats-grid"
+            aria-label="Resumen de agenda"
+        >
+
+            <article class="barbero-stat-card">
+
+                <div class="barbero-stat-icon">
+                    ◷
+                </div>
+
+                <div>
+
+                    <span>
+                        CITAS
+                    </span>
+
+                    <strong id="stat-citas">
+                        0
+                    </strong>
+
+                    <small>
+                        registradas
+                    </small>
+
+                </div>
+
+            </article>
+
+
+            <article class="barbero-stat-card stat-green">
+
+                <div class="barbero-stat-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <span>
+                        PRÓXIMA
+                    </span>
+
+                    <strong id="stat-proxima">
+                        —
+                    </strong>
+
+                    <small id="stat-proxima-detalle">
+                        sin citas
+                    </small>
+
+                </div>
+
+            </article>
+
+
+            <article class="barbero-stat-card stat-gold">
+
+                <div class="barbero-stat-icon">
+                    ★
+                </div>
+
+                <div>
+
+                    <span>
+                        CLIENTES FRECUENTES
+                    </span>
+
+                    <strong id="stat-frecuentes">
+                        0
+                    </strong>
+
+                    <small>
+                        historial
+                    </small>
+
+                </div>
+
+            </article>
+
+
+            <article class="barbero-stat-card stat-blue">
+
+                <div class="barbero-stat-icon">
+                    ☷
+                </div>
+
+                <div>
+
+                    <span>
+                        HORARIOS
+                    </span>
+
+                    <strong id="stat-horarios">
+                        0
+                    </strong>
+
+                    <small>
+                        disponibles
+                    </small>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- AGENDA -->
+
+        <section
+            id="agenda"
+            class="barbero-panel-card"
+        >
+
+            <div class="barbero-section-header">
+
+                <div>
+
+                    <div class="barbero-section-kicker">
+                        AGENDA
+                    </div>
+
+                    <h3>
+                        Próximas citas
+                    </h3>
+
+                    <p>
+                        Consulta rápidamente tus clientes y servicios programados.
+                    </p>
+
+                </div>
+
+
+                <span
+                    class="barbero-section-badge"
+                    id="agenda-badge"
+                >
+                    0 citas
+                </span>
+
+            </div>
+
+
+            <div
+                id="lista-citas"
+                class="barbero-appointments-list"
+            ></div>
+
+        </section>
+
+
+        <!-- CONFIGURACIÓN -->
+
+        <div class="barbero-two-column">
+
+
+            <!-- DISPONIBILIDAD -->
+
+            <section
+                id="disponibilidad"
+                class="barbero-panel-card"
+            >
+
+                <div class="barbero-section-header compact">
+
+                    <div>
+
+                        <div class="barbero-section-kicker">
+                            DISPONIBILIDAD
+                        </div>
+
+                        <h3>
+                            Mis horarios
+                        </h3>
+
+                    </div>
+
+
+                    <div class="barbero-card-icon">
+                        ◷
+                    </div>
+
+                </div>
+
+
+                <p class="barbero-card-description">
+                    Define las horas que los clientes podrán reservar contigo.
+                </p>
+
+
+                <label for="b-mis-horarios">
+                    HORAS DISPONIBLES
+                </label>
+
+
+                <input
+                    type="text"
+                    id="b-mis-horarios"
+                    class="inputs-urban barbero-hours-input"
+                    placeholder="10:00, 11:00, 12:00..."
+                >
+
+
+                <p class="barbero-helper">
+                    Sepáralas por coma.
+                    Ejemplo: 10:00, 11:00, 12:00, 13:00.
+                </p>
+
+
+                <button
+                    class="btn-urban barbero-save-btn"
+                    onclick="guardarMisHorarios()"
+                >
+                    Guardar horarios
+                    <span>✓</span>
+                </button>
+
+            </section>
+
+
+            <!-- BLOQUEOS -->
+
+            <section
+                id="bloqueos"
+                class="barbero-panel-card"
+            >
+
+                <div class="barbero-section-header compact">
+
+                    <div>
+
+                        <div class="barbero-section-kicker">
+                            BLOQUEOS
+                        </div>
+
+                        <h3>
+                            Bloquear un horario
+                        </h3>
+
+                    </div>
+
+
+                    <div class="barbero-card-icon danger">
+                        ⊘
+                    </div>
+
+                </div>
+
+
+                <p class="barbero-card-description">
+                    Reserva un bloque para descanso, inasistencia u otro motivo.
+                    El cliente no podrá tomar esa hora.
+                </p>
+
+
+                <div class="barbero-form-grid">
+
+                    <div>
+
+                        <label for="b-fecha">
+                            FECHA
+                        </label>
+
+                        <input
+                            type="date"
+                            id="b-fecha"
+                            class="inputs-urban"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="b-hora">
+                            HORA
+                        </label>
+
+                        <input
+                            type="time"
+                            id="b-hora"
+                            class="inputs-urban"
+                            value="13:00"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="btn-urban barbero-block-btn"
+                    onclick="bloquearHora()"
+                >
+                    Bloquear horario
+                    <span>⊘</span>
+                </button>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- MODAL CLIENTE -->
+
+<div id="modal-perfil" class="modal-perfil" style="display: none;">
+    <div class="modal-content barbero-client-modal">
+        <button
+            onclick="cerrarPerfilCliente()"
+            class="barbero-modal-close"
+            aria-label="Cerrar"
+            type="button">
+            &times;
+        </button>
+
+        <div class="barbero-client-avatar" id="perfil-avatar">C</div>
+
+        <p class="barbero-section-kicker">PERFIL DEL CLIENTE</p>
+
+        <h2 id="perfil-nombre">Nombre Cliente</h2>
+
+        <p class="barbero-client-history">
+            Este cliente lleva
+            <strong>
+                <span id="perfil-cortes">0</span> cortes
+            </strong>
+            registrados.
+        </p>
+
+        <div class="barbero-client-actions">
+
+            <a
+                id="btn-whatsapp"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-wsp">
+                💬 Hablar por WhatsApp
+            </a>
+
+            <a
+                id="btn-correo"
+                href="#"
+                class="btn-correo">
+                ✉️ Enviar correo
+            </a>
+
         </div>
     </div>
+</div>
 
-   <script>
+
+<script>
+
 let barberoActivoId = null;
 let usuarioActivo = null;
 
+
+/* ============================================================
+   UTILIDADES
+============================================================ */
+
+function escaparHTML(valor) {
+
+    return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+}
+
+
+function iniciales(nombre) {
+
+    const partes =
+        String(nombre || 'Barbero')
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+    return (
+        partes[0]?.[0] || 'B'
+    ) +
+    (
+        partes[1]?.[0] || ''
+    );
+
+}
+
+
+function actualizarFecha() {
+
+    const hoy = new Date();
+
+    document.getElementById('fecha-hoy').textContent =
+        hoy.toLocaleDateString(
+            'es-CL',
+            {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short'
+            }
+        );
+
+}
+
+
+/* ============================================================
+   LOGIN
+============================================================ */
+
 async function iniciarSesion() {
-    const usuario = document.getElementById('login-user').value.trim();
-    const contrasena = document.getElementById('login-pass').value;
-    const errorLogin = document.getElementById('login-error');
+
+    const usuario =
+        document
+            .getElementById('login-user')
+            .value
+            .trim();
+
+    const contrasena =
+        document
+            .getElementById('login-pass')
+            .value;
+
+    const errorLogin =
+        document.getElementById('login-error');
 
     errorLogin.style.display = 'none';
 
+
     try {
-        const respuesta = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario, contrasena })
-        });
 
-        const datos = await respuesta.json();
+        const respuesta =
+            await fetch(
+                '/api/auth/login',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        usuario,
+                        contrasena
+                    })
+                }
+            );
 
-        if (!respuesta.ok || !datos.success) {
-            throw new Error(datos.message || 'No se pudo iniciar sesión.');
+
+        const datos =
+            await respuesta.json();
+
+
+        if (
+            !respuesta.ok ||
+            !datos.success
+        ) {
+
+            throw new Error(
+                datos.message ||
+                'No se pudo iniciar sesión.'
+            );
+
         }
 
-        usuarioActivo = datos.usuario;
-        barberoActivoId = usuarioActivo.id;
 
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('panel-barbero').style.display = 'grid';
-        document.getElementById('nombre-barbero-activo').innerText = usuarioActivo.nombre;
-        document.getElementById('btn-panel-jefe').style.display =
-    usuarioActivo.esJefe ? 'inline-block' : 'none';
+        usuarioActivo =
+            datos.usuario;
+
+        barberoActivoId =
+            usuarioActivo.id;
+
+
+        document
+            .getElementById('login-screen')
+            .style.display = 'none';
+
+
+        document
+            .getElementById('panel-barbero')
+            .style.display = 'grid';
+
+
+        document
+            .getElementById('nombre-barbero-activo')
+            .textContent =
+                usuarioActivo.nombre;
+
+
+        document
+            .getElementById('titulo-barbero')
+            .textContent =
+                usuarioActivo.nombre;
+
+
+        document
+            .getElementById('avatar-barbero')
+            .textContent =
+                iniciales(
+                    usuarioActivo.nombre
+                );
+
+
+        document
+            .getElementById('btn-panel-jefe')
+            .style.display =
+                usuarioActivo.esJefe
+                    ? 'flex'
+                    : 'none';
+
+
+        actualizarFecha();
 
         cargarAgendaBarbero();
+
+
     } catch (error) {
-        errorLogin.innerText = error.message;
-        errorLogin.style.display = 'block';
+
+        errorLogin.textContent =
+            error.message;
+
+        errorLogin.style.display =
+            'block';
+
     }
+
 }
 
-async function cargarAgendaBarbero() {
-    if (!barberoActivoId) return;
-    
-    const r = await fetch('/api/barbero/mi-agenda');
-    const db = await r.json();
-    
-    // 1. CARGAR LAS HORAS PERSONALES DEL BARBERO
-    const miPerfilDB = db.perfil;
-    if (miPerfilDB && miPerfilDB.horarios) {
-        document.getElementById('b-mis-horarios').value = miPerfilDB.horarios;
-    } else {
-        document.getElementById('b-mis-horarios').value = "10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00";
-    }
 
-    // 2. CARGAR LAS CITAS
-    const lista = document.getElementById('lista-citas');
-    lista.innerHTML = "";
-    
-   const misCitas = db.agendamientos.filter(
-    a => Number(a.barberoId) === Number(barberoActivoId)
-);
-    if(misCitas.length === 0) {
-        lista.innerHTML = "<p style='color:var(--grey-text)'>No tienes citas registradas.</p>";
+/* ============================================================
+   CARGAR AGENDA
+============================================================ */
+
+async function cargarAgendaBarbero() {
+
+    if (!barberoActivoId) {
         return;
     }
 
-    misCitas.reverse().forEach(c => {
-        // Sacar estadísticas generales para el perfil del cliente
-        const idCliente = c.email || c.telefono;
-        const cortesHistorial = db.clientesCortes[idCliente] || 0;
 
-        // Etiquetas VIP (solo ID 1 como lo tenías)
-        let etiquetaVIP = "";
-        if (barberoActivoId === 1) {
-            if (cortesHistorial > 0 && cortesHistorial % 30 === 0) {
-                etiquetaVIP = `<span style="background:#ffb700; color:black; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; margin-left:10px; box-shadow: 0 0 10px rgba(255,183,0,0.5);">🎁 COBRA CORTE GRATIS VIP</span>`;
-            } else if (cortesHistorial >= 27 && cortesHistorial < 30) {
-                const faltan = 30 - cortesHistorial;
-                etiquetaVIP = `<span style="background:#ff3b3b; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; margin-left:10px;">A ${faltan} cortes del VIP</span>`;
+    try {
+
+        const r =
+            await fetch(
+                '/api/barbero/mi-agenda'
+            );
+
+
+        const db =
+            await r.json();
+
+
+        if (
+            !r.ok ||
+            !db.success
+        ) {
+
+            throw new Error(
+                db.message ||
+                'No se pudo cargar la agenda.'
+            );
+
+        }
+
+
+        /* HORARIOS */
+
+        const miPerfilDB =
+            db.perfil;
+
+
+        const horarios =
+            miPerfilDB?.horarios ||
+            '10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00';
+
+
+        document
+            .getElementById('b-mis-horarios')
+            .value =
+                horarios;
+
+
+        document
+            .getElementById('stat-horarios')
+            .textContent =
+                horarios
+                    .split(',')
+                    .map(
+                        h => h.trim()
+                    )
+                    .filter(Boolean)
+                    .length;
+
+
+        /* CITAS */
+
+        const lista =
+            document.getElementById(
+                'lista-citas'
+            );
+
+
+        const misCitas =
+            (db.agendamientos || [])
+                .filter(
+                    a =>
+                        Number(a.barberoId) ===
+                        Number(barberoActivoId)
+                )
+                .sort(
+                    (a, b) =>
+                        String(a.fecha)
+                            .localeCompare(
+                                String(b.fecha)
+                            )
+                        ||
+                        String(a.hora)
+                            .localeCompare(
+                                String(b.hora)
+                            )
+                );
+
+
+        document
+            .getElementById('stat-citas')
+            .textContent =
+                misCitas.length;
+
+
+        document
+            .getElementById('agenda-badge')
+            .textContent =
+                `${misCitas.length} ${
+                    misCitas.length === 1
+                        ? 'cita'
+                        : 'citas'
+                }`;
+
+
+        /* PRÓXIMA CITA */
+
+        const hoy =
+            new Date()
+                .toISOString()
+                .slice(0, 10);
+
+
+        const proximas =
+            misCitas.filter(
+                c =>
+                    String(c.fecha) >= hoy &&
+                    c.servicio !== 'BLOQUEADO'
+            );
+
+
+        const proxima =
+            proximas[0];
+
+
+        document
+            .getElementById('stat-proxima')
+            .textContent =
+                proxima?.hora || '—';
+
+
+        document
+            .getElementById('stat-proxima-detalle')
+            .textContent =
+                proxima
+                    ? String(proxima.fecha)
+                        .slice(0, 10)
+                    : 'sin citas';
+
+
+        /* CLIENTES FRECUENTES */
+
+        const contactosFrecuentes =
+            new Set();
+
+
+        Object.entries(
+            db.clientesCortes || {}
+        ).forEach(
+            ([contacto, cantidad]) => {
+
+                if (
+                    Number(cantidad) >= 10
+                ) {
+
+                    contactosFrecuentes
+                        .add(contacto);
+
+                }
+
             }
+        );
+
+
+        document
+            .getElementById('stat-frecuentes')
+            .textContent =
+                contactosFrecuentes.size;
+
+
+        /* SIN CITAS */
+
+        if (
+            misCitas.length === 0
+        ) {
+
+            lista.innerHTML = `
+
+                <div class="barbero-empty-state">
+
+                    <div class="barbero-empty-icon">
+                        ◷
+                    </div>
+
+                    <strong>
+                        No tienes citas registradas
+                    </strong>
+
+                    <span>
+                        Cuando tengas una reserva aparecerá aquí.
+                    </span>
+
+                </div>
+
+            `;
+
+            return;
+
         }
 
-        // Limpiamos los textos por si acaso hay comillas
-        const nombreLimpio = c.cliente.replace(/'/g, "\\'");
-        const emailLimpio = c.email ? c.email.replace(/'/g, "\\'") : '';
 
-        // Botón del perfil
-        const btnPerfil = `<span style="color:#ff3b3b; cursor:pointer; text-decoration:underline; font-weight:bold;" onclick="abrirPerfilCliente('${nombreLimpio}', '${c.telefono}', '${emailLimpio}', ${cortesHistorial})">${c.cliente}</span>`;
+        /* RENDER CITAS */
 
-        lista.innerHTML += `
-            <div style="background:#1c1c1c; padding:15px; margin-bottom:10px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid #ff3b3b;">
-                <div>
-                    <strong>${c.fecha} - ${c.hora} hrs</strong><br>
-                    <span style="color:#aaa">Cliente: ${btnPerfil} ${etiquetaVIP}</span><br>
-                    <span style="color:#aaa; font-size: 0.9rem;">Tel: ${c.telefono} | ${c.servicio || 'Servicio General'}</span>
+        lista.innerHTML =
+            misCitas
+                .map(c => {
+
+                    const idCliente =
+                        c.email ||
+                        c.telefono;
+
+
+                    const cortesHistorial =
+                        Number(
+                            (db.clientesCortes || {})
+                                [idCliente] ||
+                            0
+                        );
+
+
+                    const bloqueado =
+                        c.servicio === 'BLOQUEADO' ||
+                        c.estado === 'Bloqueado';
+
+
+                    let etiquetaVIP =
+                        '';
+
+
+                    if (
+                        !bloqueado &&
+                        Number(barberoActivoId) === 1
+                    ) {
+
+                        if (
+                            cortesHistorial > 0 &&
+                            cortesHistorial % 30 === 0
+                        ) {
+
+                            etiquetaVIP =
+                                '<span class="barbero-vip-badge gold">🎁 CORTE GRATIS VIP</span>';
+
+                        } else if (
+                            cortesHistorial >= 27 &&
+                            cortesHistorial < 30
+                        ) {
+
+                            etiquetaVIP =
+                                `<span class="barbero-vip-badge red-badge">
+                                    A ${
+                                        30 -
+                                        cortesHistorial
+                                    } cortes del VIP
+                                </span>`;
+
+                        }
+
+                    }
+
+
+                    const cliente =
+                        escaparHTML(
+                            c.cliente ||
+                            'Cliente'
+                        );
+
+
+                    const servicio =
+                        escaparHTML(
+                            c.servicio ||
+                            'Servicio general'
+                        );
+
+
+                    const telefono =
+                        escaparHTML(
+                            c.telefono ||
+                            'Sin teléfono'
+                        );
+
+
+                    const fecha =
+                        escaparHTML(
+                            String(c.fecha)
+                                .slice(0, 10)
+                        );
+
+
+                    const hora =
+                        escaparHTML(
+                            c.hora ||
+                            '—'
+                        );
+
+
+                    const inicial =
+                        escaparHTML(
+                            iniciales(
+                                c.cliente ||
+                                'Cliente'
+                            )
+                        );
+
+
+                    const nombreJS =
+                        encodeURIComponent(
+                            c.cliente ||
+                            'Cliente'
+                        );
+
+
+                    const telefonoJS =
+                        encodeURIComponent(
+                            c.telefono ||
+                            ''
+                        );
+
+
+                    const emailJS =
+                        encodeURIComponent(
+                            c.email ||
+                            ''
+                        );
+
+
+                    return `
+
+                        <article
+                            class="barbero-appointment ${
+                                bloqueado
+                                    ? 'is-blocked'
+                                    : ''
+                            }"
+                        >
+
+                            <div class="barbero-appointment-time">
+
+                                <strong>
+                                    ${hora}
+                                </strong>
+
+                                <span>
+                                    ${fecha}
+                                </span>
+
+                            </div>
+
+
+                            <div class="barbero-appointment-client">
+
+                                <div class="barbero-client-mini-avatar">
+                                    ${inicial}
+                                </div>
+
+
+                                <div class="barbero-client-main">
+
+                                    <div class="barbero-client-line">
+
+                                        ${
+                                            bloqueado
+
+                                                ?
+
+                                                `<span class="barbero-client-name static">
+                                                    ${cliente}
+                                                </span>`
+
+                                                :
+
+                                                `<button
+                                                    class="barbero-client-name"
+                                                    onclick="abrirPerfilClienteEncoded(
+                                                        '${nombreJS}',
+                                                        '${telefonoJS}',
+                                                        '${emailJS}',
+                                                        ${cortesHistorial}
+                                                    )"
+                                                >
+                                                    ${cliente}
+                                                </button>`
+                                        }
+
+                                        ${etiquetaVIP}
+
+                                    </div>
+
+
+                                    <span>
+                                        ${
+                                            bloqueado
+
+                                                ?
+
+                                                'Horario bloqueado'
+
+                                                :
+
+                                                `${servicio} · ${telefono}`
+                                        }
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="barbero-appointment-status ${
+                                    bloqueado
+                                        ? 'blocked'
+                                        : 'confirmed'
+                                }"
+                            >
+
+                                <i></i>
+
+                                ${
+                                    bloqueado
+                                        ? 'Bloqueado'
+                                        : 'Confirmado'
+                                }
+
+                            </div>
+
+
+                            <div class="barbero-appointment-action">
+
+                                ${
+                                    bloqueado
+
+                                        ?
+
+                                        ''
+
+                                        :
+
+                                        `<button
+                                            class="barbero-cancel-btn"
+                                            onclick="cancelarCitaBarbero(
+                                                ${Number(c.id)}
+                                            )"
+                                        >
+                                            Cancelar
+                                        </button>`
+                                }
+
+                            </div>
+
+                        </article>
+
+                    `;
+
+                })
+                .join('');
+
+
+    } catch (error) {
+
+        document
+            .getElementById('lista-citas')
+            .innerHTML = `
+
+                <div class="barbero-empty-state error">
+
+                    <div class="barbero-empty-icon">
+                        !
+                    </div>
+
+                    <strong>
+                        No se pudo cargar la agenda
+                    </strong>
+
+                    <span>
+                        ${escaparHTML(error.message)}
+                    </span>
+
                 </div>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <span style="color:#4caf50; font-weight:bold;">Confirmado</span>
-                    <button class="btn-urban" style="background:#d32f2f; padding: 5px 12px; font-size: 0.8rem; border: none; color: white; cursor: pointer; border-radius: 3px;" onclick="cancelarCitaBarbero(${c.id})">Cancelar</button>
-                </div>
-            </div>
-        `;
-    });
+
+            `;
+
+    }
+
 }
 
-// ------------------------------------
-// FUNCIONES PARA EL PERFIL DEL CLIENTE
-// ------------------------------------
+function abrirPerfilClienteEncoded(nombre, telefono, email, cortes) {
+    abrirPerfilCliente(
+        decodeURIComponent(nombre),
+        decodeURIComponent(telefono),
+        decodeURIComponent(email),
+        cortes
+    );
+}
+
+/* ============================================================
+   PERFIL CLIENTE
+============================================================ */
+
 function abrirPerfilCliente(nombre, telefono, email, cortes) {
-    document.getElementById('perfil-nombre').innerText = nombre;
-    document.getElementById('perfil-cortes').innerText = cortes;
-    
-    // Configurar WhatsApp
-    const btnWsp = document.getElementById('btn-whatsapp');
-    if (telefono && telefono.trim() !== "") {
-        // Limpiamos el número de símbolos y espacios
-        let telLimpio = telefono.replace(/\D/g, '');
-        // Si tiene 9 dígitos (formato estándar de celular en Chile), le agregamos el código de país "56"
-        if(telLimpio.length === 9) {
-            telLimpio = '56' + telLimpio;
+
+    document.getElementById('perfil-nombre').innerText =
+        nombre || 'Cliente';
+
+    document.getElementById('perfil-cortes').innerText =
+        cortes || 0;
+
+    document.getElementById('perfil-avatar').innerText =
+        String(nombre || 'C')
+            .trim()
+            .charAt(0)
+            .toUpperCase();
+
+
+    // =====================================================
+    // WHATSAPP
+    // =====================================================
+
+    const btnWsp =
+        document.getElementById('btn-whatsapp');
+
+    let telefonoLimpio =
+        String(telefono || '')
+            .replace(/\D/g, '');
+
+
+    if (telefonoLimpio) {
+
+        // Chile:
+        // 912345678 -> 56912345678
+        if (
+            telefonoLimpio.length === 9 &&
+            telefonoLimpio.startsWith('9')
+        ) {
+            telefonoLimpio =
+                '56' + telefonoLimpio;
         }
-        btnWsp.href = `https://wa.me/${telLimpio}`;
-        btnWsp.style.display = 'block';
+
+        // 0912345678 -> 56912345678
+        else if (
+            telefonoLimpio.length === 10 &&
+            telefonoLimpio.startsWith('09')
+        ) {
+            telefonoLimpio =
+                '56' + telefonoLimpio.substring(1);
+        }
+
+        // 56912345678 -> se mantiene
+        else if (
+            telefonoLimpio.length === 11 &&
+            telefonoLimpio.startsWith('56')
+        ) {
+            // Ya está correcto.
+        }
+
+        btnWsp.href =
+            `https://wa.me/${telefonoLimpio}`;
+
+        btnWsp.style.display = 'flex';
+
     } else {
-        btnWsp.style.display = 'none'; // Si no hay teléfono, ocultamos el botón
+
+        btnWsp.removeAttribute('href');
+        btnWsp.style.display = 'none';
     }
-    
-    // Configurar Correo
-    const btnCorreo = document.getElementById('btn-correo');
-    if (email && email.trim() !== "") {
-        btnCorreo.href = `mailto:${email}`;
-        btnCorreo.style.display = 'block';
+
+
+    // =====================================================
+    // CORREO
+    // =====================================================
+
+    const btnCorreo =
+        document.getElementById('btn-correo');
+
+    const emailLimpio =
+        String(email || '').trim();
+
+
+    if (emailLimpio) {
+
+        btnCorreo.href =
+            `mailto:${emailLimpio}`;
+
+        btnCorreo.style.display = 'flex';
+
     } else {
-        btnCorreo.style.display = 'none'; // Si no hay correo, ocultamos el botón
+
+        btnCorreo.removeAttribute('href');
+        btnCorreo.style.display = 'none';
     }
-    
-    document.getElementById('modal-perfil').style.display = 'flex';
+
+
+    // =====================================================
+    // MOSTRAR MODAL
+    // =====================================================
+
+    document.getElementById('modal-perfil').style.display =
+        'flex';
 }
+{
+
+    document
+        .getElementById('perfil-nombre')
+        .textContent =
+            nombre;
+
+
+    document
+        .getElementById('perfil-avatar')
+        .textContent =
+            iniciales(nombre);
+
+
+    document
+        .getElementById('perfil-cortes')
+        .textContent =
+            cortes;
+
+
+    const btnWsp =
+        document.getElementById(
+            'btn-whatsapp'
+        );
+
+
+    if (
+        telefono &&
+        telefono.trim() !== ''
+    ) {
+
+        let telLimpio =
+            telefono.replace(
+                /\D/g,
+                ''
+            );
+
+
+        if (
+            telLimpio.length === 9
+        ) {
+
+            telLimpio =
+                '56' +
+                telLimpio;
+
+        }
+
+
+        btnWsp.href =
+            `https://wa.me/${telLimpio}`;
+
+        btnWsp.style.display =
+            'flex';
+
+    } else {
+
+        btnWsp.style.display =
+            'none';
+
+    }
+
+
+    const btnCorreo =
+        document.getElementById(
+            'btn-correo'
+        );
+
+
+    if (
+        email &&
+        email.trim() !== ''
+    ) {
+
+        btnCorreo.href =
+            `mailto:${email}`;
+
+        btnCorreo.style.display =
+            'flex';
+
+    } else {
+
+        btnCorreo.style.display =
+            'none';
+
+    }
+
+
+    document
+        .getElementById('modal-perfil')
+        .style.display =
+            'flex';
+
+}
+
 
 function cerrarPerfilCliente() {
-    document.getElementById('modal-perfil').style.display = 'none';
+
+    document.getElementById('modal-perfil').style.display =
+        'none';
 }
 
 
-// NUEVA FUNCIÓN: Guarda las horas en la BD
+/* ============================================================
+   GUARDAR HORARIOS
+============================================================ */
+
 async function guardarMisHorarios() {
-    const misNuevasHoras = document.getElementById('b-mis-horarios').value;
-    
-    if(!misNuevasHoras.trim()) {
-        return alert("¡No puedes dejar tus horas en blanco!");
+
+    const misNuevasHoras =
+        document
+            .getElementById(
+                'b-mis-horarios'
+            )
+            .value;
+
+
+    if (
+        !misNuevasHoras.trim()
+    ) {
+
+        return alert(
+            '¡No puedes dejar tus horas en blanco!'
+        );
+
     }
 
-    const res = await fetch('/api/barbero/guardar-horarios', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            barberoId: barberoActivoId,
-            horarios: misNuevasHoras
-        })
-    });
-    
-    const data = await res.json();
-    if(data.success) {
-        alert(data.message);
-    } else {
-        alert("Ocurrió un error: " + data.message);
+
+    try {
+
+        const res =
+            await fetch(
+                '/api/barbero/guardar-horarios',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        horarios:
+                            misNuevasHoras
+                    })
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (
+            data.success
+        ) {
+
+            document
+                .getElementById(
+                    'stat-horarios'
+                )
+                .textContent =
+                    misNuevasHoras
+                        .split(',')
+                        .map(
+                            h =>
+                                h.trim()
+                        )
+                        .filter(Boolean)
+                        .length;
+
+
+            alert(
+                data.message
+            );
+
+        } else {
+
+            alert(
+                'Ocurrió un error: ' +
+                data.message
+            );
+
+        }
+
+
+    } catch (error) {
+
+        alert(
+            'No se pudieron guardar los horarios.'
+        );
+
     }
+
 }
 
-async function cancelarCitaBarbero(idCita) {
-    const confirmacion = confirm("⚠️ ¿Estás seguro de cancelar esta hora? Se le enviará un correo inmediatamente al cliente pidiendo que reagende.");
-    if (!confirmacion) return;
 
-    const res = await fetch('/api/barbero/cancelar', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ idCita })
-    });
-    const data = await res.json();
+/* ============================================================
+   CANCELAR CITA
+============================================================ */
 
-    if (data.success) {
-        alert("Cita cancelada con éxito. El cliente ha sido notificado por correo.");
-        cargarAgendaBarbero(); 
-    } else {
-        alert("Ocurrió un error: " + data.message);
+async function cancelarCitaBarbero(
+    idCita
+) {
+
+    const confirmacion =
+        confirm(
+            '⚠️ ¿Estás seguro de cancelar esta hora? Se le enviará un correo al cliente pidiendo que reagende.'
+        );
+
+
+    if (!confirmacion) {
+        return;
     }
+
+
+    try {
+
+        const res =
+            await fetch(
+                '/api/barbero/cancelar',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        idCita
+                    })
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (
+            data.success
+        ) {
+
+            alert(
+                'Cita cancelada con éxito. El cliente ha sido notificado por correo.'
+            );
+
+
+            cargarAgendaBarbero();
+
+        } else {
+
+            alert(
+                'Ocurrió un error: ' +
+                data.message
+            );
+
+        }
+
+
+    } catch (error) {
+
+        alert(
+            'No se pudo cancelar la cita.'
+        );
+
+    }
+
 }
+
+
+/* ============================================================
+   BLOQUEAR HORARIO
+============================================================ */
 
 async function bloquearHora() {
-    const data = {
-        barberoId: barberoActivoId,
-        fecha: document.getElementById('b-fecha').value,
-        hora: document.getElementById('b-hora').value
-    };
-    if(!data.fecha) return alert("Selecciona una fecha válida.");
-    
-    await fetch('/api/barbero/bloquear', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    });
-    alert("Bloqueo de horario establecido con éxito.");
-    cargarAgendaBarbero();
+
+    const fecha =
+        document
+            .getElementById(
+                'b-fecha'
+            )
+            .value;
+
+
+    const hora =
+        document
+            .getElementById(
+                'b-hora'
+            )
+            .value;
+
+
+    if (!fecha) {
+
+        return alert(
+            'Selecciona una fecha válida.'
+        );
+
+    }
+
+
+    if (!hora) {
+
+        return alert(
+            'Selecciona una hora válida.'
+        );
+
+    }
+
+
+    try {
+
+        const res =
+            await fetch(
+                '/api/barbero/bloquear',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        fecha,
+                        hora
+                    })
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (!data.success) {
+
+            return alert(
+                data.message ||
+                'No se pudo bloquear el horario.'
+            );
+
+        }
+
+
+        alert(
+            'Bloqueo de horario establecido con éxito.'
+        );
+
+
+        cargarAgendaBarbero();
+
+
+    } catch (error) {
+
+        alert(
+            'No se pudo bloquear el horario.'
+        );
+
+    }
+
 }
+
+
+/* ============================================================
+   CERRAR SESIÓN
+============================================================ */
+
+async function cerrarSesionBarbero() {
+
+    try {
+
+        await fetch(
+            '/api/auth/cerrar-sesion',
+            {
+                method: 'POST'
+            }
+        );
+
+    } finally {
+
+        location.reload();
+
+    }
+
+}
+
+
+/* ============================================================
+   MENÚ MOBILE
+============================================================ */
 
 function abrirMenuBarbero() {
-    const sidebar = document.querySelector('#panel-barbero .sidebar');
-    const overlay = document.getElementById('barbero-menu-overlay');
 
-    sidebar.classList.add('barbero-sidebar-open');
-    overlay.classList.add('barbero-overlay-open');
+    document
+        .querySelector(
+            '#panel-barbero .barbero-sidebar'
+        )
+        .classList
+        .add(
+            'barbero-sidebar-open'
+        );
+
+
+    document
+        .getElementById(
+            'barbero-menu-overlay'
+        )
+        .classList
+        .add(
+            'barbero-overlay-open'
+        );
+
 }
+
 
 function cerrarMenuBarbero() {
-    const sidebar = document.querySelector('#panel-barbero .sidebar');
-    const overlay = document.getElementById('barbero-menu-overlay');
 
-    sidebar.classList.remove('barbero-sidebar-open');
-    overlay.classList.remove('barbero-overlay-open');
+    document
+        .querySelector(
+            '#panel-barbero .barbero-sidebar'
+        )
+        .classList
+        .remove(
+            'barbero-sidebar-open'
+        );
+
+
+    document
+        .getElementById(
+            'barbero-menu-overlay'
+        )
+        .classList
+        .remove(
+            'barbero-overlay-open'
+        );
+
 }
+
+
+/* ============================================================
+   EVENTOS
+============================================================ */
+
+document
+    .getElementById('login-pass')
+    .addEventListener(
+        'keydown',
+        event => {
+
+            if (
+                event.key === 'Enter'
+            ) {
+
+                iniciarSesion();
+
+            }
+
+        }
+    );
+
+
+document
+    .getElementById('modal-perfil')
+    .addEventListener(
+        'click',
+        event => {
+
+            if (
+                event.target.id ===
+                'modal-perfil'
+            ) {
+
+                cerrarPerfilCliente();
+
+            }
+
+        }
+    );
+
+
+actualizarFecha();
+
 </script>
+
 </body>
 </html>

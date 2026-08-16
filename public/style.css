@@ -1134,3 +1134,1997 @@ body:has(#tab-stats) .modal-overlay > div {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* =====================================================
+   PANEL BARBERO — REDISEÑO UX/UI
+   Compatible con el diseño del panel JEFE.
+===================================================== */
+
+body.barbero-page {
+    --barbero-bg: #080808;
+    --barbero-panel: #101010;
+    --barbero-panel-2: #141414;
+    --barbero-border: #242424;
+    --barbero-muted: #858585;
+    --barbero-green: #4caf50;
+    --barbero-gold: #ffb700;
+    --barbero-blue: #4d7cff;
+
+    background:
+        radial-gradient(
+            circle at 88% 0%,
+            rgba(211, 0, 0, 0.09),
+            transparent 30%
+        ),
+        var(--barbero-bg);
+
+    min-height: 100vh;
+}
+
+
+/* =====================================================
+   RESET VISUAL DEL PANEL
+===================================================== */
+
+body.barbero-page h1,
+body.barbero-page h2,
+body.barbero-page h3,
+body.barbero-page p {
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+.barbero-login-screen {
+    position: relative;
+
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 50% 15%,
+            rgba(211, 0, 0, 0.12),
+            transparent 35%
+        ),
+        #080808;
+}
+
+
+.barbero-login-glow {
+    position: absolute;
+
+    width: 480px;
+    height: 480px;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(211, 0, 0, 0.08);
+
+    box-shadow:
+        0 0 100px rgba(211, 0, 0, 0.08);
+}
+
+
+.barbero-login-box {
+    position: relative;
+    z-index: 1;
+
+    width: min(100%, 430px);
+
+    padding: 38px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #151515,
+            #0d0d0d
+        );
+
+    border: 1px solid #282828;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, .55);
+}
+
+
+.barbero-brand-mark {
+    width: 52px;
+    height: 52px;
+
+    display: grid;
+    place-items: center;
+
+    margin-bottom: 20px;
+
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #d30000,
+            #850000
+        );
+
+    font-size: 24px;
+
+    box-shadow:
+        0 12px 30px rgba(211,0,0,.22);
+}
+
+
+.barbero-eyebrow,
+.barbero-section-kicker {
+    color: #707070;
+
+    font-size: .68rem;
+
+    font-weight: 800;
+
+    letter-spacing: 1.5px !important;
+}
+
+
+.barbero-login-box h1 {
+    margin-top: 7px;
+
+    color: #fff;
+
+    font-size:
+        clamp(
+            1.65rem,
+            4vw,
+            2.2rem
+        );
+}
+
+
+.barbero-login-copy {
+    margin: 10px 0 26px;
+
+    color: #858585;
+
+    font-size: .88rem;
+
+    line-height: 1.6;
+}
+
+
+.barbero-login-box label,
+.barbero-panel-card label {
+    display: block;
+
+    margin: 0 0 7px;
+
+    color: #a5a5a5;
+
+    font-size: .68rem;
+
+    font-weight: 800;
+
+    letter-spacing: .8px;
+}
+
+
+.barbero-login-box .inputs-urban {
+    min-height: 48px;
+
+    margin-bottom: 17px;
+
+    padding: 12px 14px;
+
+    background: #0a0a0a;
+
+    border-color: #292929;
+
+    border-radius: 10px;
+}
+
+
+.barbero-login-box .inputs-urban:focus,
+.barbero-panel-card .inputs-urban:focus {
+    border-color: rgba(211,0,0,.8);
+
+    box-shadow:
+        0 0 0 3px rgba(211,0,0,.09);
+}
+
+
+/* =====================================================
+   BOTONES
+===================================================== */
+
+.barbero-primary-btn,
+.barbero-save-btn,
+.barbero-block-btn {
+    min-height: 46px;
+
+    border-radius: 10px;
+
+    box-shadow: none;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+}
+
+
+.barbero-primary-btn {
+    width: 100%;
+    margin-top: 4px;
+}
+
+
+.barbero-primary-btn span,
+.barbero-save-btn span,
+.barbero-block-btn span {
+    font-size: 1rem;
+}
+
+
+.barbero-login-error {
+    display: none;
+
+    margin-top: 14px;
+
+    padding: 10px 12px;
+
+    border: 1px solid rgba(211,0,0,.25);
+
+    border-radius: 9px;
+
+    background: rgba(211,0,0,.08);
+
+    color: #ff6767;
+
+    font-size: .82rem;
+}
+
+
+/* =====================================================
+   LAYOUT
+===================================================== */
+
+.barbero-dashboard {
+    min-height: 100vh;
+
+    grid-template-columns:
+        258px
+        minmax(0, 1fr);
+}
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.barbero-sidebar {
+    position: sticky;
+
+    top: 0;
+
+    height: 100vh;
+
+    padding: 24px 17px 18px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: rgba(12,12,12,.96);
+
+    border-right: 1px solid var(--barbero-border);
+
+    z-index: 10000;
+}
+
+
+.barbero-sidebar-top {
+    padding-bottom: 22px;
+
+    border-bottom: 1px solid #202020;
+}
+
+
+.barbero-logo {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: #f5f5f5;
+
+    font-size: .96rem;
+
+    font-weight: 900;
+
+    letter-spacing: 1.2px;
+}
+
+
+.barbero-logo strong {
+    color: var(--red-brand);
+}
+
+
+.barbero-logo-mark {
+    width: 36px;
+    height: 36px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 10px;
+
+    background: rgba(211,0,0,.12);
+
+    border: 1px solid rgba(211,0,0,.28);
+
+    color: var(--red-brand);
+}
+
+
+.barbero-user-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+    padding: 11px;
+
+    background: #111;
+
+    border: 1px solid #232323;
+
+    border-radius: 12px;
+}
+
+
+.barbero-avatar,
+.barbero-client-mini-avatar,
+.barbero-client-avatar {
+    display: grid;
+
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+
+    font-weight: 900;
+}
+
+
+.barbero-avatar {
+    width: 40px;
+    height: 40px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #d30000,
+            #7c0000
+        );
+
+    color: white;
+}
+
+
+.barbero-user-copy {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.barbero-user-copy strong {
+    overflow: hidden;
+
+    color: #fff;
+
+    font-size: .82rem;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+.barbero-user-copy span {
+    color: #737373;
+
+    font-size: .67rem;
+}
+
+
+.barbero-user-copy i,
+.barbero-status i {
+    display: inline-block;
+
+    width: 6px;
+    height: 6px;
+
+    margin-right: 5px;
+
+    border-radius: 50%;
+
+    background: var(--barbero-green);
+
+    box-shadow:
+        0 0 8px rgba(76,175,80,.5);
+}
+
+
+/* =====================================================
+   NAVEGACIÓN
+===================================================== */
+
+.barbero-nav {
+    padding: 22px 0;
+
+    flex: 1;
+}
+
+
+.barbero-nav-label {
+    margin: 0 10px 9px;
+
+    color: #555;
+
+    font-size: .62rem;
+
+    font-weight: 900;
+
+    letter-spacing: 1.4px !important;
+}
+
+
+.barbero-nav-label-secondary {
+    margin-top: 28px;
+}
+
+
+.barbero-nav-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+    min-height: 43px;
+
+    margin-bottom: 4px;
+
+    padding: 10px 11px;
+
+    color: #969696;
+
+    border: 1px solid transparent;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+
+    font-size: .78rem;
+
+    font-weight: 700;
+
+    transition: .2s ease;
+}
+
+
+.barbero-nav-item:hover {
+    color: #fff;
+
+    background: #161616;
+
+    border-color: #242424;
+
+    transform: translateX(2px);
+}
+
+
+.barbero-nav-item.active {
+    color: #fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(211,0,0,.18),
+            rgba(211,0,0,.05)
+        );
+
+    border-color:
+        rgba(211,0,0,.22);
+}
+
+
+.barbero-nav-icon {
+    width: 26px;
+
+    color: #777;
+
+    font-size: 1rem;
+
+    text-align: center;
+}
+
+
+.barbero-nav-item.active .barbero-nav-icon,
+.barbero-nav-item:hover .barbero-nav-icon {
+    color: var(--red-brand);
+}
+
+
+.barbero-boss-link {
+    color: var(--barbero-gold);
+}
+
+
+.barbero-boss-link .barbero-nav-icon {
+    color: var(--barbero-gold);
+}
+
+
+/* =====================================================
+   FOOTER SIDEBAR
+===================================================== */
+
+.barbero-sidebar-footer {
+    padding-top: 17px;
+
+    border-top: 1px solid #202020;
+}
+
+
+.barbero-footer-brand {
+    color: #666;
+
+    font-size: .62rem;
+
+    font-weight: 900;
+
+    letter-spacing: 1.3px;
+}
+
+
+.barbero-sidebar-footer small {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #454545;
+
+    font-size: .62rem;
+}
+
+
+.barbero-logout-btn {
+    width: 100%;
+
+    margin-top: 15px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #282828;
+
+    border-radius: 9px;
+
+    background: #151515;
+
+    color: #999;
+
+    cursor: pointer;
+
+    font-weight: 700;
+
+    transition: .2s ease;
+}
+
+
+.barbero-logout-btn:hover {
+    color: #fff;
+
+    border-color: #3a3a3a;
+
+    background: #1b1b1b;
+}
+
+
+/* =====================================================
+   CONTENIDO
+===================================================== */
+
+.barbero-main-content {
+    min-width: 0;
+
+    padding:
+        34px
+        clamp(18px, 3vw, 42px)
+        55px;
+}
+
+
+.barbero-topbar {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 25px;
+}
+
+
+.barbero-topbar h2 {
+    margin-top: 7px;
+
+    color: #f5f5f5;
+
+    font-size:
+        clamp(
+            1.4rem,
+            2.4vw,
+            2rem
+        );
+
+    font-weight: 800;
+}
+
+
+.barbero-subtitle {
+    margin-top: 7px;
+
+    color: #707070;
+
+    font-size: .82rem;
+}
+
+
+.barbero-topbar-date {
+    min-width: 105px;
+
+    padding: 12px 14px;
+
+    text-align: right;
+
+    background: #101010;
+
+    border: 1px solid #242424;
+
+    border-radius: 12px;
+}
+
+
+.barbero-topbar-date span {
+    display: block;
+
+    color: #5e5e5e;
+
+    font-size: .57rem;
+
+    font-weight: 900;
+
+    letter-spacing: 1.2px;
+}
+
+
+.barbero-topbar-date strong {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #ddd;
+
+    font-size: .8rem;
+
+    text-transform: capitalize;
+}
+
+
+/* =====================================================
+   ESTADÍSTICAS
+===================================================== */
+
+.barbero-stats-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+}
+
+
+.barbero-stat-card {
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    min-height: 112px;
+
+    padding: 17px;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #151515,
+            #0f0f0f
+        );
+
+    border: 1px solid #252525;
+
+    border-left:
+        3px solid var(--red-brand);
+
+    border-radius: 14px;
+}
+
+
+.barbero-stat-card::after {
+    content: '';
+
+    position: absolute;
+
+    width: 85px;
+    height: 85px;
+
+    right: -35px;
+    bottom: -42px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(211,0,0,.07);
+}
+
+
+.barbero-stat-card.stat-green {
+    border-left-color:
+        var(--barbero-green);
+}
+
+
+.barbero-stat-card.stat-gold {
+    border-left-color:
+        var(--barbero-gold);
+}
+
+
+.barbero-stat-card.stat-blue {
+    border-left-color:
+        var(--barbero-blue);
+}
+
+
+.barbero-stat-icon {
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 11px;
+
+    background:
+        rgba(211,0,0,.09);
+
+    color:
+        var(--red-brand);
+
+    font-size: 1.05rem;
+}
+
+
+.stat-green .barbero-stat-icon {
+    background:
+        rgba(76,175,80,.09);
+
+    color:
+        var(--barbero-green);
+}
+
+
+.stat-gold .barbero-stat-icon {
+    background:
+        rgba(255,183,0,.09);
+
+    color:
+        var(--barbero-gold);
+}
+
+
+.stat-blue .barbero-stat-icon {
+    background:
+        rgba(77,124,255,.09);
+
+    color:
+        var(--barbero-blue);
+}
+
+
+.barbero-stat-card span,
+.barbero-stat-card small {
+    display: block;
+}
+
+
+.barbero-stat-card span {
+    color: #737373;
+
+    font-size: .58rem;
+
+    font-weight: 900;
+
+    letter-spacing: .8px;
+}
+
+
+.barbero-stat-card strong {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #eee;
+
+    font-size: 1.45rem;
+
+    line-height: 1;
+}
+
+
+.barbero-stat-card small {
+    margin-top: 6px;
+
+    color: #575757;
+
+    font-size: .64rem;
+}
+
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+.barbero-panel-card {
+    padding: 20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #131313,
+            #0e0e0e
+        );
+
+    border: 1px solid var(--barbero-border);
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 15px 38px rgba(0,0,0,.18);
+}
+
+
+.barbero-section-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 18px;
+
+    margin-bottom: 17px;
+}
+
+
+.barbero-section-header.compact {
+    margin-bottom: 12px;
+}
+
+
+.barbero-section-header h3 {
+    margin-top: 5px;
+
+    color: #eee;
+
+    font-size: 1.02rem;
+
+    font-weight: 800;
+}
+
+
+.barbero-section-header > div:first-child > p:last-child {
+    margin-top: 6px;
+
+    color: #666;
+
+    font-size: .72rem;
+
+    line-height: 1.5;
+}
+
+
+.barbero-section-badge {
+    flex: 0 0 auto;
+
+    padding: 7px 10px;
+
+    border: 1px solid #292929;
+
+    border-radius: 999px;
+
+    background: #0b0b0b;
+
+    color: #aaa;
+
+    font-size: .64rem;
+
+    font-weight: 800;
+}
+
+
+.barbero-card-icon {
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+
+    place-items: center;
+
+    border-radius: 10px;
+
+    background:
+        rgba(211,0,0,.08);
+
+    color:
+        var(--red-brand);
+}
+
+
+.barbero-card-icon.danger {
+    color: #ff6767;
+
+    background:
+        rgba(255,59,59,.08);
+}
+
+
+/* =====================================================
+   AGENDA
+===================================================== */
+
+.barbero-appointments-list {
+    display: grid;
+
+    gap: 9px;
+}
+
+
+.barbero-appointment {
+    display: grid;
+
+    grid-template-columns:
+        86px
+        minmax(0, 1.7fr)
+        minmax(105px, .7fr)
+        auto;
+
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 14px;
+
+    background: #101010;
+
+    border: 1px solid #222;
+
+    border-left:
+        3px solid var(--red-brand);
+
+    border-radius: 12px;
+
+    transition: .2s ease;
+}
+
+
+.barbero-appointment:hover {
+    transform: translateY(-1px);
+
+    border-color: #333;
+
+    background: #141414;
+}
+
+
+.barbero-appointment.is-blocked {
+    border-left-color: #777;
+
+    opacity: .78;
+}
+
+
+.barbero-appointment-time strong {
+    display: block;
+
+    color: #f1f1f1;
+
+    font-size: 1rem;
+}
+
+
+.barbero-appointment-time span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #656565;
+
+    font-size: .64rem;
+}
+
+
+.barbero-appointment-client {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 0;
+}
+
+
+.barbero-client-mini-avatar {
+    width: 38px;
+    height: 38px;
+
+    background: #1c1c1c;
+
+    border: 1px solid #303030;
+
+    color: #aaa;
+
+    font-size: .75rem;
+}
+
+
+.barbero-client-main {
+    min-width: 0;
+}
+
+
+.barbero-client-line {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+}
+
+
+.barbero-client-name {
+    padding: 0;
+
+    border: none;
+
+    background: none;
+
+    color: #eee;
+
+    cursor: pointer;
+
+    font: inherit;
+
+    font-weight: 800;
+
+    text-align: left;
+}
+
+
+.barbero-client-name:hover {
+    color: var(--red-brand);
+}
+
+
+.barbero-client-name.static {
+    cursor: default;
+}
+
+
+.barbero-client-main > span {
+    display: block;
+
+    margin-top: 4px;
+
+    overflow: hidden;
+
+    color: #656565;
+
+    font-size: .68rem;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+.barbero-vip-badge {
+    padding: 4px 7px;
+
+    border-radius: 5px;
+
+    font-size: .54rem;
+
+    font-weight: 900;
+}
+
+
+.barbero-vip-badge.gold {
+    background:
+        rgba(255,183,0,.14);
+
+    color:
+        var(--barbero-gold);
+
+    border:
+        1px solid rgba(255,183,0,.2);
+}
+
+
+.barbero-vip-badge.red-badge {
+    background:
+        rgba(211,0,0,.12);
+
+    color: #ff6a6a;
+
+    border:
+        1px solid rgba(211,0,0,.2);
+}
+
+
+.barbero-status {
+    color: #888;
+
+    font-size: .65rem;
+
+    font-weight: 800;
+}
+
+
+.barbero-status.confirmed {
+    color: #76cf7a;
+}
+
+
+.barbero-status.blocked {
+    color: #888;
+}
+
+
+.barbero-status.blocked i {
+    background: #777;
+
+    box-shadow: none;
+}
+
+
+.barbero-cancel-btn {
+    min-height: 34px;
+
+    padding: 7px 11px;
+
+    border:
+        1px solid rgba(211,0,0,.25);
+
+    border-radius: 8px;
+
+    background:
+        rgba(211,0,0,.08);
+
+    color: #e65b5b;
+
+    cursor: pointer;
+
+    font-size: .65rem;
+
+    font-weight: 800;
+
+    transition: .2s ease;
+}
+
+
+.barbero-cancel-btn:hover {
+    background: #d30000;
+
+    color: #fff;
+
+    border-color: #d30000;
+}
+
+
+/* =====================================================
+   ESTADO VACÍO
+===================================================== */
+
+.barbero-empty-state {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 190px;
+
+    padding: 25px;
+
+    text-align: center;
+
+    background: #0c0c0c;
+
+    border: 1px dashed #292929;
+
+    border-radius: 12px;
+}
+
+
+.barbero-empty-icon {
+    width: 44px;
+    height: 44px;
+
+    display: grid;
+
+    place-items: center;
+
+    margin-bottom: 11px;
+
+    border-radius: 12px;
+
+    background: #171717;
+
+    color: #777;
+}
+
+
+.barbero-empty-state strong {
+    color: #ddd;
+
+    font-size: .82rem;
+}
+
+
+.barbero-empty-state span {
+    margin-top: 5px;
+
+    color: #5d5d5d;
+
+    font-size: .7rem;
+}
+
+
+.barbero-empty-state.error
+.barbero-empty-icon {
+    color: #ff6464;
+}
+
+
+/* =====================================================
+   DOS COLUMNAS INFERIORES
+===================================================== */
+
+.barbero-two-column {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap: 16px;
+
+    margin-top: 16px;
+}
+
+
+.barbero-card-description {
+    margin: 0 0 18px;
+
+    color: #6c6c6c;
+
+    font-size: .72rem;
+
+    line-height: 1.55;
+}
+
+
+.barbero-hours-input {
+    min-height: 46px;
+
+    margin-bottom: 0;
+
+    background: #0a0a0a;
+
+    border-color: #292929;
+
+    border-radius: 9px;
+}
+
+
+.barbero-helper {
+    margin: 8px 0 16px;
+
+    color: #555;
+
+    font-size: .64rem;
+
+    line-height: 1.5;
+}
+
+
+.barbero-save-btn,
+.barbero-block-btn {
+    width: 100%;
+
+    padding: 11px 15px;
+}
+
+
+.barbero-save-btn {
+    background: #1c6f38;
+}
+
+
+.barbero-save-btn:hover {
+    background: #268b47;
+}
+
+
+.barbero-block-btn {
+    background: #242424;
+
+    color: #eee;
+
+    box-shadow: none;
+}
+
+
+.barbero-block-btn:hover {
+    background: #303030;
+}
+
+
+.barbero-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+
+.barbero-form-grid .inputs-urban {
+    min-height: 44px;
+
+    margin-bottom: 0;
+
+    background: #0a0a0a;
+
+    border-color: #292929;
+
+    border-radius: 9px;
+}
+
+
+/* =====================================================
+   MODAL CLIENTE
+===================================================== */
+
+.barbero-page .modal-perfil {
+    background:
+        rgba(0,0,0,.76);
+
+    backdrop-filter:
+        blur(8px);
+}
+
+
+.barbero-client-modal {
+    width:
+        min(
+            calc(100% - 30px),
+            390px
+        );
+
+    padding: 30px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #181818,
+            #101010
+        ) !important;
+
+    border:
+        1px solid #2b2b2b !important;
+
+    border-top:
+        1px solid #2b2b2b !important;
+
+    border-radius:
+        18px !important;
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.65);
+}
+
+
+.barbero-modal-close {
+    position: absolute;
+
+    top: 12px;
+    right: 14px;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #777;
+
+    font-size: 1.6rem;
+
+    cursor: pointer;
+}
+
+
+.barbero-modal-close:hover {
+    background: #222;
+
+    color: #fff;
+}
+
+
+.barbero-client-avatar {
+    width: 62px;
+    height: 62px;
+
+    margin: 0 auto 15px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #252525,
+            #171717
+        );
+
+    border: 1px solid #343434;
+
+    color: #ddd;
+
+    font-size: 1.25rem;
+}
+
+
+.barbero-client-modal h2 {
+    margin: 7px 0 7px;
+
+    color: #fff;
+
+    font-size: 1.25rem;
+}
+
+
+.barbero-client-history {
+    color: #777;
+
+    font-size: .75rem;
+}
+
+
+.barbero-client-history strong {
+    color: var(--barbero-gold);
+}
+
+
+.barbero-client-actions {
+    margin-top: 22px;
+}
+
+
+.barbero-client-actions .btn-wsp,
+.barbero-client-actions .btn-correo {
+    min-height: 44px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 9px;
+
+    border-radius: 9px;
+
+    font-size: .75rem;
+}
+
+
+/* =====================================================
+   MENÚ MOBILE
+===================================================== */
+
+.barbero-page .barbero-menu-toggle {
+    display: none;
+}
+
+
+.barbero-page .barbero-menu-overlay {
+    opacity: 0;
+
+    visibility: hidden;
+
+    background:
+        rgba(0,0,0,.68);
+
+    backdrop-filter:
+        blur(3px);
+
+    transition: .25s ease;
+}
+
+
+.barbero-page
+.barbero-menu-overlay.barbero-overlay-open {
+    opacity: 1;
+
+    visibility: visible;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1180px) {
+
+    .barbero-stats-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+
+    .barbero-appointment {
+        grid-template-columns:
+            78px
+            minmax(0, 1.5fr)
+            minmax(95px, .65fr)
+            auto;
+    }
+
+}
+
+
+/* =====================================================
+   TABLET / MENÚ LATERAL
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .barbero-dashboard {
+        grid-template-columns: 1fr;
+    }
+
+
+    .barbero-sidebar {
+
+        position: fixed;
+
+        left: 0;
+        top: 0;
+
+        width: 280px;
+
+        max-width: 86vw;
+
+        transform:
+            translateX(-100%);
+
+        transition:
+            transform .25s ease;
+
+        box-shadow:
+            10px 0 35px rgba(0,0,0,.55);
+    }
+
+
+    .barbero-sidebar.barbero-sidebar-open {
+        transform:
+            translateX(0);
+    }
+
+
+    .barbero-page .barbero-menu-toggle {
+
+        display: grid;
+
+        place-items: center;
+
+        position: fixed;
+
+        top: 14px;
+        left: 14px;
+
+        width: 46px;
+        height: 46px;
+
+        z-index: 10001;
+
+        border:
+            1px solid #292929;
+
+        border-radius: 11px;
+
+        background: #121212;
+
+        color: #eee;
+
+        cursor: pointer;
+
+        font-size: 1.35rem;
+    }
+
+
+    .barbero-main-content {
+        padding-top: 82px;
+    }
+
+}
+
+
+/* =====================================================
+   CELULAR
+===================================================== */
+
+@media (max-width: 760px) {
+
+    .barbero-main-content {
+        padding:
+            78px
+            12px
+            30px;
+    }
+
+
+    .barbero-topbar {
+        display: block;
+    }
+
+
+    .barbero-topbar-date {
+        width: fit-content;
+
+        margin-top: 14px;
+
+        text-align: left;
+    }
+
+
+    .barbero-two-column {
+        grid-template-columns: 1fr;
+    }
+
+
+    .barbero-appointment {
+
+        grid-template-columns:
+            1fr auto;
+
+        gap: 11px;
+    }
+
+
+    .barbero-appointment-time {
+
+        grid-column:
+            1 / -1;
+
+        display: flex;
+
+        align-items: baseline;
+
+        gap: 8px;
+
+        padding-bottom: 8px;
+
+        border-bottom:
+            1px solid #1f1f1f;
+    }
+
+
+    .barbero-appointment-time span {
+        margin-top: 0;
+    }
+
+
+    .barbero-appointment-status {
+        justify-self: end;
+    }
+
+
+    .barbero-appointment-action {
+        grid-column:
+            1 / -1;
+    }
+
+
+    .barbero-cancel-btn {
+        width: 100%;
+    }
+
+}
+
+
+/* =====================================================
+   CELULAR PEQUEÑO
+===================================================== */
+
+@media (max-width: 560px) {
+
+    .barbero-login-box {
+        padding:
+            27px 22px;
+
+        border-radius:
+            16px;
+    }
+
+
+    .barbero-stats-grid {
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 9px;
+    }
+
+
+    .barbero-stat-card {
+        min-height: 105px;
+
+        padding: 13px;
+
+        gap: 9px;
+    }
+
+
+    .barbero-stat-icon {
+        width: 35px;
+        height: 35px;
+
+        font-size: .9rem;
+    }
+
+
+    .barbero-stat-card span {
+        font-size: .51rem;
+    }
+
+
+    .barbero-stat-card strong {
+        font-size: 1.2rem;
+    }
+
+
+    .barbero-stat-card small {
+        font-size: .56rem;
+    }
+
+
+    .barbero-panel-card {
+        padding: 15px;
+
+        border-radius: 13px;
+    }
+
+
+    .barbero-section-header {
+        gap: 8px;
+    }
+
+
+    .barbero-section-badge {
+        font-size: .57rem;
+    }
+
+
+    .barbero-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =====================================================
+   CELULAR MUY PEQUEÑO
+===================================================== */
+
+@media (max-width: 380px) {
+
+    .barbero-stats-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+}
+
+/* =====================================================
+   MODAL PERFIL CLIENTE
+===================================================== */
+
+.barbero-page .modal-perfil {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.78);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.barbero-page .modal-perfil .modal-content {
+    position: relative;
+    width: min(100%, 390px);
+    box-sizing: border-box;
+}
+
+.barbero-client-modal {
+    animation: barberoModalEntrada .18s ease-out;
+}
+
+@keyframes barberoModalEntrada {
+
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* Botón WhatsApp */
+
+.barbero-page .btn-wsp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 46px;
+
+    box-sizing: border-box;
+
+    background: #25D366;
+    color: #fff;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+    font-weight: 800;
+
+    transition:
+        transform .15s ease,
+        background .15s ease,
+        box-shadow .15s ease;
+}
+
+.barbero-page .btn-wsp:hover {
+    background: #1ebe5d;
+    color: #fff;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 20px rgba(37, 211, 102, .18);
+}
+
+
+/* Botón correo */
+
+.barbero-page .btn-correo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 46px;
+
+    box-sizing: border-box;
+
+    background: #242424;
+    color: #fff;
+
+    border: 1px solid #383838;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+    font-weight: 800;
+
+    transition:
+        transform .15s ease,
+        background .15s ease;
+}
+
+.barbero-page .btn-correo:hover {
+    background: #303030;
+    color: #fff;
+
+    transform: translateY(-1px);
+}
