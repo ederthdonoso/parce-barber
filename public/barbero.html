@@ -1,18 +1,200 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Parce Barber | Panel del Barbero</title>
+
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* ============================================================
+           BLOQUEO DE DÍA COMPLETO
+        ============================================================ */
+
+        .bloqueo-dia-container {
+            margin-top: 24px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 18px;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.045),
+                    rgba(255,255,255,.018)
+                );
+        }
+
+        .bloqueo-dia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        .bloqueo-dia-header h3 {
+            margin: 0 0 8px;
+            font-size: 22px;
+            color: #fff;
+        }
+
+        .bloqueo-dia-header p {
+            margin: 0;
+            color: #888;
+            line-height: 1.5;
+        }
+
+        .bloqueo-dia-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: end;
+        }
+
+        .bloqueo-dia-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bloqueo-dia-field label {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .14em;
+            color: #aaa;
+        }
+
+        .bloqueo-dia-form input {
+            width: 100%;
+            min-height: 52px;
+            box-sizing: border-box;
+        }
+
+        .bloqueo-dia-btn {
+            min-height: 52px;
+            padding: 0 22px;
+            border: 0;
+            border-radius: 12px;
+            background: #e00000;
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+            transition:
+                transform .2s ease,
+                background .2s ease,
+                box-shadow .2s ease;
+        }
+
+        .bloqueo-dia-btn:hover {
+            background: #ff1111;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(224,0,0,.18);
+        }
+
+        .bloqueo-dia-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .dias-bloqueados-lista {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dia-bloqueado-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(224,0,0,.07);
+            border: 1px solid rgba(224,0,0,.16);
+        }
+
+        .dia-bloqueado-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .dia-bloqueado-info strong {
+            color: #fff;
+        }
+
+        .dia-bloqueado-info span {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .dia-bloqueado-btn {
+            border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.05);
+            color: #ddd;
+            padding: 9px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+        }
+
+        .dia-bloqueado-btn:hover {
+            background: rgba(255,255,255,.1);
+        }
+
+        .domingo-bloqueado {
+            border-color: rgba(255,193,7,.2);
+            background: rgba(255,193,7,.05);
+        }
+
+        .domingo-bloqueado .dia-bloqueado-info strong {
+            color: #ffc107;
+        }
+
+        .bloqueo-dia-empty {
+            color: #777;
+            font-size: 14px;
+            padding: 4px 0;
+        }
+
+        @media (max-width: 700px) {
+            .bloqueo-dia-form {
+                grid-template-columns: 1fr;
+            }
+
+            .bloqueo-dia-btn {
+                width: 100%;
+            }
+
+            .dia-bloqueado-item {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .dia-bloqueado-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
+
 <body class="barbero-page">
 
 <div id="login-screen" class="barbero-login-screen">
+
     <div class="barbero-login-glow"></div>
 
     <div class="barbero-login-box">
-        <div class="barbero-brand-mark">✂</div>
+
+        <div class="barbero-brand-mark">
+            ✂
+        </div>
 
         <div class="barbero-eyebrow">
             PARCE BARBER
@@ -58,8 +240,13 @@
             <span>→</span>
         </button>
 
-        <p id="login-error" class="barbero-login-error"></p>
+        <p
+            id="login-error"
+            class="barbero-login-error"
+        ></p>
+
     </div>
+
 </div>
 
 
@@ -425,7 +612,6 @@
 
                 </div>
 
-
                 <span
                     class="barbero-section-badge"
                     id="agenda-badge"
@@ -469,7 +655,6 @@
                         </h3>
 
                     </div>
-
 
                     <div class="barbero-card-icon">
                         ◷
@@ -534,7 +719,6 @@
 
                     </div>
 
-
                     <div class="barbero-card-icon danger">
                         ⊘
                     </div>
@@ -591,6 +775,70 @@
                     <span>⊘</span>
                 </button>
 
+
+                <!-- ====================================================
+                     BLOQUEAR DÍA COMPLETO
+                ==================================================== -->
+
+                <div class="bloqueo-dia-container">
+
+                    <div class="bloqueo-dia-header">
+
+                        <div>
+
+                            <div class="barbero-section-kicker">
+                                DÍA COMPLETO
+                            </div>
+
+                            <h3>
+                                Bloquear día completo
+                            </h3>
+
+                            <p>
+                                Úsalo cuando no trabajarás durante todo el día.
+                                Los domingos están bloqueados automáticamente.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="bloqueo-dia-form">
+
+                        <div class="bloqueo-dia-field">
+
+                            <label for="fechaBloqueoDia">
+                                FECHA
+                            </label>
+
+                            <input
+                                type="date"
+                                id="fechaBloqueoDia"
+                                class="inputs-urban"
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            id="btnBloquearDia"
+                            class="bloqueo-dia-btn"
+                        >
+                            🔒 Bloquear día
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="diasBloqueadosLista"
+                        class="dias-bloqueados-lista"
+                    ></div>
+
+                </div>
+
             </section>
 
         </div>
@@ -600,31 +848,64 @@
 </div>
 
 
-<!-- MODAL CLIENTE -->
+<!-- ============================================================
+     MODAL CLIENTE
+============================================================ -->
 
-<div id="modal-perfil" class="modal-perfil" style="display: none;">
+<div
+    id="modal-perfil"
+    class="modal-perfil"
+    style="display: none;"
+>
+
     <div class="modal-content barbero-client-modal">
+
         <button
             onclick="cerrarPerfilCliente()"
             class="barbero-modal-close"
             aria-label="Cerrar"
-            type="button">
+            type="button"
+        >
             &times;
         </button>
 
-        <div class="barbero-client-avatar" id="perfil-avatar">C</div>
 
-        <p class="barbero-section-kicker">PERFIL DEL CLIENTE</p>
+        <div
+            class="barbero-client-avatar"
+            id="perfil-avatar"
+        >
+            C
+        </div>
 
-        <h2 id="perfil-nombre">Nombre Cliente</h2>
+
+        <p class="barbero-section-kicker">
+            PERFIL DEL CLIENTE
+        </p>
+
+
+        <h2 id="perfil-nombre">
+            Nombre Cliente
+        </h2>
+
 
         <p class="barbero-client-history">
+
             Este cliente lleva
+
             <strong>
-                <span id="perfil-cortes">0</span> cortes
+
+                <span id="perfil-cortes">
+                    0
+                </span>
+
+                cortes
+
             </strong>
+
             registrados.
+
         </p>
+
 
         <div class="barbero-client-actions">
 
@@ -633,19 +914,24 @@
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="btn-wsp">
+                class="btn-wsp"
+            >
                 💬 Hablar por WhatsApp
             </a>
+
 
             <a
                 id="btn-correo"
                 href="#"
-                class="btn-correo">
+                class="btn-correo"
+            >
                 ✉️ Enviar correo
             </a>
 
         </div>
+
     </div>
+
 </div>
 
 
@@ -693,15 +979,17 @@ function actualizarFecha() {
 
     const hoy = new Date();
 
-    document.getElementById('fecha-hoy').textContent =
-        hoy.toLocaleDateString(
-            'es-CL',
-            {
-                weekday: 'short',
-                day: '2-digit',
-                month: 'short'
-            }
-        );
+    document
+        .getElementById('fecha-hoy')
+        .textContent =
+            hoy.toLocaleDateString(
+                'es-CL',
+                {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short'
+                }
+            );
 
 }
 
@@ -718,15 +1006,21 @@ async function iniciarSesion() {
             .value
             .trim();
 
+
     const contrasena =
         document
             .getElementById('login-pass')
             .value;
 
-    const errorLogin =
-        document.getElementById('login-error');
 
-    errorLogin.style.display = 'none';
+    const errorLogin =
+        document.getElementById(
+            'login-error'
+        );
+
+
+    errorLogin.style.display =
+        'none';
 
 
     try {
@@ -768,18 +1062,21 @@ async function iniciarSesion() {
         usuarioActivo =
             datos.usuario;
 
+
         barberoActivoId =
             usuarioActivo.id;
 
 
         document
             .getElementById('login-screen')
-            .style.display = 'none';
+            .style.display =
+                'none';
 
 
         document
             .getElementById('panel-barbero')
-            .style.display = 'grid';
+            .style.display =
+                'grid';
 
 
         document
@@ -812,7 +1109,11 @@ async function iniciarSesion() {
 
         actualizarFecha();
 
-        cargarAgendaBarbero();
+
+        await cargarAgendaBarbero();
+
+
+        await cargarDiasBloqueados();
 
 
     } catch (error) {
@@ -876,13 +1177,17 @@ async function cargarAgendaBarbero() {
 
 
         document
-            .getElementById('b-mis-horarios')
+            .getElementById(
+                'b-mis-horarios'
+            )
             .value =
                 horarios;
 
 
         document
-            .getElementById('stat-horarios')
+            .getElementById(
+                'stat-horarios'
+            )
             .textContent =
                 horarios
                     .split(',')
@@ -923,13 +1228,17 @@ async function cargarAgendaBarbero() {
 
 
         document
-            .getElementById('stat-citas')
+            .getElementById(
+                'stat-citas'
+            )
             .textContent =
                 misCitas.length;
 
 
         document
-            .getElementById('agenda-badge')
+            .getElementById(
+                'agenda-badge'
+            )
             .textContent =
                 `${misCitas.length} ${
                     misCitas.length === 1
@@ -959,13 +1268,17 @@ async function cargarAgendaBarbero() {
 
 
         document
-            .getElementById('stat-proxima')
+            .getElementById(
+                'stat-proxima'
+            )
             .textContent =
                 proxima?.hora || '—';
 
 
         document
-            .getElementById('stat-proxima-detalle')
+            .getElementById(
+                'stat-proxima-detalle'
+            )
             .textContent =
                 proxima
                     ? String(proxima.fecha)
@@ -998,7 +1311,9 @@ async function cargarAgendaBarbero() {
 
 
         document
-            .getElementById('stat-frecuentes')
+            .getElementById(
+                'stat-frecuentes'
+            )
             .textContent =
                 contactosFrecuentes.size;
 
@@ -1204,6 +1519,7 @@ async function cargarAgendaBarbero() {
                                                 :
 
                                                 `<button
+                                                    type="button"
                                                     class="barbero-client-name"
                                                     onclick="abrirPerfilClienteEncoded(
                                                         '${nombreJS}',
@@ -1216,12 +1532,14 @@ async function cargarAgendaBarbero() {
                                                 </button>`
                                         }
 
+
                                         ${etiquetaVIP}
 
                                     </div>
 
 
                                     <span>
+
                                         ${
                                             bloqueado
 
@@ -1233,6 +1551,7 @@ async function cargarAgendaBarbero() {
 
                                                 `${servicio} · ${telefono}`
                                         }
+
                                     </span>
 
                                 </div>
@@ -1271,6 +1590,7 @@ async function cargarAgendaBarbero() {
                                         :
 
                                         `<button
+                                            type="button"
                                             class="barbero-cancel-btn"
                                             onclick="cancelarCitaBarbero(
                                                 ${Number(c.id)}
@@ -1293,7 +1613,9 @@ async function cargarAgendaBarbero() {
     } catch (error) {
 
         document
-            .getElementById('lista-citas')
+            .getElementById(
+                'lista-citas'
+            )
             .innerHTML = `
 
                 <div class="barbero-empty-state error">
@@ -1318,138 +1640,63 @@ async function cargarAgendaBarbero() {
 
 }
 
-function abrirPerfilClienteEncoded(nombre, telefono, email, cortes) {
+
+/* ============================================================
+   PERFIL CLIENTE
+============================================================ */
+
+function abrirPerfilClienteEncoded(
+    nombre,
+    telefono,
+    email,
+    cortes
+) {
+
     abrirPerfilCliente(
         decodeURIComponent(nombre),
         decodeURIComponent(telefono),
         decodeURIComponent(email),
         cortes
     );
+
 }
 
-/* ============================================================
-   PERFIL CLIENTE
-============================================================ */
 
-function abrirPerfilCliente(nombre, telefono, email, cortes) {
-
-    document.getElementById('perfil-nombre').innerText =
-        nombre || 'Cliente';
-
-    document.getElementById('perfil-cortes').innerText =
-        cortes || 0;
-
-    document.getElementById('perfil-avatar').innerText =
-        String(nombre || 'C')
-            .trim()
-            .charAt(0)
-            .toUpperCase();
-
-
-    // =====================================================
-    // WHATSAPP
-    // =====================================================
-
-    const btnWsp =
-        document.getElementById('btn-whatsapp');
-
-    let telefonoLimpio =
-        String(telefono || '')
-            .replace(/\D/g, '');
-
-
-    if (telefonoLimpio) {
-
-        // Chile:
-        // 912345678 -> 56912345678
-        if (
-            telefonoLimpio.length === 9 &&
-            telefonoLimpio.startsWith('9')
-        ) {
-            telefonoLimpio =
-                '56' + telefonoLimpio;
-        }
-
-        // 0912345678 -> 56912345678
-        else if (
-            telefonoLimpio.length === 10 &&
-            telefonoLimpio.startsWith('09')
-        ) {
-            telefonoLimpio =
-                '56' + telefonoLimpio.substring(1);
-        }
-
-        // 56912345678 -> se mantiene
-        else if (
-            telefonoLimpio.length === 11 &&
-            telefonoLimpio.startsWith('56')
-        ) {
-            // Ya está correcto.
-        }
-
-        btnWsp.href =
-            `https://wa.me/${telefonoLimpio}`;
-
-        btnWsp.style.display = 'flex';
-
-    } else {
-
-        btnWsp.removeAttribute('href');
-        btnWsp.style.display = 'none';
-    }
-
-
-    // =====================================================
-    // CORREO
-    // =====================================================
-
-    const btnCorreo =
-        document.getElementById('btn-correo');
-
-    const emailLimpio =
-        String(email || '').trim();
-
-
-    if (emailLimpio) {
-
-        btnCorreo.href =
-            `mailto:${emailLimpio}`;
-
-        btnCorreo.style.display = 'flex';
-
-    } else {
-
-        btnCorreo.removeAttribute('href');
-        btnCorreo.style.display = 'none';
-    }
-
-
-    // =====================================================
-    // MOSTRAR MODAL
-    // =====================================================
-
-    document.getElementById('modal-perfil').style.display =
-        'flex';
-}
-{
+function abrirPerfilCliente(
+    nombre,
+    telefono,
+    email,
+    cortes
+) {
 
     document
-        .getElementById('perfil-nombre')
-        .textContent =
-            nombre;
+        .getElementById(
+            'perfil-nombre'
+        )
+        .innerText =
+            nombre || 'Cliente';
 
 
     document
-        .getElementById('perfil-avatar')
-        .textContent =
-            iniciales(nombre);
+        .getElementById(
+            'perfil-cortes'
+        )
+        .innerText =
+            cortes || 0;
 
 
     document
-        .getElementById('perfil-cortes')
-        .textContent =
-            cortes;
+        .getElementById(
+            'perfil-avatar'
+        )
+        .innerText =
+            String(nombre || 'C')
+                .trim()
+                .charAt(0)
+                .toUpperCase();
 
+
+    /* WHATSAPP */
 
     const btnWsp =
         document.getElementById(
@@ -1457,42 +1704,70 @@ function abrirPerfilCliente(nombre, telefono, email, cortes) {
         );
 
 
+    let telefonoLimpio =
+        String(telefono || '')
+            .replace(/\D/g, '');
+
+
     if (
-        telefono &&
-        telefono.trim() !== ''
+        telefonoLimpio.length === 9 &&
+        telefonoLimpio.startsWith('9')
     ) {
 
-        let telLimpio =
-            telefono.replace(
-                /\D/g,
-                ''
-            );
+        telefonoLimpio =
+            '56' +
+            telefonoLimpio;
+
+    }
+
+    else if (
+        telefonoLimpio.length === 10 &&
+        telefonoLimpio.startsWith('09')
+    ) {
+
+        telefonoLimpio =
+            '56' +
+            telefonoLimpio.substring(1);
+
+    }
 
 
-        if (
-            telLimpio.length === 9
-        ) {
-
-            telLimpio =
-                '56' +
-                telLimpio;
-
-        }
-
+    if (
+        telefonoLimpio.length === 11 &&
+        telefonoLimpio.startsWith('56')
+    ) {
 
         btnWsp.href =
-            `https://wa.me/${telLimpio}`;
+            `https://wa.me/${telefonoLimpio}`;
 
         btnWsp.style.display =
             'flex';
 
-    } else {
+    }
+
+    else if (
+        telefonoLimpio
+    ) {
+
+        btnWsp.href =
+            `https://wa.me/${telefonoLimpio}`;
+
+        btnWsp.style.display =
+            'flex';
+
+    }
+
+    else {
+
+        btnWsp.removeAttribute('href');
 
         btnWsp.style.display =
             'none';
 
     }
 
+
+    /* CORREO */
 
     const btnCorreo =
         document.getElementById(
@@ -1500,18 +1775,26 @@ function abrirPerfilCliente(nombre, telefono, email, cortes) {
         );
 
 
-    if (
-        email &&
-        email.trim() !== ''
-    ) {
+    const emailLimpio =
+        String(email || '')
+            .trim();
+
+
+    if (emailLimpio) {
 
         btnCorreo.href =
-            `mailto:${email}`;
+            `mailto:${emailLimpio}`;
 
         btnCorreo.style.display =
             'flex';
 
-    } else {
+    }
+
+    else {
+
+        btnCorreo.removeAttribute(
+            'href'
+        );
 
         btnCorreo.style.display =
             'none';
@@ -1519,8 +1802,12 @@ function abrirPerfilCliente(nombre, telefono, email, cortes) {
     }
 
 
+    /* MOSTRAR MODAL */
+
     document
-        .getElementById('modal-perfil')
+        .getElementById(
+            'modal-perfil'
+        )
         .style.display =
             'flex';
 
@@ -1529,8 +1816,13 @@ function abrirPerfilCliente(nombre, telefono, email, cortes) {
 
 function cerrarPerfilCliente() {
 
-    document.getElementById('modal-perfil').style.display =
-        'none';
+    document
+        .getElementById(
+            'modal-perfil'
+        )
+        .style.display =
+            'none';
+
 }
 
 
@@ -1594,8 +1886,7 @@ async function guardarMisHorarios() {
                     misNuevasHoras
                         .split(',')
                         .map(
-                            h =>
-                                h.trim()
+                            h => h.trim()
                         )
                         .filter(Boolean)
                         .length;
@@ -1605,7 +1896,9 @@ async function guardarMisHorarios() {
                 data.message
             );
 
-        } else {
+        }
+
+        else {
 
             alert(
                 'Ocurrió un error: ' +
@@ -1678,7 +1971,9 @@ async function cancelarCitaBarbero(
 
             cargarAgendaBarbero();
 
-        } else {
+        }
+
+        else {
 
             alert(
                 'Ocurrió un error: ' +
@@ -1777,13 +2072,436 @@ async function bloquearHora() {
         );
 
 
-        cargarAgendaBarbero();
+        await cargarAgendaBarbero();
 
 
     } catch (error) {
 
         alert(
             'No se pudo bloquear el horario.'
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   BLOQUEAR DÍA COMPLETO
+============================================================ */
+
+function esDomingo(fecha) {
+
+    if (!fecha) {
+        return false;
+    }
+
+
+    const fechaLocal =
+        new Date(
+            `${fecha}T12:00:00`
+        );
+
+
+    return (
+        fechaLocal.getDay() === 0
+    );
+
+}
+
+
+function formatearFecha(fecha) {
+
+    if (!fecha) {
+        return '';
+    }
+
+
+    const partes =
+        fecha.split('-');
+
+
+    if (
+        partes.length !== 3
+    ) {
+        return fecha;
+    }
+
+
+    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+
+}
+
+
+function mostrarDiasBloqueados(
+    dias
+) {
+
+    const lista =
+        document.getElementById(
+            'diasBloqueadosLista'
+        );
+
+
+    if (!lista) {
+        return;
+    }
+
+
+    const domingos = [];
+
+
+    const diasManuales =
+        Array.isArray(dias)
+            ? dias.filter(
+                fecha =>
+                    !esDomingo(fecha)
+            )
+            : [];
+
+
+    if (
+        diasManuales.length === 0
+    ) {
+
+        lista.innerHTML = `
+            <div class="bloqueo-dia-empty">
+                No tienes días bloqueados manualmente.
+            </div>
+
+            <div class="dia-bloqueado-item domingo-bloqueado">
+
+                <div class="dia-bloqueado-info">
+
+                    <strong>
+                        Domingos
+                    </strong>
+
+                    <span>
+                        Bloqueados automáticamente · No laborables
+                    </span>
+
+                </div>
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    lista.innerHTML = `
+
+        ${diasManuales
+            .sort()
+            .map(
+                fecha => `
+
+                    <div
+                        class="dia-bloqueado-item"
+                    >
+
+                        <div
+                            class="dia-bloqueado-info"
+                        >
+
+                            <strong>
+                                ${formatearFecha(fecha)}
+                            </strong>
+
+                            <span>
+                                Día completo bloqueado
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="dia-bloqueado-btn"
+                            onclick="desbloquearDia('${fecha}')"
+                        >
+                            Desbloquear
+                        </button>
+
+                    </div>
+
+                `
+            )
+            .join('')}
+
+        <div class="dia-bloqueado-item domingo-bloqueado">
+
+            <div class="dia-bloqueado-info">
+
+                <strong>
+                    Domingos
+                </strong>
+
+                <span>
+                    Bloqueados automáticamente · No laborables
+                </span>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+async function cargarDiasBloqueados() {
+
+    const lista =
+        document.getElementById(
+            'diasBloqueadosLista'
+        );
+
+
+    if (!lista) {
+        return;
+    }
+
+
+    try {
+
+        const res =
+            await fetch(
+                '/api/barbero/dias-bloqueados'
+            );
+
+
+        if (!res.ok) {
+
+            throw new Error(
+                'No se pudieron cargar los días bloqueados.'
+            );
+
+        }
+
+
+        const data =
+            await res.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message ||
+                'No se pudieron cargar los días bloqueados.'
+            );
+
+        }
+
+
+        mostrarDiasBloqueados(
+            data.dias || []
+        );
+
+
+    } catch (error) {
+
+        /*
+         * Si todavía no existe el GET de días bloqueados
+         * en el servidor, mostramos igualmente el domingo
+         * como bloqueado automáticamente.
+         */
+
+        mostrarDiasBloqueados([]);
+
+    }
+
+}
+
+
+async function bloquearDiaCompleto() {
+
+    const input =
+        document.getElementById(
+            'fechaBloqueoDia'
+        );
+
+
+    const boton =
+        document.getElementById(
+            'btnBloquearDia'
+        );
+
+
+    const fecha =
+        input.value;
+
+
+    if (!fecha) {
+
+        return alert(
+            'Selecciona una fecha.'
+        );
+
+    }
+
+
+    if (
+        esDomingo(fecha)
+    ) {
+
+        return alert(
+            'Los domingos son días no laborables y ya están bloqueados automáticamente.'
+        );
+
+    }
+
+
+    try {
+
+        boton.disabled =
+            true;
+
+
+        const res =
+            await fetch(
+                '/api/barbero/bloquear-dia',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        fecha
+                    })
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (
+            !res.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo bloquear el día.'
+            );
+
+        }
+
+
+        alert(
+            data.message ||
+            'Día bloqueado correctamente.'
+        );
+
+
+        input.value =
+            '';
+
+
+        await cargarAgendaBarbero();
+
+
+        await cargarDiasBloqueados();
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo bloquear el día.'
+        );
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+    }
+
+}
+
+
+async function desbloquearDia(
+    fecha
+) {
+
+    if (!fecha) {
+        return;
+    }
+
+
+    if (
+        esDomingo(fecha)
+    ) {
+
+        return alert(
+            'Los domingos no se pueden desbloquear porque son días no laborables.'
+        );
+
+    }
+
+
+    const confirmar =
+        confirm(
+            `¿Quieres desbloquear el día ${formatearFecha(fecha)}?`
+        );
+
+
+    if (!confirmar) {
+        return;
+    }
+
+
+    try {
+
+        const res =
+            await fetch(
+                `/api/barbero/desbloquear-dia/${encodeURIComponent(fecha)}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (
+            !res.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo desbloquear el día.'
+            );
+
+        }
+
+
+        alert(
+            data.message ||
+            'Día desbloqueado correctamente.'
+        );
+
+
+        await cargarDiasBloqueados();
+
+
+        await cargarAgendaBarbero();
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo desbloquear el día.'
         );
 
     }
@@ -1806,7 +2524,9 @@ async function cerrarSesionBarbero() {
             }
         );
 
-    } finally {
+    }
+
+    finally {
 
         location.reload();
 
@@ -1872,7 +2592,9 @@ function cerrarMenuBarbero() {
 ============================================================ */
 
 document
-    .getElementById('login-pass')
+    .getElementById(
+        'login-pass'
+    )
     .addEventListener(
         'keydown',
         event => {
@@ -1890,7 +2612,9 @@ document
 
 
 document
-    .getElementById('modal-perfil')
+    .getElementById(
+        'modal-perfil'
+    )
     .addEventListener(
         'click',
         event => {
@@ -1908,9 +2632,57 @@ document
     );
 
 
+document
+    .getElementById(
+        'btnBloquearDia'
+    )
+    .addEventListener(
+        'click',
+        bloquearDiaCompleto
+    );
+
+
+/* ============================================================
+   DOMINGOS
+============================================================ */
+
+const fechaBloqueoDia =
+    document.getElementById(
+        'fechaBloqueoDia'
+    );
+
+
+if (fechaBloqueoDia) {
+
+    fechaBloqueoDia.addEventListener(
+        'change',
+        () => {
+
+            if (
+                esDomingo(
+                    fechaBloqueoDia.value
+                )
+            ) {
+
+                alert(
+                    'Los domingos son días no laborables y están bloqueados automáticamente.'
+                );
+
+                fechaBloqueoDia.value =
+                    '';
+
+            }
+
+        }
+    );
+
+}
+
+
 actualizarFecha();
 
 </script>
 
 </body>
 </html>
+```

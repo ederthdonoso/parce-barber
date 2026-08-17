@@ -107,6 +107,35 @@ async function esBarberoDisponible(barberoId) {
     }
 }
 
+// Comprueba si un día completo está bloqueado para un barbero.
+async function esDiaBloqueado(barberoId, fecha) {
+
+    try {
+
+        const [rows] = await pool.query(
+            `SELECT id
+             FROM dias_bloqueados
+             WHERE barberoId = ?
+             AND fecha = ?
+             LIMIT 1`,
+            [
+                barberoId,
+                fecha
+            ]
+        );
+
+        return rows.length > 0;
+
+    } catch (error) {
+
+        console.error(
+            'Error comprobando día bloqueado:',
+            error
+        );
+
+        return false;
+    }
+}
 
 // Devuelve los perfiles de todos los barberos.
 // Se utiliza también para citas históricas, por eso NO filtramos activo aquí.
@@ -502,6 +531,43 @@ app.post('/api/agenda-directa', async (req, res) => {
             email
         } = req.body;
 
+        // ====================================================
+// COMPROBAR DÍA BLOQUEADO
+// ====================================================
+
+const fechaLocal =
+    new Date(`${fecha}T12:00:00`);
+
+const diaSemana =
+    fechaLocal.getDay();
+
+
+// Los domingos nunca están disponibles.
+if (diaSemana === 0) {
+
+    return res.json({
+        success: false,
+        message:
+            'Los domingos no atendemos. Por favor, elige otro día.'
+    });
+}
+
+
+// Comprobar si el barbero bloqueó ese día.
+if (
+    await esDiaBloqueado(
+        barberoId,
+        fecha
+    )
+) {
+
+    return res.json({
+        success: false,
+        message:
+            'Este día no está disponible para este especialista. Por favor, elige otro día.'
+    });
+}
+
 
         // Comprobamos en BD que el barbero esté activo.
         if (!(await esBarberoDisponible(barberoId))) {
@@ -773,12 +839,21 @@ app.post('/api/agendado-rapido', async (req, res) => {
 
         for (let d = 0; d < 7; d++) {
 
-            const fechaPrueba =
-                new Date(hoy);
+    const fechaPrueba =
+        new Date(hoy);
 
-            fechaPrueba.setDate(
-                hoy.getDate() + d
-            );
+    fechaPrueba.setDate(
+        hoy.getDate() + d
+    );
+
+
+    // ========================================================
+    // DOMINGOS NO LABORABLES
+    // ========================================================
+
+    if (fechaPrueba.getDay() === 0) {
+        continue;
+    }
 
 
             const fechaStr =
@@ -807,24 +882,44 @@ app.post('/api/agendado-rapido', async (req, res) => {
 
                 for (const bId of barberosIds) {
 
-                    const ocupado =
-                        citasOcupadas.find(
-                            a =>
-                                a.fecha === fechaStr &&
-                                a.hora === hora &&
-                                Number(a.barberoId) === Number(bId)
-                        );
+    // ========================================================
+    // COMPROBAR SI EL BARBERO BLOQUEÓ EL DÍA COMPLETO
+    // ========================================================
+
+    const diaBloqueado =
+        await esDiaBloqueado(
+            bId,
+            fechaStr
+        );
 
 
-                    if (!ocupado) {
+    if (diaBloqueado) {
+        continue;
+    }
 
-                        fechaAsignada = fechaStr;
-                        horaAsignada = hora;
-                        barberoAsignado = bId;
 
-                        break;
-                    }
-                }
+    // ========================================================
+    // COMPROBAR SI LA HORA ESTÁ OCUPADA
+    // ========================================================
+
+    const ocupado =
+        citasOcupadas.find(
+            a =>
+                a.fecha === fechaStr &&
+                a.hora === hora &&
+                Number(a.barberoId) === Number(bId)
+        );
+
+
+    if (!ocupado) {
+
+        fechaAsignada = fechaStr;
+        horaAsignada = hora;
+        barberoAsignado = bId;
+
+        break;
+    }
+}
 
 
                 if (fechaAsignada) {
@@ -1709,6 +1804,55 @@ if (barberoId === Number(req.usuario.id)) {
     }
 );
 
+// ============================================================
+// OBTENER DÍAS BLOQUEADOS DEL BARBERO
+// ============================================================
+
+app.get(
+    '/api/barbero/dias-bloqueados',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        try {
+
+            const [dias] =
+                await pool.query(
+                    `SELECT fecha
+                     FROM dias_bloqueados
+                     WHERE barberoId = ?
+                     ORDER BY fecha ASC`,
+                    [
+                        req.usuario.id
+                    ]
+                );
+
+
+            return res.json({
+                success: true,
+                dias: dias.map(
+                    dia => dia.fecha
+                )
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error obteniendo días bloqueados:',
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                dias: [],
+                message:
+                    'No se pudieron cargar los días bloqueados.'
+            });
+        }
+    }
+);
+
 
 // ============================================================
 // ELIMINAR CITA DESDE JEFE
@@ -1834,6 +1978,164 @@ app.post(
     }
 );
 
+// ============================================================
+// BLOQUEAR DÍA COMPLETO DEL BARBERO
+// ============================================================
+
+app.post(
+    '/api/barbero/bloquear-dia',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        try {
+
+            const { fecha } = req.body;
+
+            if (!fecha) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'Debes indicar una fecha.'
+                });
+            }
+
+
+            // Los domingos son días no laborables
+            // y quedan bloqueados automáticamente.
+            const fechaLocal =
+                new Date(`${fecha}T12:00:00`);
+
+            const diaSemana =
+                fechaLocal.getDay();
+
+            if (diaSemana === 0) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Los domingos son días no laborables y ya están bloqueados.'
+                });
+            }
+
+
+            await pool.query(
+                `INSERT INTO dias_bloqueados
+                (
+                    barberoId,
+                    fecha
+                )
+                VALUES (?, ?)
+                ON DUPLICATE KEY UPDATE
+                    fecha = VALUES(fecha)`,
+                [
+                    req.usuario.id,
+                    fecha
+                ]
+            );
+
+
+            return res.json({
+                success: true,
+                message: 'Día bloqueado correctamente.'
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error al bloquear día:',
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo bloquear el día.'
+            });
+        }
+    }
+);
+
+// ============================================================
+// DESBLOQUEAR DÍA COMPLETO DEL BARBERO
+// ============================================================
+
+app.delete(
+    '/api/barbero/desbloquear-dia/:fecha',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        try {
+
+            const fecha =
+                String(req.params.fecha || '').trim();
+
+
+            if (!fecha) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'Debes indicar una fecha.'
+                });
+            }
+
+
+            // Los domingos son siempre no laborables.
+            const fechaLocal =
+                new Date(`${fecha}T12:00:00`);
+
+            const diaSemana =
+                fechaLocal.getDay();
+
+
+            if (diaSemana === 0) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Los domingos no se pueden desbloquear porque son días no laborables.'
+                });
+            }
+
+
+            const [resultado] =
+                await pool.query(
+                    `DELETE FROM dias_bloqueados
+                     WHERE barberoId = ?
+                     AND fecha = ?`,
+                    [
+                        req.usuario.id,
+                        fecha
+                    ]
+                );
+
+
+            return res.json({
+                success: true,
+                message:
+                    resultado.affectedRows > 0
+                        ? 'Día desbloqueado correctamente.'
+                        : 'Ese día no estaba bloqueado.'
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error al desbloquear día:',
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo desbloquear el día.'
+            });
+        }
+    }
+);
 
 // ============================================================
 // CANCELAR CITA DESDE PANEL DEL BARBERO
@@ -2298,24 +2600,72 @@ app.get(
 
             if (fecha) {
 
-                const [citasExistentes] =
-                    await pool.query(
-                        `SELECT hora
-                         FROM agendamientos
-                         WHERE barberoId = ?
-                         AND fecha = ?`,
-                        [
-                            barberoId,
-                            fecha
-                        ]
-                    );
+    // ========================================================
+    // DOMINGOS BLOQUEADOS AUTOMÁTICAMENTE
+    // ========================================================
+
+    const fechaLocal =
+        new Date(`${fecha}T12:00:00`);
+
+    const diaSemana =
+        fechaLocal.getDay();
 
 
-                ocupadas =
-                    citasExistentes.map(
-                        cita => cita.hora
-                    );
-            }
+    if (diaSemana === 0) {
+
+        return res.json({
+            success: true,
+            horarios: [],
+            ocupadas: horasLista,
+            diaBloqueado: true
+        });
+    }
+
+
+    // ========================================================
+    // COMPROBAR SI EL BARBERO BLOQUEÓ EL DÍA
+    // ========================================================
+
+    const diaBloqueado =
+        await esDiaBloqueado(
+            barberoId,
+            fecha
+        );
+
+
+    if (diaBloqueado) {
+
+        return res.json({
+            success: true,
+            horarios: [],
+            ocupadas: horasLista,
+            diaBloqueado: true
+        });
+    }
+
+
+    // ========================================================
+    // HORAS OCUPADAS NORMALMENTE
+    // ========================================================
+
+    const [citasExistentes] =
+        await pool.query(
+            `SELECT hora
+             FROM agendamientos
+             WHERE barberoId = ?
+             AND fecha = ?`,
+            [
+                barberoId,
+                fecha
+            ]
+        );
+
+
+    ocupadas =
+        citasExistentes.map(
+            cita => cita.hora
+        );
+}
 
 
             res.json({
