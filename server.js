@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const mysql = require('mysql2/promise');
 
 const app = express();
@@ -61,13 +61,10 @@ const pool = mysql.createPool({
 // CORREO
 // ============================================================
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USUARIO,
-        pass: process.env.EMAIL_PASSWORD
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const EMAIL_REMITENTE =
+    `"Parce Barber" <${process.env.EMAIL_USUARIO || 'reservas@parcebarber.cl'}>`;
 
 
 // ============================================================
@@ -717,7 +714,7 @@ if (
         const perfiles =
             await obtenerMapaPerfiles();
 
-        enviarCorreo(
+        await enviarCorreo(
             email,
             cliente,
             perfiles[barberoId] || 'Especialista Asignado',
@@ -963,7 +960,7 @@ app.post('/api/agendado-rapido', async (req, res) => {
             await obtenerMapaPerfiles();
 
 
-        enviarCorreo(
+        await enviarCorreo(
             email,
             cliente,
             perfiles[barberoAsignado] || 'Especialista',
@@ -1310,7 +1307,7 @@ app.post('/api/modificar-cita', async (req, res) => {
         // 6. ENVIAR CORREO
         // ====================================================
 
-        enviarCorreo(
+        await enviarCorreo(
             cita.email,
             cita.cliente,
             perfiles[nuevoBarberoId] ||
@@ -2216,55 +2213,77 @@ app.post(
             );
 
 
-            const mailOptions = {
-
-                from:
-                    '"Parce Barber" <' +
-                    process.env.EMAIL_USUARIO +
-                    '>',
-
-                to: cita.email,
-
-                subject:
-                    '⚠️ Tu cita ha sido cancelada por un imprevisto',
-
-                html:
-                    `<div style="font-family: Arial; padding: 25px; max-width: 500px; margin: auto; background-color: #0a0a0a; color: #fff; border-radius: 12px; border: 1px solid #333;">
-                        <h1 style="color: #ff3333; text-align:center;">
-                            Cita Cancelada
-                        </h1>
-
-                        <p>
-                            Hola <strong>${cita.cliente}</strong>,
-                        </p>
-
-                        <p>
-                            Lamentamos informarte que tu barbero
-                            <strong>${nombreBarbero}</strong>
-                            ha tenido un imprevisto de fuerza mayor
-                            y tuvimos que cancelar tu cita programada
-                            para el <strong>${cita.fecha}</strong>
-                            a las <strong>${cita.hora}</strong>.
-                        </p>
-
-                        <div style="background: #151515; padding: 15px; border-left: 4px solid #ffb700; margin-top: 15px;">
-                            <p style="margin: 0;">
-                                ¡Pero no te preocupes!
-                                Queremos atenderte.
-                                Por favor, <strong>reagenda tu hora</strong>
-                                en nuestro sistema.
-                            </p>
-                        </div>
-                    </div>`
-            };
-
-
             if (cita.email) {
-                transporter
-                    .sendMail(mailOptions)
-                    .catch(console.error);
-            }
 
+    try {
+
+        const { data, error } = await resend.emails.send({
+
+            from: EMAIL_REMITENTE,
+
+            to: [cita.email],
+
+            subject:
+                '⚠️ Tu cita ha sido cancelada por un imprevisto',
+
+            html:
+                `<div style="font-family: Arial; padding: 25px; max-width: 500px; margin: auto; background-color: #0a0a0a; color: #fff; border-radius: 12px; border: 1px solid #333;">
+
+                    <h1 style="color: #ff3333; text-align:center;">
+                        Cita Cancelada
+                    </h1>
+
+                    <p>
+                        Hola <strong>${cita.cliente}</strong>,
+                    </p>
+
+                    <p>
+                        Lamentamos informarte que tu barbero
+                        <strong>${nombreBarbero}</strong>
+                        ha tenido un imprevisto de fuerza mayor
+                        y tuvimos que cancelar tu cita programada
+                        para el <strong>${cita.fecha}</strong>
+                        a las <strong>${cita.hora}</strong>.
+                    </p>
+
+                    <div style="background: #151515; padding: 15px; border-left: 4px solid #ffb700; margin-top: 15px;">
+
+                        <p style="margin: 0;">
+                            ¡Pero no te preocupes!
+                            Queremos atenderte.
+                            Por favor,
+                            <strong>reagenda tu hora</strong>
+                            en nuestro sistema.
+                        </p>
+
+                    </div>
+
+                </div>`
+        });
+
+        if (error) {
+
+            console.error(
+                '❌ Error enviando cancelación con Resend:',
+                error
+            );
+
+        } else {
+
+            console.log(
+                '📧 Correo de cancelación enviado:',
+                data?.id
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            '❌ Error inesperado enviando correo de cancelación:',
+            error
+        );
+    }
+}
 
             res.json({
                 success: true,
@@ -2696,7 +2715,7 @@ app.get(
 // CORREO DE CONFIRMACIÓN
 // ============================================================
 
-function enviarCorreo(
+async function enviarCorreo(
     email,
     cliente,
     barbero,
@@ -2706,48 +2725,95 @@ function enviarCorreo(
 ) {
 
     if (!email) {
+        console.log('📧 No se envió correo: cliente sin email.');
         return;
     }
 
+    try {
 
-    const mailOptions = {
+        const { data, error } = await resend.emails.send({
 
-        from:
-            '"Parce Barber" <' +
-            process.env.EMAIL_USUARIO +
-            '>',
+            from: EMAIL_REMITENTE,
 
-        to: email,
+            to: [email],
 
-        subject:
-            '¡Cita confirmada en Parce Barber! ✂️🔥',
+            subject:
+                '¡Cita confirmada en Parce Barber! ✂️🔥',
 
-        html:
-            `<div style="font-family: Arial; padding: 25px; background-color: #0a0a0a; color: #fff; border: 1px solid #333;">
-                <h1 style="color: #ffb700;">
-                    Reserva Confirmada
-                </h1>
+            html:
+                `<div style="font-family: Arial, sans-serif; padding: 25px; background-color: #0a0a0a; color: #ffffff; border: 1px solid #333; border-radius: 12px; max-width: 600px; margin: auto;">
 
-                <p>
-                    Hola <strong>${cliente}</strong>,
-                </p>
+                    <h1 style="color: #ffb700; text-align: center;">
+                        ✂️ Parce Barber
+                    </h1>
 
-                <p>
-                    Barbero: ${barbero}<br>
-                    Servicio: ${servicio}<br>
-                    Día: ${fecha}<br>
-                    Hora:
-                    <strong style="color:#ffb700;">
-                        ${hora}
-                    </strong>
-                </p>
-            </div>`
-    };
+                    <h2 style="color: #ffffff; text-align: center;">
+                        Reserva Confirmada
+                    </h2>
 
+                    <p>
+                        Hola <strong>${cliente}</strong>,
+                    </p>
 
-    transporter
-        .sendMail(mailOptions)
-        .catch(console.error);
+                    <p>
+                        Tu hora ha sido agendada correctamente.
+                    </p>
+
+                    <div style="background: #151515; padding: 20px; border-radius: 10px; margin-top: 20px;">
+
+                        <p>
+                            <strong>Barbero:</strong>
+                            ${barbero}
+                        </p>
+
+                        <p>
+                            <strong>Servicio:</strong>
+                            ${servicio}
+                        </p>
+
+                        <p>
+                            <strong>Día:</strong>
+                            ${fecha}
+                        </p>
+
+                        <p>
+                            <strong>Hora:</strong>
+                            <span style="color:#ffb700; font-size: 20px;">
+                                ${hora}
+                            </span>
+                        </p>
+
+                    </div>
+
+                    <p style="margin-top: 25px;">
+                        ¡Te esperamos en Parce Barber! 🔥
+                    </p>
+
+                </div>`
+        });
+
+        if (error) {
+
+            console.error(
+                '❌ Error enviando correo con Resend:',
+                error
+            );
+
+            return;
+        }
+
+        console.log(
+            '📧 Correo enviado correctamente con Resend:',
+            data?.id
+        );
+
+    } catch (error) {
+
+        console.error(
+            '❌ Error inesperado enviando correo:',
+            error
+        );
+    }
 }
 
 
