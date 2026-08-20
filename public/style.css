@@ -179,6 +179,199 @@ footer a {
     margin: 0 10px;
 }
 /* =========================================
+   FIRMA EDERTH — SEÑAL / INTERRUPCIÓN / FLUJO
+========================================= */
+
+.ederth-footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.ederth-footer-logo {
+    position: relative;
+    width: 180px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Logo principal */
+.ederth-footer-logo img {
+    width: 180px;
+    height: auto;
+    display: block;
+    filter: brightness(1.05);
+}
+
+/*
+   CAPAS DE INTERRUPCIÓN
+   Simulan pequeños cortes de señal.
+*/
+
+.ederth-footer-logo::before,
+.ederth-footer-logo::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+
+    background-image: url("img/ederth-logo-footer.png");
+    background-repeat: no-repeat;
+    background-size: 180px auto;
+    background-position: center;
+
+    opacity: 0;
+}
+
+/* Primera interrupción */
+.ederth-footer-logo::before {
+    animation: ederth-signal-cut 7s ease-in-out infinite;
+}
+
+/* Segunda interrupción */
+.ederth-footer-logo::after {
+    animation: ederth-signal-cut-reverse 7s ease-in-out infinite;
+}
+
+
+/* =========================================
+   ANIMACIÓN — SEÑAL CORTADA
+========================================= */
+
+@keyframes ederth-signal-cut {
+
+    0%,
+    72%,
+    100% {
+        opacity: 0;
+        transform: translateX(0);
+        clip-path: inset(0 0 0 0);
+    }
+
+    74% {
+        opacity: 0.9;
+        transform: translateX(-5px);
+        clip-path: inset(20% 0 55% 0);
+    }
+
+    75% {
+        opacity: 0;
+        transform: translateX(8px);
+        clip-path: inset(20% 0 55% 0);
+    }
+
+    76% {
+        opacity: 0.8;
+        transform: translateX(-4px);
+        clip-path: inset(55% 0 20% 0);
+    }
+
+    77% {
+        opacity: 0;
+        transform: translateX(0);
+        clip-path: inset(55% 0 20% 0);
+    }
+}
+
+
+/* Segunda señal, ligeramente desplazada */
+
+@keyframes ederth-signal-cut-reverse {
+
+    0%,
+    78%,
+    100% {
+        opacity: 0;
+        transform: translateX(0);
+        clip-path: inset(0 0 0 0);
+    }
+
+    79% {
+        opacity: 0.75;
+        transform: translateX(6px);
+        clip-path: inset(35% 0 40% 0);
+    }
+
+    80% {
+        opacity: 0;
+        transform: translateX(-7px);
+        clip-path: inset(35% 0 40% 0);
+    }
+
+    81% {
+        opacity: 0.7;
+        transform: translateX(3px);
+        clip-path: inset(10% 0 70% 0);
+    }
+
+    82% {
+        opacity: 0;
+        transform: translateX(0);
+        clip-path: inset(10% 0 70% 0);
+    }
+}
+
+
+/* Texto debajo del logo */
+
+.ederth-footer-caption {
+    margin-top: 8px;
+    color: #777;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+
+/* =========================================
+   REDUCIR ANIMACIÓN SI EL USUARIO LO PIDE
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .ederth-footer-logo::before,
+    .ederth-footer-logo::after {
+        animation: none;
+        opacity: 0;
+    }
+
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 600px) {
+
+    .ederth-footer-logo {
+        width: 150px;
+        height: 75px;
+    }
+
+    .ederth-footer-logo img {
+        width: 150px;
+    }
+
+    .ederth-footer-logo::before,
+    .ederth-footer-logo::after {
+        background-size: 150px auto;
+    }
+
+    .ederth-footer-caption {
+        font-size: 0.6rem;
+        letter-spacing: 3px;
+    }
+
+}
+/* =========================================
    DISEÑO RESPONSIVO (MÓVILES Y TABLETS)
 ========================================= */
 @media (max-width: 768px) {
