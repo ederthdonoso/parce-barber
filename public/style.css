@@ -3321,3 +3321,310 @@ body.barbero-page p {
 
     transform: translateY(-1px);
 }
+
+/* =====================================================
+   CORRECCIÓN FINAL — LOGO EDERTH DEL FOOTER
+   ===================================================== */
+
+.ederth-footer-brand {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin-bottom: 25px !important;
+}
+
+
+/* CONTENEDOR DEL LOGO */
+
+.ederth-footer-logo {
+    position: relative !important;
+
+    width: 180px !important;
+    height: 90px !important;
+
+    min-width: 180px !important;
+    max-width: 180px !important;
+
+    min-height: 90px !important;
+    max-height: 90px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    overflow: hidden !important;
+
+    flex-shrink: 0 !important;
+
+    margin: 0 auto !important;
+}
+
+
+/* LOGO */
+
+.ederth-footer-logo img {
+    width: 180px !important;
+    height: 90px !important;
+
+    min-width: 180px !important;
+    max-width: 180px !important;
+
+    min-height: 90px !important;
+    max-height: 90px !important;
+
+    object-fit: contain !important;
+
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    position: relative !important;
+
+    z-index: 1 !important;
+
+    filter: brightness(1.05) !important;
+}
+
+
+/* CAPAS DE LA ANIMACIÓN */
+
+.ederth-footer-logo::before,
+.ederth-footer-logo::after {
+
+    content: "" !important;
+
+    position: absolute !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 180px !important;
+    height: 90px !important;
+
+    pointer-events: none !important;
+
+    background-image: url("img/ederth-logo-footer.png") !important;
+
+    background-repeat: no-repeat !important;
+
+    background-size: 180px 90px !important;
+
+    background-position: center !important;
+
+    opacity: 0 !important;
+
+    z-index: 2 !important;
+}
+
+
+/* PRIMER CORTE DE SEÑAL */
+
+.ederth-footer-logo::before {
+    animation: ederth-signal-cut 7s ease-in-out infinite !important;
+}
+
+
+/* SEGUNDO CORTE DE SEÑAL */
+
+.ederth-footer-logo::after {
+    animation: ederth-signal-cut-reverse 7s ease-in-out infinite !important;
+}
+
+
+/* TEXTO */
+
+.ederth-footer-caption {
+
+    display: block !important;
+
+    margin-top: 8px !important;
+
+    color: #777 !important;
+
+    font-size: 0.7rem !important;
+
+    letter-spacing: 4px !important;
+
+    text-transform: uppercase !important;
+
+    white-space: nowrap !important;
+}
+
+
+/* =====================================================
+   ANIMACIÓN — SEÑAL CORTADA
+   ===================================================== */
+
+@keyframes ederth-signal-cut {
+
+    0%,
+    72%,
+    100% {
+
+        opacity: 0;
+
+        transform: translateX(0);
+
+        clip-path: inset(0 0 0 0);
+    }
+
+    74% {
+
+        opacity: 0.9;
+
+        transform: translateX(-5px);
+
+        clip-path: inset(20% 0 55% 0);
+    }
+
+    75% {
+
+        opacity: 0;
+
+        transform: translateX(8px);
+
+        clip-path: inset(20% 0 55% 0);
+    }
+
+    76% {
+
+        opacity: 0.8;
+
+        transform: translateX(-4px);
+
+        clip-path: inset(55% 0 20% 0);
+    }
+
+    77% {
+
+        opacity: 0;
+
+        transform: translateX(0);
+
+        clip-path: inset(55% 0 20% 0);
+    }
+}
+
+
+@keyframes ederth-signal-cut-reverse {
+
+    0%,
+    78%,
+    100% {
+
+        opacity: 0;
+
+        transform: translateX(0);
+
+        clip-path: inset(0 0 0 0);
+    }
+
+    79% {
+
+        opacity: 0.75;
+
+        transform: translateX(6px);
+
+        clip-path: inset(35% 0 40% 0);
+    }
+
+    80% {
+
+        opacity: 0;
+
+        transform: translateX(-7px);
+
+        clip-path: inset(35% 0 40% 0);
+    }
+
+    81% {
+
+        opacity: 0.7;
+
+        transform: translateX(3px);
+
+        clip-path: inset(10% 0 70% 0);
+    }
+
+    82% {
+
+        opacity: 0;
+
+        transform: translateX(0);
+
+        clip-path: inset(10% 0 70% 0);
+    }
+}
+
+
+/* =====================================================
+   CELULARES
+   ===================================================== */
+
+@media (max-width: 600px) {
+
+    .ederth-footer-brand {
+        width: 100% !important;
+    }
+
+    .ederth-footer-logo {
+
+        width: 150px !important;
+        height: 75px !important;
+
+        min-width: 150px !important;
+        max-width: 150px !important;
+
+        min-height: 75px !important;
+        max-height: 75px !important;
+    }
+
+    .ederth-footer-logo img {
+
+        width: 150px !important;
+        height: 75px !important;
+
+        min-width: 150px !important;
+        max-width: 150px !important;
+
+        min-height: 75px !important;
+        max-height: 75px !important;
+    }
+
+    .ederth-footer-logo::before,
+    .ederth-footer-logo::after {
+
+        width: 150px !important;
+        height: 75px !important;
+
+        background-size: 150px 75px !important;
+    }
+
+    .ederth-footer-caption {
+
+        font-size: 0.6rem !important;
+
+        letter-spacing: 3px !important;
+
+        white-space: nowrap !important;
+    }
+}
+
+
+/* =====================================================
+   RESPETAR PREFERENCIA DE MENOS ANIMACIÓN
+   ===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .ederth-footer-logo::before,
+    .ederth-footer-logo::after {
+
+        animation: none !important;
+
+        opacity: 0 !important;
+    }
+}
