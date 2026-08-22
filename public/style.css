@@ -3388,4 +3388,682 @@ body.barbero-page p {
     filter: brightness(1.05) !important;
 }
 
+/* ============================================================
+   AGENDA VISUAL BARBERO
+============================================================ */
 
+.barbero-agenda-card {
+    overflow: hidden;
+}
+
+
+/* ============================================================
+   CABECERA DEL CALENDARIO
+============================================================ */
+
+.agenda-calendar {
+    margin-top: 25px;
+    padding: 20px;
+    background:
+        linear-gradient(
+            145deg,
+            #151515,
+            #0d0d0d
+        );
+    border: 1px solid #292929;
+    border-radius: 16px;
+}
+
+
+.agenda-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+
+.agenda-calendar-month {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+
+.agenda-calendar-month span {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+
+.agenda-calendar-month strong {
+    color: #777;
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+
+.agenda-calendar-nav {
+    width: 40px;
+    height: 40px;
+
+    border: 1px solid #303030;
+    border-radius: 10px;
+
+    background: #111;
+    color: #fff;
+
+    font-size: 25px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+}
+
+
+.agenda-calendar-nav:hover {
+    background: #1d1d1d;
+    border-color: var(--red-brand);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+
+/* ============================================================
+   DÍAS DE LA SEMANA
+============================================================ */
+
+.agenda-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+
+    margin-bottom: 8px;
+}
+
+
+.agenda-weekdays span {
+    text-align: center;
+
+    color: #666;
+
+    font-size: .65rem;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+
+/* ============================================================
+   CALENDARIO
+============================================================ */
+
+.agenda-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+
+.agenda-calendar-day,
+.agenda-calendar-empty {
+    min-height: 55px;
+}
+
+
+.agenda-calendar-day {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    background: #111;
+    color: #aaa;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        color .2s ease,
+        transform .2s ease;
+}
+
+
+.agenda-calendar-day:hover {
+    background: #1c1c1c;
+    border-color: #333;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+
+.agenda-calendar-day.today {
+    border-color: rgba(211, 0, 0, .5);
+}
+
+
+.agenda-calendar-day.today
+.agenda-day-number {
+    color: var(--red-brand);
+}
+
+
+.agenda-calendar-day.selected {
+    background:
+        linear-gradient(
+            145deg,
+            #d30000,
+            #9e0000
+        );
+
+    border-color: #ff3333;
+
+    color: #fff;
+
+    box-shadow:
+        0 8px 20px rgba(211,0,0,.22);
+}
+
+
+.agenda-calendar-day.selected
+.agenda-day-number {
+    color: #fff;
+}
+
+
+.agenda-calendar-day.sunday {
+    color: #555;
+}
+
+
+.agenda-day-number {
+    font-size: .9rem;
+    font-weight: 800;
+}
+
+
+.agenda-day-dot {
+    min-width: 17px;
+    height: 17px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 4px;
+
+    border-radius: 20px;
+
+    background: rgba(255,255,255,.1);
+
+    color: #aaa;
+
+    font-size: .55rem;
+    font-weight: 800;
+}
+
+
+.agenda-calendar-day.selected
+.agenda-day-dot {
+    background: rgba(255,255,255,.2);
+    color: #fff;
+}
+
+
+/* ============================================================
+   DÍA SELECCIONADO
+============================================================ */
+
+.agenda-selected-day {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-top: 25px;
+    padding: 20px 4px 15px;
+
+    border-bottom: 1px solid #252525;
+}
+
+
+.agenda-selected-day h3 {
+    margin-top: 5px;
+
+    color: #fff;
+
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+
+.agenda-day-counter {
+    padding: 7px 12px;
+
+    border: 1px solid #2d2d2d;
+    border-radius: 20px;
+
+    background: #111;
+
+    color: #999;
+
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   TIMELINE
+============================================================ */
+
+.agenda-timeline {
+    margin-top: 5px;
+}
+
+
+.agenda-time-row {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+
+    min-height: 82px;
+
+    border-bottom: 1px solid #181818;
+}
+
+
+.agenda-time {
+    display: flex;
+    align-items: flex-start;
+
+    padding-top: 22px;
+
+    color: #666;
+
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+
+.agenda-slot {
+    width: 100%;
+    min-height: 62px;
+
+    margin: 10px 0;
+
+    border-radius: 12px;
+
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   HORARIO DISPONIBLE
+============================================================ */
+
+.free-slot {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px 15px;
+
+    border: 1px dashed #303030;
+
+    background: #0e0e0e;
+
+    color: #666;
+
+    text-align: left;
+}
+
+
+.free-slot .agenda-slot-icon {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #171717;
+
+    color: #555;
+
+    font-size: 18px;
+}
+
+
+.free-slot strong {
+    display: block;
+
+    color: #777;
+
+    font-size: .82rem;
+}
+
+
+.free-slot small {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #555;
+
+    font-size: .7rem;
+}
+
+
+/* ============================================================
+   CITA RESERVADA
+============================================================ */
+
+.appointment-slot {
+    display: block;
+
+    padding: 13px 15px;
+
+    border: 1px solid rgba(211,0,0,.35);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(211,0,0,.14),
+            rgba(211,0,0,.05)
+        );
+
+    color: #fff;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+
+.appointment-slot:hover {
+    transform: translateX(3px);
+
+    border-color: var(--red-brand);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(211,0,0,.22),
+            rgba(211,0,0,.07)
+        );
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.25);
+}
+
+
+.agenda-slot-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+
+.agenda-slot-top strong {
+    font-size: .72rem;
+    color: #aaa;
+}
+
+
+.agenda-slot-top span {
+    padding: 4px 7px;
+
+    border-radius: 20px;
+
+    background: rgba(76,175,80,.1);
+
+    color: #66bb6a;
+
+    font-size: .55rem;
+    font-weight: 800;
+
+    letter-spacing: .6px;
+}
+
+
+.agenda-client-name {
+    margin-top: 6px;
+
+    color: #fff;
+
+    font-size: .95rem;
+    font-weight: 800;
+}
+
+
+.agenda-service {
+    margin-top: 3px;
+
+    color: #aaa;
+
+    font-size: .75rem;
+}
+
+
+.agenda-contact-hint {
+    margin-top: 8px;
+
+    color: #777;
+
+    font-size: .62rem;
+    letter-spacing: .3px;
+}
+
+
+/* ============================================================
+   HORARIO BLOQUEADO
+============================================================ */
+
+.blocked-slot {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px 15px;
+
+    border: 1px dashed #3b3030;
+
+    background: rgba(255,255,255,.02);
+
+    color: #555;
+
+    text-align: left;
+}
+
+
+.blocked-slot .agenda-slot-icon {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(211,0,0,.08);
+
+    color: #777;
+}
+
+
+.blocked-slot strong {
+    display: block;
+
+    color: #777;
+
+    font-size: .8rem;
+}
+
+
+.blocked-slot small {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #555;
+
+    font-size: .68rem;
+}
+
+
+/* ============================================================
+   SIN RESULTADOS
+============================================================ */
+
+.agenda-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 180px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    color: #666;
+}
+
+
+.agenda-empty > span {
+    margin-bottom: 10px;
+
+    color: #555;
+
+    font-size: 28px;
+}
+
+
+.agenda-empty strong {
+    color: #aaa;
+
+    font-size: .9rem;
+}
+
+
+.agenda-empty small {
+    margin-top: 5px;
+
+    color: #555;
+
+    font-size: .72rem;
+}
+
+
+.agenda-empty.error > span {
+    color: var(--red-brand);
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 600px) {
+
+    .agenda-calendar {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+
+    .agenda-calendar-day,
+    .agenda-calendar-empty {
+        min-height: 47px;
+    }
+
+
+    .agenda-weekdays span {
+        font-size: .55rem;
+    }
+
+
+    .agenda-day-number {
+        font-size: .78rem;
+    }
+
+
+    .agenda-day-dot {
+        min-width: 14px;
+        height: 14px;
+
+        font-size: .48rem;
+    }
+
+
+    .agenda-selected-day {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+
+    .agenda-day-counter {
+        align-self: flex-start;
+    }
+
+
+    .agenda-time-row {
+        grid-template-columns: 55px minmax(0, 1fr);
+        min-height: 78px;
+    }
+
+
+    .agenda-time {
+        padding-top: 22px;
+        font-size: .68rem;
+    }
+
+
+    .agenda-slot {
+        min-height: 58px;
+    }
+
+
+    .agenda-client-name {
+        font-size: .86rem;
+    }
+
+
+    .agenda-service {
+        font-size: .7rem;
+    }
+
+
+    .agenda-contact-hint {
+        font-size: .58rem;
+    }
+
+}

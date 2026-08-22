@@ -587,47 +587,128 @@
         </section>
 
 
-        <!-- AGENDA -->
+        <!-- ============================================================
+     AGENDA VISUAL
+============================================================ -->
 
-        <section
-            id="agenda"
-            class="barbero-panel-card"
+<section
+    id="agenda"
+    class="barbero-panel-card barbero-agenda-card"
+>
+
+    <div class="barbero-section-header">
+
+        <div>
+
+            <div class="barbero-section-kicker">
+                AGENDA
+            </div>
+
+            <h3>
+                Mi agenda
+            </h3>
+
+            <p>
+                Selecciona un día para consultar tus horas y clientes.
+            </p>
+
+        </div>
+
+        <span
+            class="barbero-section-badge"
+            id="agenda-badge"
         >
+            0 citas
+        </span>
 
-            <div class="barbero-section-header">
+    </div>
 
-                <div>
 
-                    <div class="barbero-section-kicker">
-                        AGENDA
-                    </div>
+    <!-- CALENDARIO -->
 
-                    <h3>
-                        Próximas citas
-                    </h3>
+    <div class="agenda-calendar">
 
-                    <p>
-                        Consulta rápidamente tus clientes y servicios programados.
-                    </p>
+        <div class="agenda-calendar-header">
 
-                </div>
+            <button
+                type="button"
+                class="agenda-calendar-nav"
+                onclick="cambiarMesAgenda(-1)"
+                aria-label="Mes anterior"
+            >
+                ‹
+            </button>
 
-                <span
-                    class="barbero-section-badge"
-                    id="agenda-badge"
-                >
-                    0 citas
+
+            <div class="agenda-calendar-month">
+                <span id="agenda-mes">
+                    Agosto
                 </span>
 
+                <strong id="agenda-anio">
+                    2026
+                </strong>
             </div>
 
 
-            <div
-                id="lista-citas"
-                class="barbero-appointments-list"
-            ></div>
+            <button
+                type="button"
+                class="agenda-calendar-nav"
+                onclick="cambiarMesAgenda(1)"
+                aria-label="Mes siguiente"
+            >
+                ›
+            </button>
 
-        </section>
+        </div>
+
+
+        <div
+            id="agenda-dias-semana"
+            class="agenda-weekdays"
+        ></div>
+
+
+        <div
+            id="agenda-calendario-dias"
+            class="agenda-calendar-days"
+        ></div>
+
+    </div>
+
+
+    <!-- DÍA SELECCIONADO -->
+
+    <div class="agenda-selected-day">
+
+        <div>
+            <span class="barbero-section-kicker">
+                HORARIO DEL DÍA
+            </span>
+
+            <h3 id="agenda-dia-titulo">
+                Selecciona un día
+            </h3>
+        </div>
+
+        <div
+            id="agenda-dia-contador"
+            class="agenda-day-counter"
+        >
+            0 citas
+        </div>
+
+    </div>
+
+
+    <!-- HORAS -->
+
+    <div
+        id="lista-citas"
+        class="agenda-timeline"
+    ></div>
+
+</section>
 
 
         <!-- CONFIGURACIÓN -->
@@ -1133,6 +1214,637 @@ async function iniciarSesion() {
    CARGAR AGENDA
 ============================================================ */
 
+/* ============================================================
+   AGENDA VISUAL DEL BARBERO
+============================================================ */
+
+let agendaCitas = [];
+let agendaHorarios = [];
+let agendaFechaSeleccionada = null;
+let agendaMesActual = new Date();
+
+
+function fechaLocalAgenda(fecha) {
+
+    const partes = String(fecha).split('-');
+
+    if (partes.length !== 3) {
+        return new Date();
+    }
+
+    return new Date(
+        Number(partes[0]),
+        Number(partes[1]) - 1,
+        Number(partes[2])
+    );
+}
+
+
+function fechaAgendaISO(fecha) {
+
+    const año = fecha.getFullYear();
+
+    const mes = String(
+        fecha.getMonth() + 1
+    ).padStart(2, '0');
+
+    const dia = String(
+        fecha.getDate()
+    ).padStart(2, '0');
+
+    return `${año}-${mes}-${dia}`;
+}
+
+
+function cambiarMesAgenda(direccion) {
+
+    agendaMesActual = new Date(
+        agendaMesActual.getFullYear(),
+        agendaMesActual.getMonth() + direccion,
+        1
+    );
+
+    renderCalendarioAgenda();
+}
+
+
+function seleccionarDiaAgenda(fecha) {
+
+    agendaFechaSeleccionada = fecha;
+
+    renderCalendarioAgenda();
+    renderHorarioAgenda();
+}
+
+
+function renderCalendarioAgenda() {
+
+    const calendario =
+        document.getElementById(
+            'agenda-calendario-dias'
+        );
+
+    const semana =
+        document.getElementById(
+            'agenda-dias-semana'
+        );
+
+    if (!calendario || !semana) {
+        return;
+    }
+
+
+    const nombresSemana = [
+        'LUN',
+        'MAR',
+        'MIÉ',
+        'JUE',
+        'VIE',
+        'SÁB',
+        'DOM'
+    ];
+
+
+    semana.innerHTML =
+        nombresSemana
+            .map(
+                nombre =>
+                    `<span>${nombre}</span>`
+            )
+            .join('');
+
+
+    const año =
+        agendaMesActual.getFullYear();
+
+    const mes =
+        agendaMesActual.getMonth();
+
+
+    const nombreMes =
+        agendaMesActual.toLocaleDateString(
+            'es-CL',
+            {
+                month: 'long'
+            }
+        );
+
+
+    document.getElementById(
+        'agenda-mes'
+    ).textContent =
+        nombreMes.charAt(0).toUpperCase() +
+        nombreMes.slice(1);
+
+
+    document.getElementById(
+        'agenda-anio'
+    ).textContent =
+        año;
+
+
+    /*
+       Primer día del mes.
+       Convertimos domingo = 0
+       a domingo = 6 para que
+       la semana comience en lunes.
+    */
+
+    let primerDia =
+        new Date(
+            año,
+            mes,
+            1
+        ).getDay();
+
+    primerDia =
+        primerDia === 0
+            ? 6
+            : primerDia - 1;
+
+
+    const diasMes =
+        new Date(
+            año,
+            mes + 1,
+            0
+        ).getDate();
+
+
+    const hoy =
+        fechaAgendaISO(
+            new Date()
+        );
+
+
+    let html = '';
+
+
+    /*
+       Espacios antes del día 1.
+    */
+
+    for (
+        let i = 0;
+        i < primerDia;
+        i++
+    ) {
+
+        html += `
+            <div class="agenda-calendar-empty"></div>
+        `;
+
+    }
+
+
+    for (
+        let dia = 1;
+        dia <= diasMes;
+        dia++
+    ) {
+
+        const fecha =
+            `${año}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+
+
+        const esHoy =
+            fecha === hoy;
+
+
+        const seleccionado =
+            fecha === agendaFechaSeleccionada;
+
+
+        const citasDelDia =
+            agendaCitas.filter(
+                cita =>
+                    String(cita.fecha).slice(0, 10) === fecha
+            );
+
+
+        const cantidadCitas =
+            citasDelDia.filter(
+                cita =>
+                    cita.servicio !== 'BLOQUEADO'
+            ).length;
+
+
+        const esDomingo =
+            new Date(
+                `${fecha}T12:00:00`
+            ).getDay() === 0;
+
+
+        html += `
+
+            <button
+                type="button"
+                class="agenda-calendar-day
+                    ${esHoy ? 'today' : ''}
+                    ${seleccionado ? 'selected' : ''}
+                    ${esDomingo ? 'sunday' : ''}
+                "
+                onclick="seleccionarDiaAgenda('${fecha}')"
+            >
+
+                <span class="agenda-day-number">
+                    ${dia}
+                </span>
+
+                ${
+                    cantidadCitas > 0
+                        ? `
+                            <span class="agenda-day-dot">
+                                ${cantidadCitas}
+                            </span>
+                        `
+                        : ''
+                }
+
+            </button>
+
+        `;
+
+    }
+
+
+    calendario.innerHTML = html;
+
+}
+
+
+function renderHorarioAgenda() {
+
+    const contenedor =
+        document.getElementById(
+            'lista-citas'
+        );
+
+
+    if (!contenedor) {
+        return;
+    }
+
+
+    if (!agendaFechaSeleccionada) {
+
+        contenedor.innerHTML = `
+            <div class="agenda-empty">
+                <span>◷</span>
+                <strong>
+                    Selecciona un día
+                </strong>
+                <small>
+                    Elige una fecha en el calendario para ver tus horas.
+                </small>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const fecha =
+        agendaFechaSeleccionada;
+
+
+    const fechaObjeto =
+        fechaLocalAgenda(fecha);
+
+
+    const titulo =
+        fechaObjeto.toLocaleDateString(
+            'es-CL',
+            {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            }
+        );
+
+
+    document.getElementById(
+        'agenda-dia-titulo'
+    ).textContent =
+        titulo.charAt(0).toUpperCase() +
+        titulo.slice(1);
+
+
+    const citasDelDia =
+        agendaCitas.filter(
+            cita =>
+                String(cita.fecha).slice(0, 10) === fecha
+        );
+
+
+    const citasNormales =
+        citasDelDia.filter(
+            cita =>
+                cita.servicio !== 'BLOQUEADO'
+        );
+
+
+    document.getElementById(
+        'agenda-dia-contador'
+    ).textContent =
+        `${citasNormales.length} ${
+            citasNormales.length === 1
+                ? 'cita'
+                : 'citas'
+        }`;
+
+
+    /*
+       Horarios disponibles configurados
+       por el barbero.
+    */
+
+    let horarios =
+        [...agendaHorarios];
+
+
+    /*
+       Si existe un bloqueo que no está
+       dentro de los horarios configurados,
+       igualmente lo mostramos.
+    */
+
+    citasDelDia
+        .forEach(cita => {
+
+            if (
+                !horarios.includes(
+                    cita.hora
+                )
+            ) {
+
+                horarios.push(
+                    cita.hora
+                );
+
+            }
+
+        });
+
+
+    horarios =
+        horarios
+            .filter(Boolean)
+            .sort(
+                (a, b) =>
+                    String(a).localeCompare(
+                        String(b)
+                    )
+            );
+
+
+    if (horarios.length === 0) {
+
+        contenedor.innerHTML = `
+            <div class="agenda-empty">
+                <span>◷</span>
+
+                <strong>
+                    No hay horarios configurados
+                </strong>
+
+                <small>
+                    Configura tus horas en Disponibilidad.
+                </small>
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    contenedor.innerHTML =
+        horarios
+            .map(
+                hora => {
+
+                    const cita =
+                        citasDelDia.find(
+                            item =>
+                                String(
+                                    item.hora
+                                ) === String(hora)
+                        );
+
+
+                    const bloqueado =
+                        cita &&
+                        (
+                            cita.servicio ===
+                                'BLOQUEADO'
+                            ||
+                            cita.estado ===
+                                'Bloqueado'
+                        );
+
+
+                    /*
+                       HORA LIBRE
+                    */
+
+                    if (!cita) {
+
+                        return `
+
+                            <div class="agenda-time-row free">
+
+                                <div class="agenda-time">
+                                    ${hora}
+                                </div>
+
+                                <div class="agenda-slot free-slot">
+
+                                    <div class="agenda-slot-icon">
+                                        +
+                                    </div>
+
+                                    <div>
+                                        <strong>
+                                            Disponible
+                                        </strong>
+
+                                        <small>
+                                            Sin reserva
+                                        </small>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+
+
+                    /*
+                       HORA BLOQUEADA
+                    */
+
+                    if (bloqueado) {
+
+                        return `
+
+                            <div class="agenda-time-row blocked">
+
+                                <div class="agenda-time">
+                                    ${hora}
+                                </div>
+
+                                <div class="agenda-slot blocked-slot">
+
+                                    <div class="agenda-slot-icon">
+                                        ⊘
+                                    </div>
+
+                                    <div>
+                                        <strong>
+                                            Horario bloqueado
+                                        </strong>
+
+                                        <small>
+                                            Descanso / inasistencia
+                                        </small>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+
+
+                    /*
+                       CITA REAL
+
+                       Al hacer click en toda
+                       la tarjeta se abre el
+                       perfil del cliente.
+                    */
+
+                    const idCliente =
+                        cita.email ||
+                        cita.telefono;
+
+
+                    const cortes =
+                        Number(
+                            (
+                                window
+                                    .__clientesCortesAgenda
+                                ||
+                                {}
+                            )[idCliente]
+                            ||
+                            0
+                        );
+
+
+                    const nombreJS =
+                        encodeURIComponent(
+                            cita.cliente ||
+                            'Cliente'
+                        );
+
+
+                    const telefonoJS =
+                        encodeURIComponent(
+                            cita.telefono ||
+                            ''
+                        );
+
+
+                    const emailJS =
+                        encodeURIComponent(
+                            cita.email ||
+                            ''
+                        );
+
+
+                    const cliente =
+                        escaparHTML(
+                            cita.cliente ||
+                            'Cliente'
+                        );
+
+
+                    const servicio =
+                        escaparHTML(
+                            cita.servicio ||
+                            'Servicio general'
+                        );
+
+
+                    return `
+
+                        <div
+                            class="agenda-time-row occupied"
+                        >
+
+                            <div class="agenda-time">
+                                ${hora}
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="agenda-slot appointment-slot"
+                                onclick="abrirPerfilClienteEncoded(
+                                    '${nombreJS}',
+                                    '${telefonoJS}',
+                                    '${emailJS}',
+                                    ${cortes}
+                                )"
+                            >
+
+                                <div class="agenda-slot-top">
+
+                                    <strong>
+                                        ${hora}
+                                    </strong>
+
+                                    <span>
+                                        CONFIRMADO
+                                    </span>
+
+                                </div>
+
+
+                                <div class="agenda-client-name">
+                                    ${cliente}
+                                </div>
+
+
+                                <div class="agenda-service">
+                                    ${servicio}
+                                </div>
+
+
+                                <div class="agenda-contact-hint">
+                                    Toca para contactar al cliente →
+                                </div>
+
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join('');
+
+}
+
+
 async function cargarAgendaBarbero() {
 
     if (!barberoActivoId) {
@@ -1165,7 +1877,9 @@ async function cargarAgendaBarbero() {
         }
 
 
-        /* HORARIOS */
+        /*
+           PERFIL / HORARIOS
+        */
 
         const miPerfilDB =
             db.perfil;
@@ -1176,42 +1890,41 @@ async function cargarAgendaBarbero() {
             '10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00';
 
 
-        document
-            .getElementById(
-                'b-mis-horarios'
-            )
-            .value =
-                horarios;
+        agendaHorarios =
+            horarios
+                .split(',')
+                .map(
+                    h => h.trim()
+                )
+                .filter(Boolean);
 
 
-        document
-            .getElementById(
-                'stat-horarios'
-            )
-            .textContent =
-                horarios
-                    .split(',')
-                    .map(
-                        h => h.trim()
-                    )
-                    .filter(Boolean)
-                    .length;
+        document.getElementById(
+            'b-mis-horarios'
+        ).value =
+            horarios;
 
 
-        /* CITAS */
-
-        const lista =
-            document.getElementById(
-                'lista-citas'
-            );
+        document.getElementById(
+            'stat-horarios'
+        ).textContent =
+            agendaHorarios.length;
 
 
-        const misCitas =
+        /*
+           CITAS DEL BARBERO
+        */
+
+        agendaCitas =
             (db.agendamientos || [])
                 .filter(
                     a =>
-                        Number(a.barberoId) ===
-                        Number(barberoActivoId)
+                        Number(
+                            a.barberoId
+                        ) ===
+                        Number(
+                            barberoActivoId
+                        )
                 )
                 .sort(
                     (a, b) =>
@@ -1227,27 +1940,43 @@ async function cargarAgendaBarbero() {
                 );
 
 
-        document
-            .getElementById(
-                'stat-citas'
-            )
-            .textContent =
-                misCitas.length;
+        /*
+           Guardamos el historial
+           para utilizarlo al abrir
+           el perfil del cliente.
+        */
+
+        window.__clientesCortesAgenda =
+            db.clientesCortes || {};
 
 
-        document
-            .getElementById(
-                'agenda-badge'
-            )
-            .textContent =
-                `${misCitas.length} ${
-                    misCitas.length === 1
-                        ? 'cita'
-                        : 'citas'
-                }`;
+        /*
+           ESTADÍSTICAS
+        */
+
+        document.getElementById(
+            'stat-citas'
+        ).textContent =
+            agendaCitas.filter(
+                cita =>
+                    cita.servicio !==
+                    'BLOQUEADO'
+            ).length;
 
 
-        /* PRÓXIMA CITA */
+        document.getElementById(
+            'agenda-badge'
+        ).textContent =
+            `${agendaCitas.filter(
+                cita =>
+                    cita.servicio !==
+                    'BLOQUEADO'
+            ).length} citas`;
+
+
+        /*
+           PRÓXIMA CITA
+        */
 
         const hoy =
             new Date()
@@ -1256,10 +1985,11 @@ async function cargarAgendaBarbero() {
 
 
         const proximas =
-            misCitas.filter(
-                c =>
-                    String(c.fecha) >= hoy &&
-                    c.servicio !== 'BLOQUEADO'
+            agendaCitas.filter(
+                cita =>
+                    String(cita.fecha) >= hoy &&
+                    cita.servicio !==
+                        'BLOQUEADO'
             );
 
 
@@ -1267,26 +1997,26 @@ async function cargarAgendaBarbero() {
             proximas[0];
 
 
-        document
-            .getElementById(
-                'stat-proxima'
-            )
-            .textContent =
-                proxima?.hora || '—';
+        document.getElementById(
+            'stat-proxima'
+        ).textContent =
+            proxima?.hora ||
+            '—';
 
 
-        document
-            .getElementById(
-                'stat-proxima-detalle'
-            )
-            .textContent =
-                proxima
-                    ? String(proxima.fecha)
-                        .slice(0, 10)
-                    : 'sin citas';
+        document.getElementById(
+            'stat-proxima-detalle'
+        ).textContent =
+            proxima
+                ? String(
+                    proxima.fecha
+                ).slice(0, 10)
+                : 'sin citas';
 
 
-        /* CLIENTES FRECUENTES */
+        /*
+           CLIENTES FRECUENTES
+        */
 
         const contactosFrecuentes =
             new Set();
@@ -1301,8 +2031,9 @@ async function cargarAgendaBarbero() {
                     Number(cantidad) >= 10
                 ) {
 
-                    contactosFrecuentes
-                        .add(contacto);
+                    contactosFrecuentes.add(
+                        contacto
+                    );
 
                 }
 
@@ -1310,331 +2041,66 @@ async function cargarAgendaBarbero() {
         );
 
 
-        document
-            .getElementById(
-                'stat-frecuentes'
-            )
-            .textContent =
-                contactosFrecuentes.size;
+        document.getElementById(
+            'stat-frecuentes'
+        ).textContent =
+            contactosFrecuentes.size;
 
 
-        /* SIN CITAS */
+        /*
+           MES ACTUAL
+        */
 
-        if (
-            misCitas.length === 0
-        ) {
+        const hoyObjeto =
+            new Date();
 
-            lista.innerHTML = `
 
-                <div class="barbero-empty-state">
+        agendaMesActual =
+            new Date(
+                hoyObjeto.getFullYear(),
+                hoyObjeto.getMonth(),
+                1
+            );
 
-                    <div class="barbero-empty-icon">
-                        ◷
-                    </div>
 
-                    <strong>
-                        No tienes citas registradas
-                    </strong>
+        /*
+           SELECCIONAMOS HOY
+           automáticamente.
+        */
 
-                    <span>
-                        Cuando tengas una reserva aparecerá aquí.
-                    </span>
+        agendaFechaSeleccionada =
+            fechaAgendaISO(
+                hoyObjeto
+            );
 
-                </div>
 
-            `;
-
-            return;
-
-        }
-
-
-        /* RENDER CITAS */
-
-        lista.innerHTML =
-            misCitas
-                .map(c => {
-
-                    const idCliente =
-                        c.email ||
-                        c.telefono;
-
-
-                    const cortesHistorial =
-                        Number(
-                            (db.clientesCortes || {})
-                                [idCliente] ||
-                            0
-                        );
-
-
-                    const bloqueado =
-                        c.servicio === 'BLOQUEADO' ||
-                        c.estado === 'Bloqueado';
-
-
-                    let etiquetaVIP =
-                        '';
-
-
-                    if (
-                        !bloqueado &&
-                        Number(barberoActivoId) === 1
-                    ) {
-
-                        if (
-                            cortesHistorial > 0 &&
-                            cortesHistorial % 30 === 0
-                        ) {
-
-                            etiquetaVIP =
-                                '<span class="barbero-vip-badge gold">🎁 CORTE GRATIS VIP</span>';
-
-                        } else if (
-                            cortesHistorial >= 27 &&
-                            cortesHistorial < 30
-                        ) {
-
-                            etiquetaVIP =
-                                `<span class="barbero-vip-badge red-badge">
-                                    A ${
-                                        30 -
-                                        cortesHistorial
-                                    } cortes del VIP
-                                </span>`;
-
-                        }
-
-                    }
-
-
-                    const cliente =
-                        escaparHTML(
-                            c.cliente ||
-                            'Cliente'
-                        );
-
-
-                    const servicio =
-                        escaparHTML(
-                            c.servicio ||
-                            'Servicio general'
-                        );
-
-
-                    const telefono =
-                        escaparHTML(
-                            c.telefono ||
-                            'Sin teléfono'
-                        );
-
-
-                    const fecha =
-                        escaparHTML(
-                            String(c.fecha)
-                                .slice(0, 10)
-                        );
-
-
-                    const hora =
-                        escaparHTML(
-                            c.hora ||
-                            '—'
-                        );
-
-
-                    const inicial =
-                        escaparHTML(
-                            iniciales(
-                                c.cliente ||
-                                'Cliente'
-                            )
-                        );
-
-
-                    const nombreJS =
-                        encodeURIComponent(
-                            c.cliente ||
-                            'Cliente'
-                        );
-
-
-                    const telefonoJS =
-                        encodeURIComponent(
-                            c.telefono ||
-                            ''
-                        );
-
-
-                    const emailJS =
-                        encodeURIComponent(
-                            c.email ||
-                            ''
-                        );
-
-
-                    return `
-
-                        <article
-                            class="barbero-appointment ${
-                                bloqueado
-                                    ? 'is-blocked'
-                                    : ''
-                            }"
-                        >
-
-                            <div class="barbero-appointment-time">
-
-                                <strong>
-                                    ${hora}
-                                </strong>
-
-                                <span>
-                                    ${fecha}
-                                </span>
-
-                            </div>
-
-
-                            <div class="barbero-appointment-client">
-
-                                <div class="barbero-client-mini-avatar">
-                                    ${inicial}
-                                </div>
-
-
-                                <div class="barbero-client-main">
-
-                                    <div class="barbero-client-line">
-
-                                        ${
-                                            bloqueado
-
-                                                ?
-
-                                                `<span class="barbero-client-name static">
-                                                    ${cliente}
-                                                </span>`
-
-                                                :
-
-                                                `<button
-                                                    type="button"
-                                                    class="barbero-client-name"
-                                                    onclick="abrirPerfilClienteEncoded(
-                                                        '${nombreJS}',
-                                                        '${telefonoJS}',
-                                                        '${emailJS}',
-                                                        ${cortesHistorial}
-                                                    )"
-                                                >
-                                                    ${cliente}
-                                                </button>`
-                                        }
-
-
-                                        ${etiquetaVIP}
-
-                                    </div>
-
-
-                                    <span>
-
-                                        ${
-                                            bloqueado
-
-                                                ?
-
-                                                'Horario bloqueado'
-
-                                                :
-
-                                                `${servicio} · ${telefono}`
-                                        }
-
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                class="barbero-appointment-status ${
-                                    bloqueado
-                                        ? 'blocked'
-                                        : 'confirmed'
-                                }"
-                            >
-
-                                <i></i>
-
-                                ${
-                                    bloqueado
-                                        ? 'Bloqueado'
-                                        : 'Confirmado'
-                                }
-
-                            </div>
-
-
-                            <div class="barbero-appointment-action">
-
-                                ${
-                                    bloqueado
-
-                                        ?
-
-                                        ''
-
-                                        :
-
-                                        `<button
-                                            type="button"
-                                            class="barbero-cancel-btn"
-                                            onclick="cancelarCitaBarbero(
-                                                ${Number(c.id)}
-                                            )"
-                                        >
-                                            Cancelar
-                                        </button>`
-                                }
-
-                            </div>
-
-                        </article>
-
-                    `;
-
-                })
-                .join('');
+        renderCalendarioAgenda();
+        renderHorarioAgenda();
 
 
     } catch (error) {
 
-        document
-            .getElementById(
-                'lista-citas'
-            )
-            .innerHTML = `
+        document.getElementById(
+            'lista-citas'
+        ).innerHTML = `
 
-                <div class="barbero-empty-state error">
+            <div class="agenda-empty error">
 
-                    <div class="barbero-empty-icon">
-                        !
-                    </div>
+                <span>!</span>
 
-                    <strong>
-                        No se pudo cargar la agenda
-                    </strong>
+                <strong>
+                    No se pudo cargar la agenda
+                </strong>
 
-                    <span>
-                        ${escaparHTML(error.message)}
-                    </span>
+                <small>
+                    ${escaparHTML(
+                        error.message
+                    )}
+                </small>
 
-                </div>
+            </div>
 
-            `;
+        `;
 
     }
 
