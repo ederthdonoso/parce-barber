@@ -181,6 +181,240 @@
                 width: 100%;
             }
         }
+        /* ============================================================
+   HORA EXTRA
+============================================================ */
+
+.hora-extra-launcher {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-top: 22px;
+    padding: 18px 20px;
+    border: 1px solid rgba(255,183,0,.20);
+    border-radius: 16px;
+    background: linear-gradient(
+        135deg,
+        rgba(255,183,0,.08),
+        rgba(255,255,255,.025)
+    );
+}
+
+.hora-extra-launcher-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.hora-extra-launcher-copy strong {
+    color: #fff;
+    font-size: 15px;
+}
+
+.hora-extra-launcher-copy span {
+    color: #999;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.hora-extra-btn {
+    flex-shrink: 0;
+    min-height: 46px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 11px;
+    background: #ffb700;
+    color: #111;
+    font-weight: 900;
+    cursor: pointer;
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.hora-extra-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(255,183,0,.18);
+}
+
+.hora-extra-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.72);
+    backdrop-filter: blur(8px);
+}
+
+.hora-extra-modal.is-open {
+    display: flex;
+}
+
+.hora-extra-box {
+    width: min(560px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 20px;
+    background: #111;
+    box-shadow: 0 24px 80px rgba(0,0,0,.45);
+}
+
+.hora-extra-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.hora-extra-header h2 {
+    margin: 4px 0 8px;
+    color: #fff;
+}
+
+.hora-extra-header p {
+    margin: 0;
+    color: #888;
+    line-height: 1.5;
+}
+
+.hora-extra-close {
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 10px;
+    background: rgba(255,255,255,.04);
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.hora-extra-form {
+    display: grid;
+    gap: 15px;
+}
+
+.hora-extra-form label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    color: #aaa;
+}
+
+.hora-extra-form input,
+.hora-extra-form select {
+    width: 100%;
+    min-height: 50px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 10px;
+    background: #171717;
+    color: #fff;
+    outline: none;
+}
+
+.hora-extra-form input:focus,
+.hora-extra-form select:focus {
+    border-color: rgba(255,183,0,.55);
+}
+
+.hora-extra-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.hora-extra-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.hora-extra-cancel,
+.hora-extra-submit {
+    min-height: 48px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.hora-extra-cancel {
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.04);
+    color: #ddd;
+}
+
+.hora-extra-submit {
+    border: 0;
+    background: #ffb700;
+    color: #111;
+}
+
+.hora-extra-submit:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.hora-extra-note {
+    margin: -2px 0 2px;
+    color: #777;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.hora-extra-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(255,183,0,.14);
+    color: #ffcf4d;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .08em;
+}
+
+@media (max-width: 700px) {
+
+    .hora-extra-launcher {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .hora-extra-btn {
+        width: 100%;
+    }
+
+    .hora-extra-two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .hora-extra-box {
+        padding: 22px;
+    }
+
+    .hora-extra-actions {
+        flex-direction: column-reverse;
+    }
+
+    .hora-extra-cancel,
+    .hora-extra-submit {
+        width: 100%;
+    }
+
+}
     </style>
 </head>
 
@@ -707,6 +941,34 @@
         id="lista-citas"
         class="agenda-timeline"
     ></div>
+    <!-- ============================================================
+     HORA EXTRA
+============================================================ -->
+
+<div class="hora-extra-launcher">
+
+    <div class="hora-extra-launcher-copy">
+
+        <strong>
+            ¿Necesitas atender a alguien fuera de tus horarios?
+        </strong>
+
+        <span>
+            Agrega una hora extra sin modificar las horas que ven
+            los clientes en la página pública.
+        </span>
+
+    </div>
+
+    <button
+        type="button"
+        class="hora-extra-btn"
+        onclick="abrirModalHoraExtra()"
+    >
+        + Agregar hora extra
+    </button>
+
+</div>
 
 </section>
 
@@ -928,6 +1190,200 @@
 
 </div>
 
+<!-- ============================================================
+     MODAL HORA EXTRA
+============================================================ -->
+
+<div
+    id="modal-hora-extra"
+    class="hora-extra-modal"
+    aria-hidden="true"
+>
+
+    <div
+        class="hora-extra-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hora-extra-titulo"
+    >
+
+        <div class="hora-extra-header">
+
+            <div>
+
+                <div class="barbero-section-kicker">
+                    AGENDA MANUAL
+                </div>
+
+                <h2 id="hora-extra-titulo">
+                    Agregar hora extra
+                </h2>
+
+                <p>
+                    Esta cita será exclusiva de tu agenda y no aparecerá
+                    como horario disponible para clientes.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="hora-extra-close"
+                onclick="cerrarModalHoraExtra()"
+                aria-label="Cerrar"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <form
+            id="form-hora-extra"
+            class="hora-extra-form"
+            onsubmit="guardarHoraExtra(event)"
+        >
+
+            <div class="hora-extra-two-col">
+
+                <div>
+
+                    <label for="extra-fecha">
+                        FECHA
+                    </label>
+
+                    <input
+                        type="date"
+                        id="extra-fecha"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label for="extra-hora">
+                        HORA EXTRA
+                    </label>
+
+                    <input
+                        type="time"
+                        id="extra-hora"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <label for="extra-servicio">
+                    SERVICIO
+                </label>
+
+                <select
+                    id="extra-servicio"
+                    required
+                >
+
+                    <option value="">
+                        Cargando servicios...
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <p class="hora-extra-note">
+                Puedes elegir una hora después de tu horario normal.
+                El sistema igualmente comprobará que no exista otra
+                cita o bloqueo en esa hora.
+            </p>
+
+
+            <div>
+
+                <label for="extra-cliente">
+                    NOMBRE DEL CLIENTE
+                </label>
+
+                <input
+                    type="text"
+                    id="extra-cliente"
+                    placeholder="Ej: Juan Pérez"
+                    autocomplete="name"
+                    required
+                >
+
+            </div>
+
+
+            <div class="hora-extra-two-col">
+
+                <div>
+
+                    <label for="extra-telefono">
+                        TELÉFONO
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="extra-telefono"
+                        placeholder="Ej: +56912345678"
+                        autocomplete="tel"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label for="extra-email">
+                        EMAIL
+                    </label>
+
+                    <input
+                        type="email"
+                        id="extra-email"
+                        placeholder="cliente@email.com"
+                        autocomplete="email"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="hora-extra-actions">
+
+                <button
+                    type="button"
+                    class="hora-extra-cancel"
+                    onclick="cerrarModalHoraExtra()"
+                >
+                    Cancelar
+                </button>
+
+
+                <button
+                    type="submit"
+                    id="btn-guardar-hora-extra"
+                    class="hora-extra-submit"
+                >
+                    Guardar hora extra
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
 <!-- ============================================================
      MODAL CLIENTE
@@ -1811,9 +2267,19 @@ function renderHorarioAgenda() {
                                         ${hora}
                                     </strong>
 
-                                    <span>
-                                        CONFIRMADO
-                                    </span>
+                                    <span
+    class="${
+        String(cita.estado || '').toLowerCase() === 'hora extra'
+            ? 'hora-extra-badge'
+            : ''
+    }"
+>
+    ${
+        String(cita.estado || '').toLowerCase() === 'hora extra'
+            ? 'HORA EXTRA'
+            : 'CONFIRMADO'
+    }
+</span>
 
                                 </div>
 
@@ -3146,6 +3612,398 @@ if (fechaBloqueoDia) {
 
 
 actualizarFecha();
+
+/* ============================================================
+   HORA EXTRA
+============================================================ */
+
+let serviciosHoraExtraCargados = false;
+
+
+/**
+ * Obtiene la fecha actual usando la misma función
+ * que utiliza la agenda.
+ */
+function obtenerFechaHoyLocal() {
+
+    const hoy = new Date();
+
+    return fechaAgendaISO(hoy);
+
+}
+
+
+/**
+ * Carga los servicios desde el backend.
+ */
+async function cargarServiciosHoraExtra() {
+
+    const select =
+        document.getElementById('extra-servicio');
+
+    if (!select || serviciosHoraExtraCargados) {
+        return;
+    }
+
+
+    try {
+
+        const res =
+            await fetch('/api/servicios');
+
+
+        const data =
+            await res.json();
+
+
+        if (!res.ok || !data.success) {
+
+            throw new Error(
+                data.message ||
+                'No se pudieron cargar los servicios.'
+            );
+
+        }
+
+
+        const servicios =
+            Array.isArray(data.servicios)
+                ? data.servicios
+                : [];
+
+
+        select.innerHTML =
+            '<option value="">Selecciona un servicio</option>';
+
+
+        servicios.forEach(servicio => {
+
+            const nombre =
+                String(
+                    servicio.nombre || 'Servicio'
+                ).trim();
+
+
+            if (!nombre) {
+                return;
+            }
+
+
+            const option =
+                document.createElement('option');
+
+
+            option.value = nombre;
+
+
+            if (
+                servicio.precio !== undefined &&
+                servicio.precio !== null &&
+                servicio.precio !== ''
+            ) {
+
+                option.textContent =
+                    `${nombre} - $${Number(
+                        servicio.precio
+                    ).toLocaleString('es-CL')}`;
+
+            } else {
+
+                option.textContent =
+                    nombre;
+
+            }
+
+
+            select.appendChild(option);
+
+        });
+
+
+        serviciosHoraExtraCargados = true;
+
+
+    } catch (error) {
+
+        select.innerHTML =
+            '<option value="">No se pudieron cargar los servicios</option>';
+
+
+        alert(
+            error.message ||
+            'No se pudieron cargar los servicios.'
+        );
+
+    }
+
+}
+
+
+/**
+ * Abre el modal.
+ */
+function abrirModalHoraExtra() {
+
+    const modal =
+        document.getElementById(
+            'modal-hora-extra'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    const fecha =
+        document.getElementById(
+            'extra-fecha'
+        );
+
+
+    if (fecha && !fecha.value) {
+
+        fecha.value =
+            agendaFechaSeleccionada ||
+            obtenerFechaHoyLocal();
+
+    }
+
+
+    cargarServiciosHoraExtra();
+
+
+    modal.classList.add(
+        'is-open'
+    );
+
+
+    modal.setAttribute(
+        'aria-hidden',
+        'false'
+    );
+
+}
+
+
+/**
+ * Cierra el modal.
+ */
+function cerrarModalHoraExtra() {
+
+    const modal =
+        document.getElementById(
+            'modal-hora-extra'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'is-open'
+    );
+
+
+    modal.setAttribute(
+        'aria-hidden',
+        'true'
+    );
+
+}
+
+
+/**
+ * Guarda la hora extra.
+ */
+async function guardarHoraExtra(event) {
+
+    event.preventDefault();
+
+
+    const btn =
+        document.getElementById(
+            'btn-guardar-hora-extra'
+        );
+
+
+    const fecha =
+        document.getElementById(
+            'extra-fecha'
+        ).value;
+
+
+    const hora =
+        document.getElementById(
+            'extra-hora'
+        ).value;
+
+
+    const servicio =
+        document.getElementById(
+            'extra-servicio'
+        ).value.trim();
+
+
+    const cliente =
+        document.getElementById(
+            'extra-cliente'
+        ).value.trim();
+
+
+    const telefono =
+        document.getElementById(
+            'extra-telefono'
+        ).value.trim();
+
+
+    const email =
+        document.getElementById(
+            'extra-email'
+        ).value.trim();
+
+
+    if (
+        !fecha ||
+        !hora ||
+        !servicio ||
+        !cliente
+    ) {
+
+        alert(
+            'Completa la fecha, hora, servicio y nombre del cliente.'
+        );
+
+        return;
+
+    }
+
+
+    if (btn) {
+
+        btn.disabled = true;
+
+        btn.textContent =
+            'Guardando...';
+
+    }
+
+
+    try {
+
+        const res =
+            await fetch(
+                '/api/barbero/hora-extra',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body: JSON.stringify({
+                        fecha,
+                        hora,
+                        servicio,
+                        cliente,
+                        telefono,
+                        email
+                    })
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (
+            !res.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo crear la hora extra.'
+            );
+
+        }
+
+
+        alert(
+            data.message ||
+            'Hora extra creada correctamente.'
+        );
+
+
+        document
+            .getElementById(
+                'form-hora-extra'
+            )
+            .reset();
+
+
+        document
+            .getElementById(
+                'extra-fecha'
+            )
+            .value = fecha;
+
+
+        cerrarModalHoraExtra();
+
+
+        /*
+         * Volvemos a cargar exactamente
+         * el día que acabamos de modificar.
+         */
+
+        agendaFechaSeleccionada =
+            fecha;
+
+
+        agendaMesActual =
+            fechaLocalAgenda(
+                fecha
+            );
+
+
+        agendaMesActual =
+            new Date(
+                agendaMesActual.getFullYear(),
+                agendaMesActual.getMonth(),
+                1
+            );
+
+
+        await cargarAgendaBarbero();
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo crear la hora extra.'
+        );
+
+
+    } finally {
+
+        if (btn) {
+
+            btn.disabled = false;
+
+            btn.textContent =
+                'Guardar hora extra';
+
+        }
+
+    }
+
+}
 
 </script>
 

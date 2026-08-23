@@ -1453,6 +1453,518 @@ app.get(
     }
 );
 
+// ============================================================
+// AGREGAR HORA EXTRA DESDE EL PANEL DEL BARBERO
+// ============================================================
+
+app.post(
+    '/api/barbero/hora-extra',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        try {
+
+            const {
+                fecha,
+                hora,
+                servicio,
+                cliente,
+                telefono,
+                email
+            } = req.body;
+
+
+            const fechaLimpia =
+                String(fecha || '').trim();
+
+
+            const horaLimpia =
+                String(hora || '').trim();
+
+
+            const servicioLimpio =
+                String(servicio || '').trim();
+
+
+            const clienteLimpio =
+                String(cliente || '').trim();
+
+
+            const telefonoLimpio =
+                String(telefono || '').trim();
+
+
+            const emailLimpio =
+                String(email || '').trim();
+
+
+            /*
+             * Campos obligatorios.
+             */
+
+            if (
+                !fechaLimpia ||
+                !horaLimpia ||
+                !servicioLimpio ||
+                !clienteLimpio
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Fecha, hora, servicio y nombre del cliente son obligatorios.'
+
+                });
+
+            }
+
+
+            /*
+             * Validar formato de fecha.
+             */
+
+            if (
+                !/^\d{4}-\d{2}-\d{2}$/.test(
+                    fechaLimpia
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'La fecha no es válida.'
+
+                });
+
+            }
+
+
+            /*
+             * Validar formato de hora.
+             */
+
+            if (
+                !/^\d{2}:\d{2}$/.test(
+                    horaLimpia
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'La hora no es válida.'
+
+                });
+
+            }
+
+
+            const [
+                horaNumero,
+                minutoNumero
+            ] =
+                horaLimpia
+                    .split(':')
+                    .map(Number);
+
+
+            if (
+                horaNumero < 0 ||
+                horaNumero > 23 ||
+                minutoNumero < 0 ||
+                minutoNumero > 59
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'La hora no es válida.'
+
+                });
+
+            }
+
+
+            /*
+             * Domingo sigue siendo día no laborable.
+             */
+
+            const fechaLocal =
+                new Date(
+                    `${fechaLimpia}T12:00:00`
+                );
+
+
+            if (
+                fechaLocal.getDay() === 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Los domingos son días no laborables y no se pueden agendar horas extra.'
+
+                });
+
+            }
+
+
+            /*
+             * Si el barbero bloqueó el día completo,
+             * tampoco permitimos una hora extra.
+             */
+
+            if (
+                await esDiaBloqueado(
+                    req.usuario.id,
+                    fechaLimpia
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Este día está bloqueado. Desbloquéalo antes de agregar una hora extra.'
+
+                });
+
+            }
+
+
+            /*
+             * ====================================================
+             * SERVICIOS DE 4 HORAS
+             * ====================================================
+             *
+             * Conservamos la misma lógica de tu sistema.
+             */
+
+            let esServicioLargo = false;
+
+            let horasRequeridas = [
+                horaLimpia
+            ];
+
+
+            const serviciosJesus = [
+
+                'Rulos permanentes',
+
+                'Ondulado permanente'
+
+            ];
+
+
+            const serviciosParce = [
+
+                'Tintura de pelo (visos)',
+
+                'Tintura de pelo (global)'
+
+            ];
+
+
+            if (
+                (
+                    Number(req.usuario.id) === 2 &&
+                    serviciosJesus.includes(
+                        servicioLimpio
+                    )
+                )
+                ||
+                (
+                    Number(req.usuario.id) === 1 &&
+                    serviciosParce.includes(
+                        servicioLimpio
+                    )
+                )
+            ) {
+
+                esServicioLargo = true;
+
+
+                const horaBase =
+                    horaNumero;
+
+
+                /*
+                 * Necesita 4 horas continuas.
+                 */
+
+                if (
+                    horaBase + 3 > 23
+                ) {
+
+                    return res.status(400).json({
+
+                        success: false,
+
+                        message:
+                            'Este servicio requiere 4 horas continuas y no cabe desde esa hora.'
+
+                    });
+
+                }
+
+
+                horasRequeridas = [
+
+                    `${String(horaBase).padStart(2, '0')}:00`,
+
+                    `${String(horaBase + 1).padStart(2, '0')}:00`,
+
+                    `${String(horaBase + 2).padStart(2, '0')}:00`,
+
+                    `${String(horaBase + 3).padStart(2, '0')}:00`
+
+                ];
+
+            }
+
+
+            /*
+             * ====================================================
+             * COMPROBAR CONFLICTOS
+             * ====================================================
+             *
+             * No importa si la cita es normal o extra.
+             * Si ya existe algo en esa hora, no dejamos
+             * crear otra cita.
+             */
+
+            const [existentes] =
+                await pool.query(
+
+                    `SELECT
+                        id,
+                        hora,
+                        servicio,
+                        estado
+                     FROM agendamientos
+                     WHERE barberoId = ?
+                     AND fecha = ?
+                     AND hora IN (?)`,
+
+                    [
+                        req.usuario.id,
+                        fechaLimpia,
+                        horasRequeridas
+                    ]
+
+                );
+
+
+            if (
+                existentes.length > 0
+            ) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        esServicioLargo
+
+                            ? 'No hay 4 horas continuas disponibles desde esa hora. Una o más horas ya están ocupadas o bloqueadas.'
+
+                            : `La hora ${horaLimpia} ya está ocupada o bloqueada. Elige otra hora.`
+
+                });
+
+            }
+
+
+            /*
+             * ====================================================
+             * CREAR LA HORA EXTRA
+             * ====================================================
+             *
+             * Se utiliza la misma tabla:
+             *
+             * agendamientos
+             *
+             * pero con:
+             *
+             * estado = "Hora extra"
+             *
+             * Así no necesitamos modificar MySQL.
+             */
+
+            for (
+                let i = 0;
+                i < horasRequeridas.length;
+                i++
+            ) {
+
+                const servicioGuardado =
+                    i === 0
+
+                        ? servicioLimpio
+
+                        : `${servicioLimpio} (Bloqueo Continuo)`;
+
+
+                await pool.query(
+
+                    `INSERT INTO agendamientos
+                    (
+                        barberoId,
+                        servicio,
+                        fecha,
+                        hora,
+                        cliente,
+                        telefono,
+                        email,
+                        estado
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+
+                    [
+
+                        req.usuario.id,
+
+                        servicioGuardado,
+
+                        fechaLimpia,
+
+                        horasRequeridas[i],
+
+                        clienteLimpio,
+
+                        telefonoLimpio,
+
+                        emailLimpio,
+
+                        'Hora extra'
+
+                    ]
+
+                );
+
+            }
+
+
+            /*
+             * ====================================================
+             * HISTORIAL DE CLIENTES
+             * ====================================================
+             */
+
+            const contacto =
+                emailLimpio ||
+                telefonoLimpio;
+
+
+            if (contacto) {
+
+                await pool.query(
+
+                    `INSERT INTO clientes_cortes
+                    (
+                        contacto,
+                        cantidad
+                    )
+                    VALUES (?, 1)
+                    ON DUPLICATE KEY UPDATE
+                    cantidad = cantidad + 1`,
+
+                    [
+                        contacto
+                    ]
+
+                );
+
+            }
+
+
+            /*
+             * ====================================================
+             * CORREO DE CONFIRMACIÓN
+             * ====================================================
+             */
+
+            if (emailLimpio) {
+
+                const perfiles =
+                    await obtenerMapaPerfiles();
+
+
+                await enviarCorreo(
+
+                    emailLimpio,
+
+                    clienteLimpio,
+
+                    perfiles[
+                        req.usuario.id
+                    ] || 'Tu Barbero',
+
+                    servicioLimpio,
+
+                    fechaLimpia,
+
+                    horaLimpia
+
+                );
+
+            }
+
+
+            /*
+             * ====================================================
+             * RESPUESTA
+             * ====================================================
+             */
+
+            return res.json({
+
+                success: true,
+
+                message:
+
+                    esServicioLargo
+
+                        ? 'Hora extra creada correctamente. Se reservaron 4 horas continuas.'
+
+                        : 'Hora extra creada correctamente.'
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error creando hora extra:',
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    'No se pudo crear la hora extra.'
+
+            });
+
+        }
+
+    }
+);
 
 // ============================================================
 // DATOS DEL JEFE
