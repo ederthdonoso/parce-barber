@@ -158,7 +158,8 @@ async function obtenerMapaPerfiles() {
 }
 
 
-const DURACION_SESION = 8 * 60 * 60 * 1000;
+const DURACION_SESION =
+    30 * 24 * 60 * 60 * 1000;
 
 
 // ============================================================
@@ -175,8 +176,8 @@ function crearSesion(res, usuario) {
         },
         JWT_SECRET,
         {
-            expiresIn: '8h'
-        }
+    expiresIn: '30d'
+}
     );
 
     res.cookie('parce_session', token, {
@@ -1958,6 +1959,498 @@ app.post(
 
                 message:
                     'No se pudo crear la hora extra.'
+
+            });
+
+        }
+
+    }
+);
+
+// ============================================================
+// AGENDAR CLIENTE DESDE EL PANEL DEL BARBERO
+// ============================================================
+
+app.post(
+    '/api/barbero/agendar-cliente',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        try {
+
+            const fecha =
+                String(
+                    req.body.fecha || ''
+                ).trim();
+
+            const hora =
+                String(
+                    req.body.hora || ''
+                ).trim();
+
+            const servicio =
+                String(
+                    req.body.servicio || ''
+                ).trim();
+
+            const cliente =
+                String(
+                    req.body.cliente || ''
+                ).trim();
+
+
+            // ====================================================
+            // CAMPOS OBLIGATORIOS
+            // ====================================================
+
+            if (
+                !fecha ||
+                !hora ||
+                !servicio ||
+                !cliente
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Fecha, hora, servicio y nombre del cliente son obligatorios.'
+                });
+
+            }
+
+
+            // ====================================================
+            // VALIDAR FECHA
+            // ====================================================
+
+            if (
+                !/^\d{4}-\d{2}-\d{2}$/.test(
+                    fecha
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La fecha no es válida.'
+                });
+
+            }
+
+
+            // ====================================================
+            // VALIDAR HORA
+            // ====================================================
+
+            if (
+                !/^\d{2}:\d{2}$/.test(
+                    hora
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La hora no es válida.'
+                });
+
+            }
+
+
+            // ====================================================
+            // DOMINGOS
+            // ====================================================
+
+            const fechaLocal =
+                new Date(
+                    `${fecha}T12:00:00`
+                );
+
+
+            if (
+                fechaLocal.getDay() === 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Los domingos son días no laborables.'
+                });
+
+            }
+
+
+            // ====================================================
+            // DÍA BLOQUEADO
+            // ====================================================
+
+            if (
+                await esDiaBloqueado(
+                    req.usuario.id,
+                    fecha
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Este día está bloqueado. Desbloquéalo antes de agendar.'
+                });
+
+            }
+
+
+            // ====================================================
+            // OBTENER HORARIOS DEL BARBERO
+            // ====================================================
+
+            const [perfiles] =
+                await pool.query(
+
+                    `SELECT horarios
+                     FROM barberos
+                     WHERE id = ?
+                     AND activo = 1
+                     LIMIT 1`,
+
+                    [
+                        req.usuario.id
+                    ]
+
+                );
+
+
+            if (
+                perfiles.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'No se encontró tu perfil.'
+                });
+
+            }
+
+
+            const horariosConfigurados =
+                String(
+                    perfiles[0].horarios ||
+                    ''
+                )
+                    .split(',')
+                    .map(
+                        h => h.trim()
+                    )
+                    .filter(Boolean);
+
+
+            // Esta ruta es para citas NORMALES.
+            // Si quiere agendar fuera de su horario,
+            // debe utilizar Hora Extra.
+
+            if (
+                !horariosConfigurados.includes(
+                    hora
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Esta hora no pertenece a tus horarios normales. Para una hora fuera de tu jornada utiliza "Agregar hora extra".'
+                });
+
+            }
+
+
+            // ====================================================
+            // COMPROBAR SERVICIO
+            // ====================================================
+
+            const [serviciosBD] =
+                await pool.query(
+
+                    `SELECT nombre
+                     FROM servicios
+                     WHERE nombre = ?
+                     LIMIT 1`,
+
+                    [
+                        servicio
+                    ]
+
+                );
+
+
+            if (
+                serviciosBD.length === 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'El servicio seleccionado no existe.'
+                });
+
+            }
+
+
+            // ====================================================
+            // SERVICIOS DE 4 HORAS
+            // ====================================================
+
+            let esServicioLargo = false;
+
+            let horasRequeridas = [
+                hora
+            ];
+
+
+            const serviciosJesus = [
+
+                'Rulos permanentes',
+
+                'Ondulado permanente'
+
+            ];
+
+
+            const serviciosParce = [
+
+                'Tintura de pelo (visos)',
+
+                'Tintura de pelo (global)'
+
+            ];
+
+
+            if (
+                (
+                    Number(
+                        req.usuario.id
+                    ) === 2
+                    &&
+                    serviciosJesus.includes(
+                        servicio
+                    )
+                )
+                ||
+                (
+                    Number(
+                        req.usuario.id
+                    ) === 1
+                    &&
+                    serviciosParce.includes(
+                        servicio
+                    )
+                )
+            ) {
+
+                esServicioLargo =
+                    true;
+
+
+                const horaBase =
+                    Number(
+                        hora.split(':')[0]
+                    );
+
+
+                horasRequeridas = [
+
+                    `${String(
+                        horaBase
+                    ).padStart(
+                        2,
+                        '0'
+                    )}:00`,
+
+                    `${String(
+                        horaBase + 1
+                    ).padStart(
+                        2,
+                        '0'
+                    )}:00`,
+
+                    `${String(
+                        horaBase + 2
+                    ).padStart(
+                        2,
+                        '0'
+                    )}:00`,
+
+                    `${String(
+                        horaBase + 3
+                    ).padStart(
+                        2,
+                        '0'
+                    )}:00`
+
+                ];
+
+
+                // Como esta es una cita NORMAL,
+                // las 4 horas deben estar dentro
+                // de su disponibilidad normal.
+
+                const todasDentroDelHorario =
+                    horasRequeridas.every(
+                        h =>
+                            horariosConfigurados
+                                .includes(h)
+                    );
+
+
+                if (
+                    !todasDentroDelHorario
+                ) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            'Este servicio necesita 4 horas continuas dentro de tu horario normal. Si quieres extender la jornada utiliza "Agregar hora extra".'
+                    });
+
+                }
+
+            }
+
+
+            // ====================================================
+            // COMPROBAR QUE SIGA DISPONIBLE
+            // ====================================================
+
+            const [existentes] =
+                await pool.query(
+
+                    `SELECT
+                        id,
+                        hora,
+                        servicio,
+                        estado
+                     FROM agendamientos
+                     WHERE barberoId = ?
+                     AND fecha = ?
+                     AND hora IN (?)`,
+
+                    [
+                        req.usuario.id,
+                        fecha,
+                        horasRequeridas
+                    ]
+
+                );
+
+
+            if (
+                existentes.length > 0
+            ) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        esServicioLargo
+
+                            ? 'No hay 4 horas continuas disponibles desde esa hora.'
+
+                            : `La hora ${hora} ya fue ocupada. La agenda se actualizará automáticamente.`
+
+                });
+
+            }
+
+
+            // ====================================================
+            // CREAR CITA
+            // ====================================================
+
+            for (
+                let i = 0;
+                i < horasRequeridas.length;
+                i++
+            ) {
+
+                const servicioGuardado =
+                    i === 0
+
+                        ? servicio
+
+                        : `${servicio} (Bloqueo Continuo)`;
+
+
+                await pool.query(
+
+                    `INSERT INTO agendamientos
+                    (
+                        barberoId,
+                        servicio,
+                        fecha,
+                        hora,
+                        cliente,
+                        telefono,
+                        email
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+
+                    [
+
+                        req.usuario.id,
+
+                        servicioGuardado,
+
+                        fecha,
+
+                        horasRequeridas[i],
+
+                        cliente,
+
+                        '',
+
+                        ''
+
+                    ]
+
+                );
+
+            }
+
+
+            // ====================================================
+            // RESPUESTA
+            // ====================================================
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    esServicioLargo
+
+                        ? 'Cliente agendado correctamente. Se reservaron 4 horas continuas.'
+
+                        : 'Cliente agendado correctamente.'
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error agendando cliente desde panel:',
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    'No se pudo agendar al cliente.'
 
             });
 

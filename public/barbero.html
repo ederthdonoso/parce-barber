@@ -386,6 +386,43 @@
     letter-spacing: .08em;
 }
 
+/* ============================================================
+   AGENDAR CLIENTE DESDE HORA DISPONIBLE
+============================================================ */
+
+.agenda-free-bookable {
+    width: 100%;
+    border: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease;
+}
+
+.agenda-free-bookable:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255,183,0,.35);
+    background: rgba(255,183,0,.07);
+}
+
+.agenda-free-bookable small {
+    display: block;
+}
+
+.agenda-free-action {
+    margin-top: 4px;
+    color: #ffb700;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .03em;
+}
+
 @media (max-width: 700px) {
 
     .hora-extra-launcher {
@@ -1191,6 +1228,167 @@
 </div>
 
 <!-- ============================================================
+     MODAL AGENDAR CLIENTE
+============================================================ -->
+
+<div
+    id="modal-reserva-barbero"
+    class="hora-extra-modal"
+    aria-hidden="true"
+>
+
+    <div
+        class="hora-extra-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reserva-barbero-titulo"
+    >
+
+        <div class="hora-extra-header">
+
+            <div>
+
+                <div class="barbero-section-kicker">
+                    AGENDAMIENTO INTERNO
+                </div>
+
+                <h2 id="reserva-barbero-titulo">
+                    Agendar cliente
+                </h2>
+
+                <p>
+                    Reserva esta hora directamente desde tu panel.
+                    La hora quedará ocupada inmediatamente para los clientes.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="hora-extra-close"
+                onclick="cerrarModalReservaBarbero()"
+                aria-label="Cerrar"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <form
+            id="form-reserva-barbero"
+            class="hora-extra-form"
+            onsubmit="guardarReservaBarbero(event)"
+        >
+
+            <div class="hora-extra-two-col">
+
+                <div>
+
+                    <label for="reserva-barbero-fecha">
+                        FECHA
+                    </label>
+
+                    <input
+                        type="date"
+                        id="reserva-barbero-fecha"
+                        readonly
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label for="reserva-barbero-hora">
+                        HORA
+                    </label>
+
+                    <input
+                        type="time"
+                        id="reserva-barbero-hora"
+                        readonly
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <label for="reserva-barbero-servicio">
+                    SERVICIO
+                </label>
+
+                <select
+                    id="reserva-barbero-servicio"
+                    required
+                >
+
+                    <option value="">
+                        Cargando servicios...
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div>
+
+                <label for="reserva-barbero-cliente">
+                    NOMBRE DEL CLIENTE
+                </label>
+
+                <input
+                    type="text"
+                    id="reserva-barbero-cliente"
+                    placeholder="Ej: Juan Pérez"
+                    autocomplete="off"
+                    required
+                >
+
+            </div>
+
+
+            <p class="hora-extra-note">
+                Solo necesitas elegir el servicio e ingresar el nombre.
+                No se pedirá teléfono ni correo.
+            </p>
+
+
+            <div class="hora-extra-actions">
+
+                <button
+                    type="button"
+                    class="hora-extra-cancel"
+                    onclick="cerrarModalReservaBarbero()"
+                >
+                    Cancelar
+                </button>
+
+
+                <button
+                    type="submit"
+                    id="btn-guardar-reserva-barbero"
+                    class="hora-extra-submit"
+                >
+                    Agendar cliente
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ============================================================
      MODAL HORA EXTRA
 ============================================================ -->
 
@@ -1476,6 +1674,7 @@
 
 let barberoActivoId = null;
 let usuarioActivo = null;
+let agendaActualizacionTimer = null;
 
 
 /* ============================================================
@@ -1532,21 +1731,110 @@ function actualizarFecha() {
 
 
 /* ============================================================
-   LOGIN
+   LOGIN / SESIÓN PERSISTENTE
+============================================================ */
+
+async function activarPanelBarbero(
+    usuario
+) {
+
+    usuarioActivo =
+        usuario;
+
+
+    barberoActivoId =
+        usuarioActivo.id;
+
+
+    document
+        .getElementById(
+            'login-screen'
+        )
+        .style.display =
+            'none';
+
+
+    document
+        .getElementById(
+            'panel-barbero'
+        )
+        .style.display =
+            'grid';
+
+
+    document
+        .getElementById(
+            'nombre-barbero-activo'
+        )
+        .textContent =
+            usuarioActivo.nombre;
+
+
+    document
+        .getElementById(
+            'titulo-barbero'
+        )
+        .textContent =
+            usuarioActivo.nombre;
+
+
+    document
+        .getElementById(
+            'avatar-barbero'
+        )
+        .textContent =
+            iniciales(
+                usuarioActivo.nombre
+            );
+
+
+    document
+        .getElementById(
+            'btn-panel-jefe'
+        )
+        .style.display =
+            usuarioActivo.esJefe
+                ? 'flex'
+                : 'none';
+
+
+    actualizarFecha();
+
+
+    await Promise.all([
+
+        cargarAgendaBarbero(),
+
+        cargarDiasBloqueados()
+
+    ]);
+
+
+    iniciarActualizacionAutomaticaAgenda();
+
+}
+
+
+/* ============================================================
+   INICIAR SESIÓN
 ============================================================ */
 
 async function iniciarSesion() {
 
     const usuario =
         document
-            .getElementById('login-user')
+            .getElementById(
+                'login-user'
+            )
             .value
             .trim();
 
 
     const contrasena =
         document
-            .getElementById('login-pass')
+            .getElementById(
+                'login-pass'
+            )
             .value;
 
 
@@ -1564,18 +1852,29 @@ async function iniciarSesion() {
 
         const respuesta =
             await fetch(
+
                 '/api/auth/login',
+
                 {
+
                     method: 'POST',
+
                     headers: {
                         'Content-Type':
                             'application/json'
                     },
-                    body: JSON.stringify({
-                        usuario,
-                        contrasena
-                    })
+
+                    body:
+                        JSON.stringify({
+
+                            usuario,
+
+                            contrasena
+
+                        })
+
                 }
+
             );
 
 
@@ -1596,61 +1895,9 @@ async function iniciarSesion() {
         }
 
 
-        usuarioActivo =
-            datos.usuario;
-
-
-        barberoActivoId =
-            usuarioActivo.id;
-
-
-        document
-            .getElementById('login-screen')
-            .style.display =
-                'none';
-
-
-        document
-            .getElementById('panel-barbero')
-            .style.display =
-                'grid';
-
-
-        document
-            .getElementById('nombre-barbero-activo')
-            .textContent =
-                usuarioActivo.nombre;
-
-
-        document
-            .getElementById('titulo-barbero')
-            .textContent =
-                usuarioActivo.nombre;
-
-
-        document
-            .getElementById('avatar-barbero')
-            .textContent =
-                iniciales(
-                    usuarioActivo.nombre
-                );
-
-
-        document
-            .getElementById('btn-panel-jefe')
-            .style.display =
-                usuarioActivo.esJefe
-                    ? 'flex'
-                    : 'none';
-
-
-        actualizarFecha();
-
-
-        await cargarAgendaBarbero();
-
-
-        await cargarDiasBloqueados();
+        await activarPanelBarbero(
+            datos.usuario
+        );
 
 
     } catch (error) {
@@ -1658,10 +1905,109 @@ async function iniciarSesion() {
         errorLogin.textContent =
             error.message;
 
+
         errorLogin.style.display =
             'block';
 
     }
+
+}
+
+
+/* ============================================================
+   RECUPERAR SESIÓN AL ABRIR LA PÁGINA
+============================================================ */
+
+async function restaurarSesionBarbero() {
+
+    try {
+
+        const respuesta =
+            await fetch(
+
+                '/api/auth/sesion',
+
+                {
+                    cache: 'no-store'
+                }
+
+            );
+
+
+        const datos =
+            await respuesta.json();
+
+
+        if (
+            !respuesta.ok ||
+            !datos.success ||
+            !datos.usuario
+        ) {
+
+            return;
+
+        }
+
+
+        await activarPanelBarbero(
+            datos.usuario
+        );
+
+
+    } catch (error) {
+
+        console.log(
+            'No hay una sesión activa para restaurar.'
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   ACTUALIZACIÓN AUTOMÁTICA
+============================================================ */
+
+function iniciarActualizacionAutomaticaAgenda() {
+
+    if (
+        agendaActualizacionTimer
+    ) {
+
+        clearInterval(
+            agendaActualizacionTimer
+        );
+
+    }
+
+
+    agendaActualizacionTimer =
+        setInterval(
+
+            async () => {
+
+                if (
+                    !usuarioActivo ||
+                    document.visibilityState !==
+                        'visible'
+                ) {
+
+                    return;
+
+                }
+
+
+                await cargarAgendaBarbero(
+                    true,
+                    true
+                );
+
+            },
+
+            15000
+
+        );
 
 }
 
@@ -2106,37 +2452,50 @@ function renderHorarioAgenda() {
 
                     if (!cita) {
 
-                        return `
+    return `
 
-                            <div class="agenda-time-row free">
+        <div class="agenda-time-row free">
 
-                                <div class="agenda-time">
-                                    ${hora}
-                                </div>
+            <div class="agenda-time">
+                ${hora}
+            </div>
 
-                                <div class="agenda-slot free-slot">
 
-                                    <div class="agenda-slot-icon">
-                                        +
-                                    </div>
+            <button
+                type="button"
+                class="agenda-slot free-slot agenda-free-bookable"
+                onclick="abrirModalReservaBarbero('${hora}')"
+            >
 
-                                    <div>
-                                        <strong>
-                                            Disponible
-                                        </strong>
+                <div class="agenda-slot-icon">
+                    +
+                </div>
 
-                                        <small>
-                                            Sin reserva
-                                        </small>
-                                    </div>
 
-                                </div>
+                <div>
 
-                            </div>
+                    <strong>
+                        Disponible
+                    </strong>
 
-                        `;
+                    <small>
+                        Sin reserva
+                    </small>
 
-                    }
+
+                    <div class="agenda-free-action">
+                        Toca para agendar un cliente →
+                    </div>
+
+                </div>
+
+            </button>
+
+        </div>
+
+    `;
+
+}
 
 
                     /*
@@ -2311,11 +2670,28 @@ function renderHorarioAgenda() {
 }
 
 
-async function cargarAgendaBarbero() {
+async function cargarAgendaBarbero(
+    conservarVista = true,
+    silencioso = false
+) {
 
     if (!barberoActivoId) {
         return;
     }
+
+
+    const fechaAnterior =
+        agendaFechaSeleccionada;
+
+
+    const mesAnterior =
+        agendaMesActual
+
+            ? new Date(
+                agendaMesActual
+            )
+
+            : null;
 
 
     try {
@@ -2514,37 +2890,73 @@ async function cargarAgendaBarbero() {
 
 
         /*
-           MES ACTUAL
-        */
+   CONSERVAR LA VISTA DEL BARBERO
 
-        const hoyObjeto =
-            new Date();
+   Si entró una nueva cita mientras está
+   mirando otro día, actualizamos la agenda
+   pero NO lo mandamos de vuelta a hoy.
+*/
 
+const hoyObjeto =
+    new Date();
+
+
+if (
+    conservarVista &&
+    fechaAnterior
+) {
+
+    agendaFechaSeleccionada =
+        fechaAnterior;
+
+
+    if (
+        mesAnterior
+    ) {
 
         agendaMesActual =
-            new Date(
-                hoyObjeto.getFullYear(),
-                hoyObjeto.getMonth(),
-                1
-            );
+            mesAnterior;
+
+    }
+
+} else {
+
+    agendaMesActual =
+        new Date(
+
+            hoyObjeto.getFullYear(),
+
+            hoyObjeto.getMonth(),
+
+            1
+
+        );
 
 
-        /*
-           SELECCIONAMOS HOY
-           automáticamente.
-        */
+    agendaFechaSeleccionada =
+        fechaAgendaISO(
+            hoyObjeto
+        );
 
-        agendaFechaSeleccionada =
-            fechaAgendaISO(
-                hoyObjeto
-            );
+}
 
 
-        renderCalendarioAgenda();
-        renderHorarioAgenda();
+renderCalendarioAgenda();
+
+renderHorarioAgenda();
 
 
     } catch (error) {
+        if (silencioso) {
+
+    console.warn(
+        'No se pudo actualizar la agenda automáticamente:',
+        error.message
+    );
+
+    return;
+
+}
 
         document.getElementById(
             'lista-citas'
@@ -3610,8 +4022,448 @@ if (fechaBloqueoDia) {
 
 }
 
+/* ============================================================
+   ACTUALIZAR AL VOLVER A LA PESTAÑA
+============================================================ */
+
+document.addEventListener(
+    'visibilitychange',
+    () => {
+
+        if (
+            document.visibilityState ===
+                'visible'
+            &&
+            usuarioActivo
+        ) {
+
+            cargarAgendaBarbero(
+                true,
+                true
+            );
+
+        }
+
+    }
+);
 
 actualizarFecha();
+
+restaurarSesionBarbero();
+
+/* ============================================================
+   AGENDAR CLIENTE DESDE HORA DISPONIBLE
+============================================================ */
+
+let serviciosReservaBarberoCargados =
+    false;
+
+
+/* ============================================================
+   CARGAR SERVICIOS
+============================================================ */
+
+async function cargarServiciosReservaBarbero() {
+
+    const select =
+        document.getElementById(
+            'reserva-barbero-servicio'
+        );
+
+
+    if (
+        !select ||
+        serviciosReservaBarberoCargados
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const respuesta =
+            await fetch(
+                '/api/servicios'
+            );
+
+
+        const datos =
+            await respuesta.json();
+
+
+        if (
+            !respuesta.ok ||
+            !datos.success
+        ) {
+
+            throw new Error(
+                datos.message ||
+                'No se pudieron cargar los servicios.'
+            );
+
+        }
+
+
+        select.innerHTML =
+            '<option value="">Selecciona un servicio</option>';
+
+
+        (
+            datos.servicios ||
+            []
+        ).forEach(
+            servicio => {
+
+                const nombre =
+                    String(
+                        servicio.nombre ||
+                        ''
+                    ).trim();
+
+
+                if (!nombre) {
+                    return;
+                }
+
+
+                const option =
+                    document.createElement(
+                        'option'
+                    );
+
+
+                option.value =
+                    nombre;
+
+
+                if (
+                    servicio.precio !==
+                        undefined
+                    &&
+                    servicio.precio !==
+                        null
+                    &&
+                    servicio.precio !== ''
+                ) {
+
+                    option.textContent =
+                        `${nombre} - $${Number(
+                            servicio.precio
+                        ).toLocaleString(
+                            'es-CL'
+                        )}`;
+
+                } else {
+
+                    option.textContent =
+                        nombre;
+
+                }
+
+
+                select.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+        serviciosReservaBarberoCargados =
+            true;
+
+
+    } catch (error) {
+
+        select.innerHTML =
+            '<option value="">No se pudieron cargar los servicios</option>';
+
+
+        alert(
+            error.message ||
+            'No se pudieron cargar los servicios.'
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   ABRIR MODAL
+============================================================ */
+
+function abrirModalReservaBarbero(
+    hora
+) {
+
+    if (
+        !agendaFechaSeleccionada ||
+        !hora
+    ) {
+        return;
+    }
+
+
+    const modal =
+        document.getElementById(
+            'modal-reserva-barbero'
+        );
+
+
+    document
+        .getElementById(
+            'reserva-barbero-fecha'
+        )
+        .value =
+            agendaFechaSeleccionada;
+
+
+    document
+        .getElementById(
+            'reserva-barbero-hora'
+        )
+        .value =
+            hora;
+
+
+    document
+        .getElementById(
+            'reserva-barbero-cliente'
+        )
+        .value =
+            '';
+
+
+    cargarServiciosReservaBarbero();
+
+
+    modal.classList.add(
+        'is-open'
+    );
+
+
+    modal.setAttribute(
+        'aria-hidden',
+        'false'
+    );
+
+
+    setTimeout(
+        () => {
+
+            document
+                .getElementById(
+                    'reserva-barbero-cliente'
+                )
+                .focus();
+
+        },
+        50
+    );
+
+}
+
+
+/* ============================================================
+   CERRAR MODAL
+============================================================ */
+
+function cerrarModalReservaBarbero() {
+
+    const modal =
+        document.getElementById(
+            'modal-reserva-barbero'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'is-open'
+    );
+
+
+    modal.setAttribute(
+        'aria-hidden',
+        'true'
+    );
+
+}
+
+
+/* ============================================================
+   GUARDAR CITA
+============================================================ */
+
+async function guardarReservaBarbero(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const fecha =
+        document
+            .getElementById(
+                'reserva-barbero-fecha'
+            )
+            .value;
+
+
+    const hora =
+        document
+            .getElementById(
+                'reserva-barbero-hora'
+            )
+            .value;
+
+
+    const servicio =
+        document
+            .getElementById(
+                'reserva-barbero-servicio'
+            )
+            .value
+            .trim();
+
+
+    const cliente =
+        document
+            .getElementById(
+                'reserva-barbero-cliente'
+            )
+            .value
+            .trim();
+
+
+    const boton =
+        document.getElementById(
+            'btn-guardar-reserva-barbero'
+        );
+
+
+    if (
+        !fecha ||
+        !hora ||
+        !servicio ||
+        !cliente
+    ) {
+
+        alert(
+            'Selecciona un servicio e ingresa el nombre del cliente.'
+        );
+
+        return;
+
+    }
+
+
+    boton.disabled =
+        true;
+
+
+    boton.textContent =
+        'Agendando...';
+
+
+    try {
+
+        const respuesta =
+            await fetch(
+
+                '/api/barbero/agendar-cliente',
+
+                {
+
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            fecha,
+
+                            hora,
+
+                            servicio,
+
+                            cliente
+
+                        })
+
+                }
+
+            );
+
+
+        const datos =
+            await respuesta.json();
+
+
+        if (
+            !respuesta.ok ||
+            !datos.success
+        ) {
+
+            throw new Error(
+                datos.message ||
+                'No se pudo agendar al cliente.'
+            );
+
+        }
+
+
+        cerrarModalReservaBarbero();
+
+
+        await cargarAgendaBarbero(
+            true
+        );
+
+
+        alert(
+            datos.message ||
+            'Cliente agendado correctamente.'
+        );
+
+
+    } catch (error) {
+
+        // Por si un cliente tomó esa hora
+        // exactamente al mismo tiempo.
+
+        await cargarAgendaBarbero(
+            true,
+            true
+        );
+
+
+        alert(
+            error.message ||
+            'No se pudo agendar al cliente.'
+        );
+
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+
+        boton.textContent =
+            'Agendar cliente';
+
+    }
+
+}
 
 /* ============================================================
    HORA EXTRA
