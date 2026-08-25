@@ -174,9 +174,7 @@ footer {
     border-top: 1px solid #1a1a1a;
 }
 footer a {
-    color: var(--red-brand);
     text-decoration: none;
-    margin: 0 10px;
 }
 /* =========================================
    FIRMA EDERTH — SEÑAL / INTERRUPCIÓN / FLUJO
@@ -4064,6 +4062,214 @@ body.barbero-page p {
 
     .agenda-contact-hint {
         font-size: .58rem;
+    }
+
+}
+
+/* ============================================================
+   NUEVO FOOTER
+============================================================ */
+
+.footer-links {
+    width: min(1050px, 100%);
+    margin: 32px auto 0;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+
+/* BOTONES DE INSTAGRAM, WHATSAPP Y UBICACIÓN */
+
+footer .footer-link-card {
+    min-height: 82px;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 16px 18px;
+
+    border: 1px solid #1f1f1f;
+    border-radius: 14px;
+
+    background: linear-gradient(
+        145deg,
+        #101010,
+        #080808
+    );
+
+    color: #fff;
+    text-decoration: none;
+    text-align: left;
+
+    transition: 0.2s ease;
+}
+
+
+footer .footer-link-card:hover {
+    transform: translateY(-3px);
+
+    border-color: rgba(211, 0, 0, 0.55);
+
+    background: linear-gradient(
+        145deg,
+        #151515,
+        #0b0b0b
+    );
+
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+
+/* CUADRADO DEL ICONO */
+
+.footer-link-icon {
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: rgba(211, 0, 0, 0.10);
+    border: 1px solid rgba(211, 0, 0, 0.20);
+
+    color: #d30000;
+
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+
+/* TEXTO DENTRO DEL BOTÓN */
+
+.footer-link-copy {
+    min-width: 0;
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+
+.footer-link-copy small {
+    color: #d30000;
+
+    font-size: 0.63rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+
+.footer-link-copy strong {
+    color: #eeeeee;
+
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+
+/* FLECHA */
+
+.footer-link-arrow {
+    flex-shrink: 0;
+
+    color: #555;
+    font-size: 1rem;
+
+    transition: 0.2s ease;
+}
+
+
+.footer-link-card:hover .footer-link-arrow {
+    color: #d30000;
+
+    transform: translate(2px, -2px);
+}
+
+
+/* ============================================================
+   GESTIONAR MIS HORAS
+============================================================ */
+
+.footer-gestionar {
+    margin-top: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    color: #666;
+    font-size: 0.78rem;
+}
+
+
+footer .footer-gestionar a {
+    margin: 0;
+
+    color: #aaa;
+    text-decoration: none;
+
+    font-weight: 700;
+
+    border-bottom: 1px solid #333;
+
+    transition: 0.2s ease;
+}
+
+
+footer .footer-gestionar a:hover {
+    color: #fff;
+    border-color: #d30000;
+}
+
+
+/* ============================================================
+   CELULAR / TABLET
+============================================================ */
+
+@media (max-width: 850px) {
+
+    .footer-links {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .footer-links {
+        margin-top: 26px;
+    }
+
+
+    footer .footer-link-card {
+        min-height: 76px;
+        padding: 14px 15px;
+    }
+
+
+    .footer-link-icon {
+        width: 39px;
+        height: 39px;
+    }
+
+
+    .footer-gestionar {
+        flex-direction: column;
+        gap: 6px;
     }
 
 }
