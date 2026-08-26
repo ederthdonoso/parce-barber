@@ -28,6 +28,19 @@ const loginLimiter = rateLimit({
         message: 'Demasiados intentos. Espera unos minutos e inténtalo nuevamente.'
     }
 });
+
+const sugerenciasLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 8,
+    standardHeaders: true,
+    legacyHeaders: false,
+
+    message: {
+        success: false,
+        message:
+            'Has enviado varias sugerencias. Espera unos minutos antes de volver a intentarlo.'
+    }
+});
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -2452,6 +2465,306 @@ app.post(
                 message:
                     'No se pudo agendar al cliente.'
 
+            });
+
+        }
+
+    }
+);
+
+// ============================================================
+// SUGERENCIAS DE CLIENTES
+// ============================================================
+
+
+// ============================================================
+// GUARDAR SUGERENCIA DESDE LA WEB PÚBLICA
+// ============================================================
+
+app.post(
+    '/api/sugerencias',
+    sugerenciasLimiter,
+    async (req, res) => {
+
+        try {
+
+            const mensaje =
+                String(
+                    req.body.mensaje || ''
+                ).trim();
+
+
+            if (!mensaje) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Escribe una sugerencia antes de enviarla.'
+                });
+
+            }
+
+
+            if (mensaje.length < 3) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La sugerencia es demasiado corta.'
+                });
+
+            }
+
+
+            if (mensaje.length > 1000) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La sugerencia no puede superar los 1000 caracteres.'
+                });
+
+            }
+
+
+            await pool.query(
+                `INSERT INTO sugerencias
+                (
+                    mensaje,
+                    leida
+                )
+                VALUES (?, 0)`,
+                [
+                    mensaje
+                ]
+            );
+
+
+            return res.status(201).json({
+                success: true,
+                message:
+                    '¡Gracias por tu opinión! La sugerencia fue enviada.'
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error guardando sugerencia:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo enviar la sugerencia.'
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// VER SUGERENCIAS — SOLO JEFE
+// ============================================================
+
+app.get(
+    '/api/admin/sugerencias',
+    requiereSesion,
+    requiereJefe,
+    async (req, res) => {
+
+        try {
+
+            const [sugerencias] =
+                await pool.query(
+                    `SELECT
+                        id,
+                        mensaje,
+                        leida,
+                        creado_en
+                     FROM sugerencias
+                     ORDER BY creado_en DESC, id DESC`
+                );
+
+
+            return res.json({
+                success: true,
+                sugerencias
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error cargando sugerencias:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                sugerencias: [],
+                message:
+                    'No se pudieron cargar las sugerencias.'
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MARCAR SUGERENCIA COMO LEÍDA — SOLO JEFE
+// ============================================================
+
+app.patch(
+    '/api/admin/sugerencias/:id/leida',
+    requiereSesion,
+    requiereJefe,
+    async (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
+
+
+            if (
+                !Number.isInteger(id) ||
+                id <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Sugerencia inválida.'
+                });
+
+            }
+
+
+            const [resultado] =
+                await pool.query(
+                    `UPDATE sugerencias
+                     SET leida = 1
+                     WHERE id = ?`,
+                    [
+                        id
+                    ]
+                );
+
+
+            return res.json({
+
+                success:
+                    resultado.affectedRows > 0,
+
+                message:
+                    resultado.affectedRows > 0
+
+                        ? 'Sugerencia marcada como leída.'
+
+                        : 'No se encontró la sugerencia.'
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error marcando sugerencia:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo actualizar la sugerencia.'
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// ELIMINAR SUGERENCIA — SOLO JEFE
+// ============================================================
+
+app.delete(
+    '/api/admin/sugerencias/:id',
+    requiereSesion,
+    requiereJefe,
+    async (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
+
+
+            if (
+                !Number.isInteger(id) ||
+                id <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Sugerencia inválida.'
+                });
+
+            }
+
+
+            const [resultado] =
+                await pool.query(
+                    `DELETE FROM sugerencias
+                     WHERE id = ?`,
+                    [
+                        id
+                    ]
+                );
+
+
+            return res.json({
+
+                success:
+                    resultado.affectedRows > 0,
+
+                message:
+                    resultado.affectedRows > 0
+
+                        ? 'Sugerencia eliminada.'
+
+                        : 'No se encontró la sugerencia.'
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error eliminando sugerencia:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo eliminar la sugerencia.'
             });
 
         }

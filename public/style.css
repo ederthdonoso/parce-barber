@@ -327,6 +327,189 @@ footer a {
     text-transform: uppercase;
 }
 
+/* ============================================================
+   SUGERENCIAS
+============================================================ */
+
+.boss-nav-badge {
+    display: inline-flex;
+
+    min-width: 19px;
+    height: 19px;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 6px;
+    padding: 0 5px;
+
+    border-radius: 999px;
+
+    background: #e50914;
+    color: #fff;
+
+    font-size: .64rem;
+    font-weight: 900;
+
+    vertical-align: middle;
+}
+
+
+.boss-suggestions {
+    display: grid;
+    gap: 12px;
+}
+
+
+.boss-suggestion-card {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    gap: 18px;
+
+    align-items: start;
+
+    padding: 18px;
+
+    border:
+        1px solid
+        var(--boss-border);
+
+    border-left:
+        3px solid #4a4a54;
+
+    border-radius: 12px;
+
+    background: #111116;
+}
+
+
+.boss-suggestion-card.unread {
+    border-left-color:
+        #e50914;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(229, 9, 20, .07),
+            #111116 28%
+        );
+}
+
+
+.boss-suggestion-meta {
+    display: flex;
+
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-bottom: 10px;
+}
+
+
+.boss-suggestion-state {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding:
+        4px 8px;
+
+    border-radius:
+        999px;
+
+    background:
+        #202027;
+
+    color:
+        #aaaab4;
+
+    font-size:
+        .66rem;
+
+    font-weight:
+        900;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        .05em;
+}
+
+
+.boss-suggestion-card.unread
+.boss-suggestion-state {
+
+    background:
+        rgba(229, 9, 20, .14);
+
+    color:
+        #ff6b72;
+}
+
+
+.boss-suggestion-date {
+    color:
+        var(--boss-muted);
+
+    font-size:
+        .75rem;
+}
+
+
+.boss-suggestion-message {
+    color:
+        #ededf2;
+
+    font-size:
+        .94rem;
+
+    line-height:
+        1.65;
+
+    white-space:
+        pre-wrap;
+
+    overflow-wrap:
+        anywhere;
+}
+
+
+.boss-suggestion-actions {
+    display: flex;
+
+    gap: 7px;
+
+    flex-wrap:
+        wrap;
+
+    justify-content:
+        flex-end;
+}
+
+
+@media (max-width: 650px) {
+
+    .boss-suggestion-card {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .boss-suggestion-actions {
+        justify-content:
+            flex-start;
+    }
+
+}
 
 /* =========================================
    REDUCIR ANIMACIÓN SI EL USUARIO LO PIDE

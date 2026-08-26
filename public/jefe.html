@@ -564,7 +564,7 @@
             }
             .brand { padding: 4px 6px 10px; }
             .boss-nav {
-                grid-template-columns: repeat(5, minmax(0,1fr));
+                grid-template-columns: repeat(6, minmax(0,1fr));
                 overflow-x: auto;
             }
             .boss-nav button {
@@ -619,6 +619,26 @@
             <button data-tab="fotos" onclick="cambiarTab('fotos', this)">
                 <span class="nav-icon">▧</span><span>Fotos</span>
             </button>
+            <button
+    data-tab="sugerencias"
+    onclick="cambiarTab('sugerencias', this)"
+>
+    <span class="nav-icon">
+        💬
+    </span>
+
+    <span>
+        Sugerencias
+
+        <b
+            id="sugerencias-nav-badge"
+            class="boss-nav-badge"
+            style="display:none;"
+        >
+            0
+        </b>
+    </span>
+</button>
         </nav>
 
         <div class="boss-sidebar-footer">
@@ -802,6 +822,73 @@
                 </div>
             </div>
         </section>
+        <!-- ============================================================
+     SUGERENCIAS
+============================================================ -->
+
+<section
+    id="tab-sugerencias"
+    class="boss-section"
+>
+
+    <div class="boss-page-title">
+
+        <div>
+
+            <h2>
+                Sugerencias de clientes
+            </h2>
+
+            <p>
+                Comentarios anónimos enviados desde la página principal.
+            </p>
+
+        </div>
+
+
+        <button
+            class="boss-secondary"
+            onclick="cargarSugerencias()"
+        >
+            ↻ Actualizar
+        </button>
+
+    </div>
+
+
+    <section class="boss-panel">
+
+        <div class="boss-panel-head">
+
+            <h3>
+                Opiniones recibidas
+            </h3>
+
+            <span id="sugerencias-count">
+                0 sugerencias
+            </span>
+
+        </div>
+
+
+        <div class="boss-panel-body">
+
+            <div
+                id="lista-sugerencias"
+                class="boss-suggestions"
+            >
+
+                <div class="boss-empty">
+                    Cargando sugerencias...
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</section>
     </main>
 </div>
 
@@ -851,7 +938,8 @@
 
 <script>
     let listaBarberosGlobal = [];
-    let listaServiciosGlobal = [];
+let listaServiciosGlobal = [];
+let listaSugerenciasGlobal = [];
 
     function cambiarTab(tabId, boton) {
         document.querySelectorAll('.boss-section').forEach(t => t.classList.remove('active'));
@@ -946,6 +1034,550 @@
             document.getElementById('master-agenda').innerHTML = '<div class="boss-empty">No se pudieron cargar las citas.</div>';
         }
     }
+
+    /* ============================================================
+   SUGERENCIAS
+============================================================ */
+
+
+function escaparHTMLBoss(valor) {
+
+    return String(
+        valor ?? ''
+    )
+        .replace(
+            /&/g,
+            '&amp;'
+        )
+        .replace(
+            /</g,
+            '&lt;'
+        )
+        .replace(
+            />/g,
+            '&gt;'
+        )
+        .replace(
+            /"/g,
+            '&quot;'
+        )
+        .replace(
+            /'/g,
+            '&#039;'
+        );
+
+}
+
+
+/* ============================================================
+   FORMATEAR FECHA
+============================================================ */
+
+function formatearFechaSugerencia(
+    valor
+) {
+
+    if (!valor) {
+
+        return 'Fecha desconocida';
+
+    }
+
+
+    const fecha =
+        new Date(
+            valor
+        );
+
+
+    if (
+        Number.isNaN(
+            fecha.getTime()
+        )
+    ) {
+
+        return String(
+            valor
+        );
+
+    }
+
+
+    return fecha.toLocaleString(
+        'es-CL',
+        {
+
+            day:
+                '2-digit',
+
+            month:
+                'short',
+
+            year:
+                'numeric',
+
+            hour:
+                '2-digit',
+
+            minute:
+                '2-digit'
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   CARGAR SUGERENCIAS
+============================================================ */
+
+async function cargarSugerencias() {
+
+    const lista =
+        document.getElementById(
+            'lista-sugerencias'
+        );
+
+
+    try {
+
+        const response =
+            await fetch(
+                '/api/admin/sugerencias',
+                {
+                    cache:
+                        'no-store'
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudieron cargar las sugerencias.'
+            );
+
+        }
+
+
+        listaSugerenciasGlobal =
+            Array.isArray(
+                data.sugerencias
+            )
+
+                ? data.sugerencias
+
+                : [];
+
+
+        renderSugerencias();
+
+
+    } catch (error) {
+
+        console.error(
+            'Error cargando sugerencias:',
+            error
+        );
+
+
+        if (lista) {
+
+            lista.innerHTML = `
+
+                <div class="boss-empty">
+
+                    No se pudieron cargar
+                    las sugerencias.
+
+                </div>
+
+            `;
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   MOSTRAR SUGERENCIAS
+============================================================ */
+
+function renderSugerencias() {
+
+    const lista =
+        document.getElementById(
+            'lista-sugerencias'
+        );
+
+
+    const contador =
+        document.getElementById(
+            'sugerencias-count'
+        );
+
+
+    const badge =
+        document.getElementById(
+            'sugerencias-nav-badge'
+        );
+
+
+    if (
+        !lista ||
+        !contador ||
+        !badge
+    ) {
+
+        return;
+
+    }
+
+
+    const total =
+        listaSugerenciasGlobal
+            .length;
+
+
+    const nuevas =
+        listaSugerenciasGlobal
+            .filter(
+                sugerencia =>
+                    Number(
+                        sugerencia.leida
+                    ) !== 1
+            )
+            .length;
+
+
+    contador.textContent =
+        `${total} ${
+            total === 1
+
+                ? 'sugerencia'
+
+                : 'sugerencias'
+        } · ${nuevas} ${
+            nuevas === 1
+
+                ? 'nueva'
+
+                : 'nuevas'
+        }`;
+
+
+    badge.textContent =
+        nuevas;
+
+
+    badge.style.display =
+        nuevas > 0
+
+            ? 'inline-flex'
+
+            : 'none';
+
+
+    if (!total) {
+
+        lista.innerHTML = `
+
+            <div class="boss-empty">
+
+                Todavía no hay
+                sugerencias de clientes.
+
+            </div>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    lista.innerHTML =
+        listaSugerenciasGlobal
+            .map(
+                sugerencia => {
+
+
+                    const leida =
+                        Number(
+                            sugerencia.leida
+                        ) === 1;
+
+
+                    const mensaje =
+                        escaparHTMLBoss(
+                            sugerencia.mensaje ||
+                            ''
+                        );
+
+
+                    const fecha =
+                        escaparHTMLBoss(
+                            formatearFechaSugerencia(
+                                sugerencia.creado_en
+                            )
+                        );
+
+
+                    return `
+
+                        <article
+                            class="
+                                boss-suggestion-card
+                                ${
+                                    leida
+                                        ? ''
+                                        : 'unread'
+                                }
+                            "
+                        >
+
+                            <div>
+
+                                <div
+                                    class="
+                                        boss-suggestion-meta
+                                    "
+                                >
+
+                                    <span
+                                        class="
+                                            boss-suggestion-state
+                                        "
+                                    >
+
+                                        ${
+                                            leida
+
+                                                ? '✓ Leída'
+
+                                                : '● Nueva'
+                                        }
+
+                                    </span>
+
+
+                                    <span
+                                        class="
+                                            boss-suggestion-date
+                                        "
+                                    >
+
+                                        ${fecha}
+
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    class="
+                                        boss-suggestion-message
+                                    "
+                                >
+                                    ${mensaje}
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="
+                                    boss-suggestion-actions
+                                "
+                            >
+
+                                ${
+                                    leida
+
+                                        ? ''
+
+                                        : `
+
+                                            <button
+                                                class="
+                                                    boss-action
+                                                    success
+                                                "
+                                                onclick="
+                                                    marcarSugerenciaLeida(
+                                                        ${Number(
+                                                            sugerencia.id
+                                                        )}
+                                                    )
+                                                "
+                                            >
+
+                                                Marcar leída
+
+                                            </button>
+
+                                        `
+                                }
+
+
+                                <button
+                                    class="
+                                        boss-action
+                                        danger
+                                    "
+                                    onclick="
+                                        eliminarSugerencia(
+                                            ${Number(
+                                                sugerencia.id
+                                            )}
+                                        )
+                                    "
+                                >
+
+                                    Eliminar
+
+                                </button>
+
+                            </div>
+
+                        </article>
+
+                    `;
+
+                }
+            )
+            .join('');
+
+}
+
+
+/* ============================================================
+   MARCAR COMO LEÍDA
+============================================================ */
+
+async function marcarSugerenciaLeida(
+    id
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/admin/sugerencias/${id}/leida`,
+                {
+                    method:
+                        'PATCH'
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo marcar como leída.'
+            );
+
+        }
+
+
+        await cargarSugerencias();
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo actualizar la sugerencia.'
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   ELIMINAR SUGERENCIA
+============================================================ */
+
+async function eliminarSugerencia(
+    id
+) {
+
+    const confirmar =
+        confirm(
+            '¿Seguro que quieres eliminar esta sugerencia?'
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/admin/sugerencias/${id}`,
+                {
+                    method:
+                        'DELETE'
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo eliminar la sugerencia.'
+            );
+
+        }
+
+
+        await cargarSugerencias();
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo eliminar la sugerencia.'
+        );
+
+    }
+
+}
 
     function renderProximas(citas) {
         const target = document.getElementById('dashboard-proximas');
@@ -1208,7 +1840,16 @@
         });
     });
 
-    window.addEventListener('load', renderDashboard);
+    window.addEventListener(
+    'load',
+    async () => {
+
+        await renderDashboard();
+
+        await cargarSugerencias();
+
+    }
+);
 </script>
 </body>
 </html>

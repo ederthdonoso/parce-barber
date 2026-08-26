@@ -355,8 +355,32 @@
         <div id="feedback-form" style="display: none; background: #151515; padding: 20px; border: 1px solid var(--red-brand); border-radius: 8px; width: 300px; margin-bottom: 15px; box-shadow: 0px 5px 15px rgba(0,0,0,0.5);">
             <h3 style="color: white; margin-top: 0; font-size: 1.2rem;">¿Qué podemos mejorar? 🚀</h3>
             <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 10px;">Tu opinión nos ayuda a crecer.</p>
-            <textarea id="feedback-text" class="inputs-urban" rows="4" placeholder="Escribe tu sugerencia aquí..." style="width: 100%; box-sizing: border-box; margin-bottom: 10px; resize: none;"></textarea>
-            <button onclick="enviarFeedback()" class="btn-urban" style="background: #4caf50; width: 100%; padding: 10px;">Enviar Sugerencia</button>
+            <textarea
+    id="feedback-text"
+    class="inputs-urban"
+    rows="4"
+    maxlength="1000"
+    placeholder="Escribe tu sugerencia aquí..."
+    style="
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        resize: none;
+    "
+></textarea>
+
+<button
+    id="feedback-submit"
+    onclick="enviarFeedback()"
+    class="btn-urban"
+    style="
+        background: #4caf50;
+        width: 100%;
+        padding: 10px;
+    "
+>
+    Enviar Sugerencia
+</button>
         </div>
         
         <button onclick="toggleFeedback()" class="btn-urban" style="background: var(--red-brand); border-radius: 50%; width: 60px; height: 60px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; float: right; padding: 0; box-shadow: 0px 4px 10px rgba(0,0,0,0.5);">
@@ -370,17 +394,123 @@
             form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
         }
 
-        function enviarFeedback() {
-            const texto = document.getElementById('feedback-text').value;
-            if(texto.trim() === '') {
-                alert('¡Escribe algo antes de enviar!');
-                return;
-            }
-            // Aquí a futuro lo conectas con fetch() a tu base de datos
-            alert('¡Gracias por tu opinión! Lo tomaremos en cuenta.');
-            document.getElementById('feedback-text').value = '';
-            toggleFeedback();
+        async function enviarFeedback() {
+
+    const textarea =
+        document.getElementById(
+            'feedback-text'
+        );
+
+    const boton =
+        document.getElementById(
+            'feedback-submit'
+        );
+
+    const texto =
+        textarea.value.trim();
+
+
+    if (texto === '') {
+
+        alert(
+            '¡Escribe algo antes de enviar!'
+        );
+
+        return;
+
+    }
+
+
+    if (texto.length > 1000) {
+
+        alert(
+            'La sugerencia no puede superar los 1000 caracteres.'
+        );
+
+        return;
+
+    }
+
+
+    boton.disabled =
+        true;
+
+    boton.innerText =
+        'Enviando...';
+
+
+    try {
+
+        const response =
+            await fetch(
+                '/api/sugerencias',
+                {
+
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+                            mensaje: texto
+                        })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo enviar la sugerencia.'
+            );
+
         }
+
+
+        alert(
+            data.message
+        );
+
+
+        textarea.value =
+            '';
+
+
+        toggleFeedback();
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo enviar la sugerencia.'
+        );
+
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+
+        boton.innerText =
+            'Enviar Sugerencia';
+
+    }
+
+}
 
         // =======================================================
         // NUEVO SCRIPT: CARGAR SERVICIOS DESDE LA BASE DE DATOS
