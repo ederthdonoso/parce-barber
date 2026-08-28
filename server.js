@@ -676,6 +676,38 @@ async function enviarCorreoCancelacionCita({
 
 }
 
+// ============================================================
+// HORARIOS DE ALMUERZO
+// ============================================================
+
+const HORARIOS_ALMUERZO = Object.freeze({
+
+    // Parce Barber
+    1: '15:00',
+
+    // Jesús Peña
+    2: '16:00',
+
+    // Yuseth Priik
+    3: '14:00'
+
+});
+
+
+function obtenerHoraAlmuerzo(
+    barberoId
+) {
+
+    return (
+        HORARIOS_ALMUERZO[
+            Number(barberoId)
+        ]
+        ||
+        null
+    );
+
+}
+
 const DURACION_SESION =
     30 * 24 * 60 * 60 * 1000;
 
@@ -1137,6 +1169,35 @@ if (
                 `${horaBase + 3}:00`
             ];
         }
+
+        // ====================================================
+// PROTEGER HORARIO DE ALMUERZO
+// ====================================================
+
+const horaAlmuerzo =
+    obtenerHoraAlmuerzo(
+        barberoId
+    );
+
+
+if (
+    horaAlmuerzo
+    &&
+    horasRequeridas.includes(
+        horaAlmuerzo
+    )
+) {
+
+    return res.status(409).json({
+
+        success: false,
+
+        message:
+            'Ese horario corresponde al almuerzo del especialista. Por favor, elige otra hora.'
+
+    });
+
+}
 
 
         // ====================================================
@@ -2207,6 +2268,28 @@ app.post(
 
                     }
 
+                    // ============================
+// RESPETAR ALMUERZO
+// ============================
+
+const horaAlmuerzo =
+    obtenerHoraAlmuerzo(
+        barbero.id
+    );
+
+
+if (
+    horaAlmuerzo
+    &&
+    horasRequeridas.includes(
+        horaAlmuerzo
+    )
+) {
+
+    continue;
+
+}
+
 
                     /*
                      * MUY IMPORTANTE:
@@ -2896,6 +2979,34 @@ app.post('/api/modificar-cita', async (req, res) => {
             });
         }
 
+        // ====================================================
+// NO PERMITIR QUE EL CLIENTE MUEVA SU CITA AL ALMUERZO
+// ====================================================
+
+const horaAlmuerzoNuevo =
+    obtenerHoraAlmuerzo(
+        nuevoBarberoId
+    );
+
+
+if (
+    horaAlmuerzoNuevo
+    &&
+    nuevaHora ===
+        horaAlmuerzoNuevo
+) {
+
+    return res.status(409).json({
+
+        success: false,
+
+        message:
+            'Esa hora corresponde al almuerzo del especialista. Selecciona otra hora.'
+
+    });
+
+}
+
 
         // ====================================================
         // 3. COMPROBAR QUE LA NUEVA HORA ESTÉ LIBRE
@@ -3093,11 +3204,22 @@ app.get(
 
 
             res.json({
-                success: true,
-                perfil: perfiles[0],
-                agendamientos,
-                clientesCortes
-            });
+
+    success: true,
+
+    perfil:
+        perfiles[0],
+
+    agendamientos,
+
+    clientesCortes,
+
+    horaAlmuerzo:
+        obtenerHoraAlmuerzo(
+            req.usuario.id
+        )
+
+});
 
 
         } catch (error) {
@@ -7327,6 +7449,34 @@ app.get(
         citasExistentes.map(
             cita => cita.hora
         );
+
+    // ========================================================
+// ALMUERZO AUTOMÁTICO
+// ========================================================
+
+const horaAlmuerzo =
+    obtenerHoraAlmuerzo(
+        barberoId
+    );
+
+
+if (
+    horaAlmuerzo
+    &&
+    horasLista.includes(
+        horaAlmuerzo
+    )
+    &&
+    !ocupadas.includes(
+        horaAlmuerzo
+    )
+) {
+
+    ocupadas.push(
+        horaAlmuerzo
+    );
+
+}
 }
 
 

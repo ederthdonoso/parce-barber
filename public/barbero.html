@@ -2264,6 +2264,7 @@ function iniciarActualizacionAutomaticaAgenda() {
 
 let agendaCitas = [];
 let agendaHorarios = [];
+let agendaHoraAlmuerzo = null;
 let agendaFechaSeleccionada = null;
 let agendaMesActual = new Date();
 
@@ -2676,6 +2677,16 @@ function renderHorarioAgenda() {
                                 ) === String(hora)
                         );
 
+                    const esHorarioAlmuerzo =
+    !cita
+    &&
+    agendaHoraAlmuerzo
+    &&
+    String(hora) ===
+        String(
+            agendaHoraAlmuerzo
+        );
+
 
                     const bloqueado =
                         cita &&
@@ -2696,6 +2707,86 @@ function renderHorarioAgenda() {
             )
         );
 
+                    /*
+   HORARIO DE ALMUERZO
+
+   Para clientes está bloqueado,
+   pero el propio barbero puede
+   utilizarlo si necesita agregar
+   un cliente.
+*/
+
+if (
+    esHorarioAlmuerzo
+) {
+
+    return `
+
+        <div
+            class="
+                agenda-time-row
+                lunch
+            "
+        >
+
+            <div class="agenda-time">
+                ${hora}
+            </div>
+
+
+            <button
+                type="button"
+                class="
+                    agenda-slot
+                    lunch-slot
+                    agenda-lunch-bookable
+                "
+                onclick="
+                    abrirModalReservaBarbero(
+                        '${hora}'
+                    )
+                "
+            >
+
+                <div
+                    class="
+                        agenda-slot-icon
+                        lunch-icon
+                    "
+                >
+                    🍴
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Horario de almuerzo
+                    </strong>
+
+
+                    <small>
+                        Bloqueado para clientes
+                    </small>
+
+
+                    <div
+                        class="
+                            agenda-lunch-action
+                        "
+                    >
+                        Toca para agendar un cliente igualmente →
+                    </div>
+
+                </div>
+
+            </button>
+
+        </div>
+
+    `;
+
+}
 
                     /*
                        HORA LIBRE
@@ -3104,6 +3195,10 @@ async function cargarAgendaBarbero(
             );
 
         }
+
+        agendaHoraAlmuerzo =
+    db.horaAlmuerzo ||
+    null;
 
 
         /*

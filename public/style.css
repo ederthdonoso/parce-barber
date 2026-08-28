@@ -4684,3 +4684,92 @@ footer .footer-gestionar a:hover {
     }
 
 }
+
+/* ============================================================
+   HORARIO DE ALMUERZO — PANEL BARBERO
+============================================================ */
+
+.agenda-lunch-bookable {
+    cursor: pointer;
+
+    border:
+        1px solid
+        rgba(255, 183, 0, .28);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 183, 0, .07),
+            rgba(255, 183, 0, .025)
+        );
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease;
+}
+
+
+.agenda-lunch-bookable:hover {
+    transform:
+        translateX(3px);
+
+    border-color:
+        rgba(255, 183, 0, .55);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 183, 0, .12),
+            rgba(255, 183, 0, .04)
+        );
+}
+
+
+.agenda-lunch-bookable
+strong {
+    color:
+        #f1f1f1;
+}
+
+
+.agenda-lunch-bookable
+small {
+    color:
+        #9a9a9a;
+}
+
+
+.lunch-icon {
+    background:
+        rgba(255, 183, 0, .10);
+
+    border:
+        1px solid
+        rgba(255, 183, 0, .18);
+}
+
+
+.agenda-lunch-action {
+    margin-top:
+        7px;
+
+    color:
+        #c99b2c;
+
+    font-size:
+        .62rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        .2px;
+}
+
+
+.agenda-lunch-bookable:hover
+.agenda-lunch-action {
+    color:
+        #ffbf27;
+}
