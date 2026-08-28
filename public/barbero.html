@@ -1354,10 +1354,34 @@
 
             </div>
 
+            <div>
+
+    <label for="reserva-barbero-email">
+        EMAIL DEL CLIENTE
+        <span
+            style="
+                color:#666;
+                font-weight:600;
+            "
+        >
+            (OPCIONAL)
+        </span>
+    </label>
+
+    <input
+        type="email"
+        id="reserva-barbero-email"
+        placeholder="cliente@email.com"
+        autocomplete="email"
+    >
+
+</div>
+
 
             <p class="hora-extra-note">
-                Solo necesitas elegir el servicio e ingresar el nombre.
-                No se pedirá teléfono ni correo.
+                Servicio y nombre siguen siendo obligatorios.
+    Si agregas el correo, el cliente recibirá confirmaciones,
+    cambios y cancelaciones automáticamente
             </p>
 
 
@@ -1378,6 +1402,181 @@
                     class="hora-extra-submit"
                 >
                     Agendar cliente
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ============================================================
+     MODAL CAMBIAR CITA
+============================================================ -->
+
+<div
+    id="modal-cambiar-cita"
+    class="hora-extra-modal"
+    aria-hidden="true"
+>
+
+    <div
+        class="hora-extra-box"
+        role="dialog"
+        aria-modal="true"
+    >
+
+        <div class="hora-extra-header">
+
+            <div>
+
+                <div class="barbero-section-kicker">
+                    GESTIÓN DE CITA
+                </div>
+
+                <h2>
+                    Cambiar cita
+                </h2>
+
+                <p>
+                    Mueve la reserva a otra fecha u hora.
+                    El cliente será avisado por correo si tiene uno registrado.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="hora-extra-close"
+                onclick="cerrarModalCambiarCita()"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <form
+            class="hora-extra-form"
+            onsubmit="guardarCambioCita(event)"
+        >
+
+            <input
+                type="hidden"
+                id="cambio-cita-id"
+            >
+
+
+            <div>
+
+                <label>
+                    CLIENTE
+                </label>
+
+                <input
+                    type="text"
+                    id="cambio-cita-cliente"
+                    readonly
+                >
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    SERVICIO
+                </label>
+
+                <input
+                    type="text"
+                    id="cambio-cita-servicio"
+                    readonly
+                >
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    EMAIL DEL CLIENTE
+                    <span style="color:#666;">
+                        (OPCIONAL)
+                    </span>
+                </label>
+
+                <input
+                    type="email"
+                    id="cambio-cita-email"
+                    placeholder="cliente@email.com"
+                >
+
+            </div>
+
+
+            <div class="hora-extra-two-col">
+
+                <div>
+
+                    <label>
+                        NUEVA FECHA
+                    </label>
+
+                    <input
+                        type="date"
+                        id="cambio-cita-fecha"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        NUEVA HORA
+                    </label>
+
+                    <input
+                        type="time"
+                        id="cambio-cita-hora"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <p
+                id="cambio-cita-note"
+                class="hora-extra-note"
+            >
+                La nueva hora se comprobará antes de guardar.
+            </p>
+
+
+            <div class="hora-extra-actions">
+
+                <button
+                    type="button"
+                    class="hora-extra-cancel"
+                    onclick="cerrarModalCambiarCita()"
+                >
+                    Volver
+                </button>
+
+
+                <button
+                    type="submit"
+                    id="btn-guardar-cambio-cita"
+                    class="hora-extra-submit"
+                >
+                    Guardar cambio
                 </button>
 
             </div>
@@ -2445,6 +2644,15 @@ function renderHorarioAgenda() {
                                 'Bloqueado'
                         );
 
+                        const continuacionServicio =
+    cita &&
+    /\(Bloqueo Continuo\)\s*$/i
+        .test(
+            String(
+                cita.servicio || ''
+            )
+        );
+
 
                     /*
                        HORA LIBRE
@@ -2536,6 +2744,56 @@ function renderHorarioAgenda() {
 
                     }
 
+                    if (
+    continuacionServicio
+) {
+
+    const servicioContinuacion =
+        escaparHTML(
+            String(
+                cita.servicio || ''
+            )
+                .replace(
+                    /\s*\(Bloqueo Continuo\)\s*$/i,
+                    ''
+                )
+        );
+
+
+    return `
+
+        <div class="agenda-time-row blocked">
+
+            <div class="agenda-time">
+                ${hora}
+            </div>
+
+            <div class="agenda-slot blocked-slot">
+
+                <div class="agenda-slot-icon">
+                    ↳
+                </div>
+
+                <div>
+
+                    <strong>
+                        Continuación de servicio
+                    </strong>
+
+                    <small>
+                        ${servicioContinuacion}
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
 
                     /*
                        CITA REAL
@@ -2597,6 +2855,41 @@ function renderHorarioAgenda() {
                             'Servicio general'
                         );
 
+                        const servicioJS =
+    encodeURIComponent(
+        cita.servicio ||
+        'Servicio general'
+    );
+
+
+const fechaJS =
+    encodeURIComponent(
+        String(
+            cita.fecha ||
+            ''
+        ).slice(0, 10)
+    );
+
+
+const horaJS =
+    encodeURIComponent(
+        cita.hora ||
+        hora
+    );
+
+
+const estadoJS =
+    encodeURIComponent(
+        cita.estado ||
+        ''
+    );
+
+
+const citaId =
+    Number(
+        cita.id
+    );
+
 
                     return `
 
@@ -2608,7 +2901,7 @@ function renderHorarioAgenda() {
                                 ${hora}
                             </div>
 
-
+<div class="agenda-appointment-wrap">
                             <button
                                 type="button"
                                 class="agenda-slot appointment-slot"
@@ -2658,6 +2951,41 @@ function renderHorarioAgenda() {
                                 </div>
 
                             </button>
+                            <div class="agenda-appointment-actions">
+
+    <button
+        type="button"
+        class="agenda-action-btn agenda-action-edit"
+        onclick="abrirModalCambiarCitaEncoded(
+            ${citaId},
+            '${nombreJS}',
+            '${servicioJS}',
+            '${fechaJS}',
+            '${horaJS}',
+            '${emailJS}',
+            '${estadoJS}'
+        )"
+    >
+        ↻ Cambiar cita
+    </button>
+
+
+    <button
+        type="button"
+        class="agenda-action-btn agenda-action-cancel"
+        onclick="cancelarCitaBarbero(
+            ${citaId},
+            '${nombreJS}',
+            '${fechaJS}',
+            '${horaJS}'
+        )"
+    >
+        × Cancelar
+    </button>
+
+</div>
+
+</div>
 
                         </div>
 
@@ -3268,12 +3596,39 @@ async function guardarMisHorarios() {
 ============================================================ */
 
 async function cancelarCitaBarbero(
-    idCita
+    idCita,
+    nombreEncoded = '',
+    fechaEncoded = '',
+    horaEncoded = ''
 ) {
+
+    const nombre =
+        decodeURIComponent(
+            nombreEncoded ||
+            'Cliente'
+        );
+
+
+    const fecha =
+        decodeURIComponent(
+            fechaEncoded ||
+            ''
+        );
+
+
+    const hora =
+        decodeURIComponent(
+            horaEncoded ||
+            ''
+        );
+
 
     const confirmacion =
         confirm(
-            '⚠️ ¿Estás seguro de cancelar esta hora? Se le enviará un correo al cliente pidiendo que reagende.'
+            `⚠️ ¿Seguro que quieres cancelar esta cita?
+
+${nombre}
+${fecha} · ${hora}`
         );
 
 
@@ -3288,14 +3643,20 @@ async function cancelarCitaBarbero(
             await fetch(
                 '/api/barbero/cancelar',
                 {
-                    method: 'POST',
+
+                    method:
+                        'POST',
+
                     headers: {
                         'Content-Type':
                             'application/json'
                     },
-                    body: JSON.stringify({
-                        idCita
-                    })
+
+                    body:
+                        JSON.stringify({
+                            idCita
+                        })
+
                 }
             );
 
@@ -3305,31 +3666,32 @@ async function cancelarCitaBarbero(
 
 
         if (
-            data.success
+            !res.ok ||
+            !data.success
         ) {
 
-            alert(
-                'Cita cancelada con éxito. El cliente ha sido notificado por correo.'
-            );
-
-
-            cargarAgendaBarbero();
-
-        }
-
-        else {
-
-            alert(
-                'Ocurrió un error: ' +
-                data.message
+            throw new Error(
+                data.message ||
+                'No se pudo cancelar la cita.'
             );
 
         }
+
+
+        await cargarAgendaBarbero(
+            true
+        );
+
+
+        alert(
+            data.message
+        );
 
 
     } catch (error) {
 
         alert(
+            error.message ||
             'No se pudo cancelar la cita.'
         );
 
@@ -4339,6 +4701,14 @@ async function guardarReservaBarbero(
             .value
             .trim();
 
+    const email =
+    document
+        .getElementById(
+            'reserva-barbero-email'
+        )
+        .value
+        .trim();
+
 
     const boton =
         document.getElementById(
@@ -4395,7 +4765,9 @@ async function guardarReservaBarbero(
 
                             servicio,
 
-                            cliente
+                            cliente, 
+
+                            email
 
                         })
 
@@ -4460,6 +4832,328 @@ async function guardarReservaBarbero(
 
         boton.textContent =
             'Agendar cliente';
+
+    }
+
+}
+
+/* ============================================================
+   CAMBIAR CITA
+============================================================ */
+
+function abrirModalCambiarCitaEncoded(
+    idCita,
+    clienteEncoded,
+    servicioEncoded,
+    fechaEncoded,
+    horaEncoded,
+    emailEncoded,
+    estadoEncoded
+) {
+
+    const modal =
+        document.getElementById(
+            'modal-cambiar-cita'
+        );
+
+
+    const cliente =
+        decodeURIComponent(
+            clienteEncoded || ''
+        );
+
+
+    const servicio =
+        decodeURIComponent(
+            servicioEncoded || ''
+        );
+
+
+    const fecha =
+        decodeURIComponent(
+            fechaEncoded || ''
+        );
+
+
+    const hora =
+        decodeURIComponent(
+            horaEncoded || ''
+        );
+
+
+    const email =
+        decodeURIComponent(
+            emailEncoded || ''
+        );
+
+
+    const estado =
+        decodeURIComponent(
+            estadoEncoded || ''
+        );
+
+
+    document.getElementById(
+        'cambio-cita-id'
+    ).value = idCita;
+
+
+    document.getElementById(
+        'cambio-cita-cliente'
+    ).value = cliente;
+
+
+    document.getElementById(
+        'cambio-cita-servicio'
+    ).value = servicio;
+
+
+    document.getElementById(
+        'cambio-cita-email'
+    ).value = email;
+
+
+    const fechaInput =
+        document.getElementById(
+            'cambio-cita-fecha'
+        );
+
+
+    fechaInput.value =
+        fecha;
+
+
+    fechaInput.min =
+        fechaAgendaISO(
+            new Date()
+        );
+
+
+    document.getElementById(
+        'cambio-cita-hora'
+    ).value = hora;
+
+
+    const esHoraExtra =
+        String(
+            estado || ''
+        )
+            .trim()
+            .toLowerCase() ===
+        'hora extra';
+
+
+    document.getElementById(
+        'cambio-cita-note'
+    ).textContent =
+
+        esHoraExtra
+
+            ? 'Esta es una hora extra: puedes moverla fuera de tu horario normal siempre que la hora esté libre.'
+
+            : 'La nueva hora debe pertenecer a tus horarios normales y estar disponible.';
+
+
+    modal.classList.add(
+        'is-open'
+    );
+
+
+    modal.setAttribute(
+        'aria-hidden',
+        'false'
+    );
+
+}
+
+
+function cerrarModalCambiarCita() {
+
+    const modal =
+        document.getElementById(
+            'modal-cambiar-cita'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'is-open'
+    );
+
+
+    modal.setAttribute(
+        'aria-hidden',
+        'true'
+    );
+
+}
+
+
+async function guardarCambioCita(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const idCita =
+        Number(
+            document.getElementById(
+                'cambio-cita-id'
+            ).value
+        );
+
+
+    const nuevaFecha =
+        document.getElementById(
+            'cambio-cita-fecha'
+        ).value;
+
+
+    const nuevaHora =
+        document.getElementById(
+            'cambio-cita-hora'
+        ).value;
+
+
+    const email =
+        document.getElementById(
+            'cambio-cita-email'
+        )
+            .value
+            .trim();
+
+
+    const boton =
+        document.getElementById(
+            'btn-guardar-cambio-cita'
+        );
+
+
+    if (
+        !idCita ||
+        !nuevaFecha ||
+        !nuevaHora
+    ) {
+
+        alert(
+            'Selecciona la nueva fecha y hora.'
+        );
+
+        return;
+
+    }
+
+
+    boton.disabled =
+        true;
+
+
+    boton.textContent =
+        'Guardando...';
+
+
+    try {
+
+        const response =
+            await fetch(
+                '/api/barbero/modificar-cita',
+                {
+
+                    method:
+                        'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+                            idCita,
+                            nuevaFecha,
+                            nuevaHora,
+                            email
+                        })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo modificar la cita.'
+            );
+
+        }
+
+
+        cerrarModalCambiarCita();
+
+
+        agendaFechaSeleccionada =
+            nuevaFecha;
+
+
+        const fechaNueva =
+            fechaLocalAgenda(
+                nuevaFecha
+            );
+
+
+        agendaMesActual =
+            new Date(
+                fechaNueva.getFullYear(),
+                fechaNueva.getMonth(),
+                1
+            );
+
+
+        await cargarAgendaBarbero(
+            true
+        );
+
+
+        alert(
+            data.message
+        );
+
+
+    } catch (error) {
+
+        await cargarAgendaBarbero(
+            true,
+            true
+        );
+
+
+        alert(
+            error.message ||
+            'No se pudo modificar la cita.'
+        );
+
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+
+        boton.textContent =
+            'Guardar cambio';
 
     }
 

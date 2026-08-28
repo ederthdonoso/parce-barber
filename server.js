@@ -170,6 +170,484 @@ async function obtenerMapaPerfiles() {
     }
 }
 
+// ============================================================
+// AYUDANTES PARA GESTIONAR CITAS DEL BARBERO
+// ============================================================
+
+function esBloqueoContinuo(servicio) {
+
+    return /\(Bloqueo Continuo\)\s*$/i.test(
+        String(servicio || '').trim()
+    );
+
+}
+
+
+function servicioBase(servicio) {
+
+    return String(servicio || '')
+        .replace(
+            /\s*\(Bloqueo Continuo\)\s*$/i,
+            ''
+        )
+        .trim();
+
+}
+
+
+function esServicioLargoParaBarbero(
+    barberoId,
+    servicio
+) {
+
+    const nombre =
+        servicioBase(servicio);
+
+
+    const serviciosJesus = [
+        'Rulos permanentes',
+        'Ondulado permanente'
+    ];
+
+
+    const serviciosParce = [
+        'Tintura de pelo (visos)',
+        'Tintura de pelo (global)'
+    ];
+
+
+    return (
+        Number(barberoId) === 2 &&
+        serviciosJesus.includes(nombre)
+    )
+    ||
+    (
+        Number(barberoId) === 1 &&
+        serviciosParce.includes(nombre)
+    );
+
+}
+
+
+function obtenerHorasContinuas(
+    hora,
+    cantidad = 4
+) {
+
+    const coincidencia =
+        /^(\d{1,2}):(\d{2})$/.exec(
+            String(hora || '').trim()
+        );
+
+
+    if (!coincidencia) {
+        return null;
+    }
+
+
+    const horaBase =
+        Number(coincidencia[1]);
+
+
+    const minutos =
+        Number(coincidencia[2]);
+
+
+    if (
+        horaBase < 0 ||
+        horaBase > 23 ||
+        minutos !== 0 ||
+        horaBase + cantidad - 1 > 23
+    ) {
+
+        return null;
+
+    }
+
+
+    return Array.from(
+        { length: cantidad },
+        (_, indice) =>
+            `${String(
+                horaBase + indice
+            ).padStart(2, '0')}:00`
+    );
+
+}
+
+
+function emailValidoBasico(email) {
+
+    if (!email) {
+        return true;
+    }
+
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        String(email).trim()
+    );
+
+}
+
+
+function fechaISODesdeBD(valor) {
+
+    if (!valor) {
+        return '';
+    }
+
+
+    if (typeof valor === 'string') {
+
+        const coincidencia =
+            valor.match(
+                /^\d{4}-\d{2}-\d{2}/
+            );
+
+
+        if (coincidencia) {
+
+            return coincidencia[0];
+
+        }
+
+    }
+
+
+    const fecha =
+        new Date(valor);
+
+
+    if (
+        Number.isNaN(
+            fecha.getTime()
+        )
+    ) {
+
+        return String(valor);
+
+    }
+
+
+    return fecha
+        .toISOString()
+        .slice(0, 10);
+
+}
+
+
+// ============================================================
+// CORREO: CITA MODIFICADA
+// ============================================================
+
+async function enviarCorreoCambioCita({
+    email,
+    cliente,
+    barbero,
+    servicio,
+    fechaAnterior,
+    horaAnterior,
+    nuevaFecha,
+    nuevaHora
+}) {
+
+    if (!email) {
+        return false;
+    }
+
+
+    try {
+
+        const { data, error } =
+            await resend.emails.send({
+
+                from:
+                    EMAIL_REMITENTE,
+
+                to:
+                    [email],
+
+                subject:
+                    'Tu cita en Parce Barber fue modificada ✂️',
+
+                html: `
+                    <div
+                        style="
+                            font-family:Arial,sans-serif;
+                            padding:25px;
+                            max-width:600px;
+                            margin:auto;
+                            background:#0a0a0a;
+                            color:#fff;
+                            border:1px solid #333;
+                            border-radius:12px;
+                        "
+                    >
+
+                        <h1
+                            style="
+                                color:#ffb700;
+                                text-align:center;
+                            "
+                        >
+                            ✂️ Parce Barber
+                        </h1>
+
+                        <h2 style="text-align:center;">
+                            Tu cita fue modificada
+                        </h2>
+
+                        <p>
+                            Hola
+                            <strong>${cliente}</strong>,
+                        </p>
+
+                        <p>
+                            Tu barbero
+                            <strong>${barbero}</strong>
+                            actualizó tu reserva.
+                        </p>
+
+
+                        <div
+                            style="
+                                background:#151515;
+                                padding:16px;
+                                border-radius:10px;
+                                margin-top:20px;
+                            "
+                        >
+
+                            <strong style="color:#888;">
+                                ANTES
+                            </strong>
+
+                            <p>
+                                ${fechaAnterior}
+                                ·
+                                ${horaAnterior}
+                            </p>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                background:#151515;
+                                padding:16px;
+                                border-radius:10px;
+                                margin-top:12px;
+                                border-left:4px solid #ffb700;
+                            "
+                        >
+
+                            <strong style="color:#ffb700;">
+                                NUEVA CITA
+                            </strong>
+
+                            <p style="font-size:18px;">
+                                ${nuevaFecha}
+                                ·
+                                ${nuevaHora}
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-top:20px;">
+                            <strong>Servicio:</strong>
+                            ${servicio}
+                        </p>
+
+
+                        <p style="margin-top:25px;">
+                            ¡Te esperamos! 🔥
+                        </p>
+
+                    </div>
+                `
+
+            });
+
+
+        if (error) {
+
+            console.error(
+                '❌ Error enviando correo de cambio:',
+                error
+            );
+
+            return false;
+
+        }
+
+
+        console.log(
+            '📧 Correo de cambio enviado:',
+            data?.id
+        );
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            '❌ Error inesperado enviando correo de cambio:',
+            error
+        );
+
+
+        return false;
+
+    }
+
+}
+
+
+// ============================================================
+// CORREO: CITA CANCELADA
+// ============================================================
+
+async function enviarCorreoCancelacionCita({
+    email,
+    cliente,
+    barbero,
+    servicio,
+    fecha,
+    hora
+}) {
+
+    if (!email) {
+        return false;
+    }
+
+
+    try {
+
+        const { data, error } =
+            await resend.emails.send({
+
+                from:
+                    EMAIL_REMITENTE,
+
+                to:
+                    [email],
+
+                subject:
+                    'Tu cita en Parce Barber fue cancelada',
+
+                html: `
+                    <div
+                        style="
+                            font-family:Arial,sans-serif;
+                            padding:25px;
+                            max-width:600px;
+                            margin:auto;
+                            background:#0a0a0a;
+                            color:#fff;
+                            border:1px solid #333;
+                            border-radius:12px;
+                        "
+                    >
+
+                        <h1
+                            style="
+                                color:#ff3333;
+                                text-align:center;
+                            "
+                        >
+                            Cita cancelada
+                        </h1>
+
+
+                        <p>
+                            Hola
+                            <strong>${cliente}</strong>,
+                        </p>
+
+
+                        <p>
+                            Tu cita con
+                            <strong>${barbero}</strong>
+                            fue cancelada.
+                        </p>
+
+
+                        <div
+                            style="
+                                background:#151515;
+                                padding:18px;
+                                border-radius:10px;
+                                margin-top:20px;
+                            "
+                        >
+
+                            <p>
+                                <strong>Servicio:</strong>
+                                ${servicio}
+                            </p>
+
+                            <p>
+                                <strong>Fecha:</strong>
+                                ${fecha}
+                            </p>
+
+                            <p>
+                                <strong>Hora:</strong>
+                                ${hora}
+                            </p>
+
+                        </div>
+
+
+                        <p style="margin-top:22px;">
+                            Puedes volver a reservar una nueva
+                            hora desde nuestra página.
+                        </p>
+
+                    </div>
+                `
+
+            });
+
+
+        if (error) {
+
+            console.error(
+                '❌ Error enviando correo de cancelación:',
+                error
+            );
+
+
+            return false;
+
+        }
+
+
+        console.log(
+            '📧 Correo de cancelación enviado:',
+            data?.id
+        );
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            '❌ Error inesperado enviando correo de cancelación:',
+            error
+        );
+
+
+        return false;
+
+    }
+
+}
 
 const DURACION_SESION =
     30 * 24 * 60 * 60 * 1000;
@@ -2012,6 +2490,25 @@ app.post(
                     req.body.cliente || ''
                 ).trim();
 
+            const email =
+    String(
+        req.body.email || ''
+    ).trim();
+
+
+if (
+    email &&
+    !emailValidoBasico(email)
+) {
+
+    return res.status(400).json({
+        success: false,
+        message:
+            'El correo ingresado no es válido.'
+    });
+
+}
+
 
             // ====================================================
             // CAMPOS OBLIGATORIOS
@@ -2421,9 +2918,9 @@ app.post(
 
                         cliente,
 
-                        '',
+'',
 
-                        ''
+email
 
                     ]
 
@@ -3453,6 +3950,707 @@ app.delete(
 );
 
 // ============================================================
+// MODIFICAR CITA DESDE PANEL DEL BARBERO
+// ============================================================
+
+app.post(
+    '/api/barbero/modificar-cita',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        let conexion;
+
+
+        try {
+
+            const idCita =
+                Number(
+                    req.body.idCita
+                );
+
+
+            const nuevaFecha =
+                String(
+                    req.body.nuevaFecha || ''
+                ).trim();
+
+
+            const nuevaHora =
+                String(
+                    req.body.nuevaHora || ''
+                ).trim();
+
+
+            const emailNuevo =
+                String(
+                    req.body.email ?? ''
+                ).trim();
+
+
+            if (
+                !Number.isInteger(idCita) ||
+                idCita <= 0 ||
+                !nuevaFecha ||
+                !nuevaHora
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Faltan datos para modificar la cita.'
+                });
+
+            }
+
+
+            if (
+                !/^\d{4}-\d{2}-\d{2}$/.test(
+                    nuevaFecha
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La nueva fecha no es válida.'
+                });
+
+            }
+
+
+            if (
+                !/^\d{2}:\d{2}$/.test(
+                    nuevaHora
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La nueva hora no es válida.'
+                });
+
+            }
+
+
+            if (
+                emailNuevo &&
+                !emailValidoBasico(
+                    emailNuevo
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'El correo ingresado no es válido.'
+                });
+
+            }
+
+
+            const fechaLocal =
+                new Date(
+                    `${nuevaFecha}T12:00:00`
+                );
+
+
+            if (
+                fechaLocal.getDay() === 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Los domingos no son días laborables.'
+                });
+
+            }
+
+
+            if (
+                await esDiaBloqueado(
+                    req.usuario.id,
+                    nuevaFecha
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Ese día está bloqueado.'
+                });
+
+            }
+
+
+            const [citas] =
+                await pool.query(
+
+                    `SELECT *
+                     FROM agendamientos
+                     WHERE id = ?
+                     AND barberoId = ?
+                     LIMIT 1`,
+
+                    [
+                        idCita,
+                        req.usuario.id
+                    ]
+
+                );
+
+
+            if (
+                citas.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'La cita no existe o no pertenece a tu agenda.'
+                });
+
+            }
+
+
+            const cita =
+                citas[0];
+
+
+            const fechaAnterior =
+                fechaISODesdeBD(
+                    cita.fecha
+                );
+
+
+            if (
+                esBloqueoContinuo(
+                    cita.servicio
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Esta hora pertenece a un servicio largo. Modifica la cita desde la hora de inicio.'
+                });
+
+            }
+
+
+            const servicio =
+                servicioBase(
+                    cita.servicio
+                );
+
+
+            const esHoraExtra =
+                String(
+                    cita.estado || ''
+                )
+                    .trim()
+                    .toLowerCase() ===
+                'hora extra';
+
+
+            const esServicioLargo =
+                esServicioLargoParaBarbero(
+                    req.usuario.id,
+                    servicio
+                );
+
+
+            let nuevasHoras =
+                [
+                    nuevaHora
+                ];
+
+
+            if (
+                esServicioLargo
+            ) {
+
+                nuevasHoras =
+                    obtenerHorasContinuas(
+                        nuevaHora,
+                        4
+                    );
+
+
+                if (!nuevasHoras) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            'Este servicio requiere 4 horas continuas.'
+                    });
+
+                }
+
+            }
+
+
+            /*
+             * Una cita normal solamente puede
+             * moverse a horarios normales.
+             *
+             * Una HORA EXTRA sí puede moverse
+             * fuera del horario habitual.
+             */
+
+            if (
+                !esHoraExtra
+            ) {
+
+                const [barberos] =
+                    await pool.query(
+
+                        `SELECT horarios
+                         FROM barberos
+                         WHERE id = ?
+                         AND activo = 1
+                         LIMIT 1`,
+
+                        [
+                            req.usuario.id
+                        ]
+
+                    );
+
+
+                const horariosConfigurados =
+                    String(
+                        barberos[0]?.horarios ||
+                        ''
+                    )
+                        .split(',')
+                        .map(
+                            h => h.trim()
+                        )
+                        .filter(Boolean);
+
+
+                const disponibles =
+                    nuevasHoras.every(
+                        h =>
+                            horariosConfigurados
+                                .includes(h)
+                    );
+
+
+                if (!disponibles) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message:
+                            esServicioLargo
+                                ? 'La nueva hora no permite completar las 4 horas dentro de tu jornada.'
+                                : 'La nueva hora no pertenece a tus horarios normales.'
+                    });
+
+                }
+
+            }
+
+
+            const horasAnteriores =
+                esServicioLargo
+
+                    ? (
+                        obtenerHorasContinuas(
+                            cita.hora,
+                            4
+                        ) ||
+                        [cita.hora]
+                    )
+
+                    : [
+                        cita.hora
+                    ];
+
+
+            conexion =
+                await pool.getConnection();
+
+
+            await conexion.beginTransaction();
+
+
+            /*
+             * Obtenemos los IDs que pertenecen
+             * a esta misma cita.
+             */
+
+            const idsPropios =
+                [
+                    Number(
+                        cita.id
+                    )
+                ];
+
+
+            if (
+                esServicioLargo
+            ) {
+
+                const [bloquesViejos] =
+                    await conexion.query(
+
+                        `SELECT id
+                         FROM agendamientos
+                         WHERE barberoId = ?
+                         AND fecha = ?
+                         AND hora IN (?)
+                         AND cliente = ?
+                         AND (
+                             id = ?
+                             OR servicio = ?
+                         )`,
+
+                        [
+                            req.usuario.id,
+                            fechaAnterior,
+                            horasAnteriores,
+                            cita.cliente,
+                            cita.id,
+                            `${servicio} (Bloqueo Continuo)`
+                        ]
+
+                    );
+
+
+                bloquesViejos.forEach(
+                    bloque => {
+
+                        const id =
+                            Number(
+                                bloque.id
+                            );
+
+
+                        if (
+                            !idsPropios.includes(
+                                id
+                            )
+                        ) {
+
+                            idsPropios.push(
+                                id
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            /*
+             * Comprobar que la nueva hora
+             * no esté ocupada.
+             */
+
+            let consulta =
+                `SELECT id
+                 FROM agendamientos
+                 WHERE barberoId = ?
+                 AND fecha = ?
+                 AND hora IN (?)`;
+
+
+            const parametros =
+                [
+                    req.usuario.id,
+                    nuevaFecha,
+                    nuevasHoras
+                ];
+
+
+            consulta +=
+                ' AND id NOT IN (?)';
+
+
+            parametros.push(
+                idsPropios
+            );
+
+
+            const [ocupados] =
+                await conexion.query(
+                    consulta,
+                    parametros
+                );
+
+
+            if (
+                ocupados.length > 0
+            ) {
+
+                await conexion.rollback();
+
+                conexion.release();
+
+                conexion =
+                    null;
+
+
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        esServicioLargo
+                            ? 'No hay 4 horas continuas disponibles.'
+                            : 'La nueva hora ya está ocupada.'
+                });
+
+            }
+
+
+            /*
+             * Borrar antiguos bloques continuos.
+             */
+
+            const continuaciones =
+                idsPropios.filter(
+                    id =>
+                        Number(id) !==
+                        Number(cita.id)
+                );
+
+
+            if (
+                continuaciones.length > 0
+            ) {
+
+                await conexion.query(
+
+                    `DELETE FROM agendamientos
+                     WHERE id IN (?)`,
+
+                    [
+                        continuaciones
+                    ]
+
+                );
+
+            }
+
+
+            /*
+             * Modificar la cita principal.
+             */
+
+            await conexion.query(
+
+                `UPDATE agendamientos
+                 SET fecha = ?,
+                     hora = ?,
+                     email = ?
+                 WHERE id = ?
+                 AND barberoId = ?`,
+
+                [
+                    nuevaFecha,
+                    nuevaHora,
+                    emailNuevo,
+                    cita.id,
+                    req.usuario.id
+                ]
+
+            );
+
+
+            /*
+             * Volver a crear los bloques de
+             * un servicio de 4 horas.
+             */
+
+            if (
+                esServicioLargo
+            ) {
+
+                for (
+                    let i = 1;
+                    i < nuevasHoras.length;
+                    i++
+                ) {
+
+                    if (
+                        esHoraExtra
+                    ) {
+
+                        await conexion.query(
+
+                            `INSERT INTO agendamientos
+                            (
+                                barberoId,
+                                servicio,
+                                fecha,
+                                hora,
+                                cliente,
+                                telefono,
+                                email,
+                                estado
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+
+                            [
+                                req.usuario.id,
+                                `${servicio} (Bloqueo Continuo)`,
+                                nuevaFecha,
+                                nuevasHoras[i],
+                                cita.cliente,
+                                cita.telefono || '',
+                                emailNuevo,
+                                'Hora extra'
+                            ]
+
+                        );
+
+                    }
+
+                    else {
+
+                        await conexion.query(
+
+                            `INSERT INTO agendamientos
+                            (
+                                barberoId,
+                                servicio,
+                                fecha,
+                                hora,
+                                cliente,
+                                telefono,
+                                email
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+
+                            [
+                                req.usuario.id,
+                                `${servicio} (Bloqueo Continuo)`,
+                                nuevaFecha,
+                                nuevasHoras[i],
+                                cita.cliente,
+                                cita.telefono || '',
+                                emailNuevo
+                            ]
+
+                        );
+
+                    }
+
+                }
+
+            }
+
+
+            await conexion.commit();
+
+            conexion.release();
+
+            conexion =
+                null;
+
+
+            const perfiles =
+                await obtenerMapaPerfiles();
+
+
+            const notificado =
+                await enviarCorreoCambioCita({
+
+                    email:
+                        emailNuevo,
+
+                    cliente:
+                        cita.cliente,
+
+                    barbero:
+                        perfiles[
+                            req.usuario.id
+                        ] ||
+                        'Tu Barbero',
+
+                    servicio,
+
+                    fechaAnterior,
+
+                    horaAnterior:
+                        cita.hora,
+
+                    nuevaFecha,
+
+                    nuevaHora
+
+                });
+
+
+            return res.json({
+
+                success: true,
+
+                notificado,
+
+                message:
+                    notificado
+
+                        ? 'Cita modificada correctamente y cliente notificado por correo.'
+
+                        : 'Cita modificada correctamente. El cliente no tenía un email registrado.'
+
+            });
+
+
+        } catch (error) {
+
+            if (conexion) {
+
+                try {
+
+                    await conexion.rollback();
+
+                } catch (_) {}
+
+
+                conexion.release();
+
+            }
+
+
+            console.error(
+                'Error modificando cita desde panel:',
+                error
+            );
+
+
+            if (
+                error.code ===
+                'ER_DUP_ENTRY'
+            ) {
+
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        'La nueva hora acaba de ser tomada. Actualiza la agenda.'
+                });
+
+            }
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo modificar la cita.'
+            });
+
+        }
+
+    }
+);
+
+// ============================================================
 // CANCELAR CITA DESDE PANEL DEL BARBERO
 // ============================================================
 
@@ -3462,167 +4660,283 @@ app.post(
     requiereBarberoActivo,
     async (req, res) => {
 
+        let conexion;
+
+
         try {
 
-            const { idCita } =
-                req.body;
+            const idCita =
+                Number(
+                    req.body.idCita
+                );
 
 
-            if (!idCita) {
+            if (
+                !Number.isInteger(idCita) ||
+                idCita <= 0
+            ) {
 
                 return res.status(400).json({
                     success: false,
                     message:
-                        'Debes indicar la cita.'
+                        'Debes indicar una cita válida.'
                 });
+
             }
 
 
-            // Primero obtenemos la cita.
             const [citas] =
                 await pool.query(
+
                     `SELECT *
                      FROM agendamientos
-                     WHERE id = ?`,
-                    [idCita]
+                     WHERE id = ?
+                     AND barberoId = ?
+                     LIMIT 1`,
+
+                    [
+                        idCita,
+                        req.usuario.id
+                    ]
+
                 );
 
 
-            if (citas.length === 0) {
+            if (
+                citas.length === 0
+            ) {
 
                 return res.status(404).json({
                     success: false,
                     message:
-                        'La cita no existe.'
+                        'La cita no existe o no pertenece a tu agenda.'
                 });
+
             }
 
 
-            const cita = citas[0];
+            const cita =
+                citas[0];
 
 
-            // SEGURIDAD:
-            // El barbero solo puede cancelar citas suyas.
+            const fechaCita =
+                fechaISODesdeBD(
+                    cita.fecha
+                );
+
+
             if (
-                Number(cita.barberoId) !==
-                Number(req.usuario.id)
+                esBloqueoContinuo(
+                    cita.servicio
+                )
             ) {
 
-                return res.status(403).json({
+                return res.status(400).json({
                     success: false,
                     message:
-                        'No tienes permiso para cancelar esta cita.'
+                        'Cancela esta reserva desde la hora de inicio del servicio.'
                 });
+
             }
+
+
+            const servicio =
+                servicioBase(
+                    cita.servicio
+                );
+
+
+            const esServicioLargo =
+                esServicioLargoParaBarbero(
+                    req.usuario.id,
+                    servicio
+                );
+
+
+            const horasCita =
+                esServicioLargo
+
+                    ? (
+                        obtenerHorasContinuas(
+                            cita.hora,
+                            4
+                        ) ||
+                        [cita.hora]
+                    )
+
+                    : [
+                        cita.hora
+                    ];
+
+
+            conexion =
+                await pool.getConnection();
+
+
+            await conexion.beginTransaction();
+
+
+            const idsEliminar =
+                [
+                    Number(
+                        cita.id
+                    )
+                ];
+
+
+            if (
+                esServicioLargo
+            ) {
+
+                const [bloques] =
+                    await conexion.query(
+
+                        `SELECT id
+                         FROM agendamientos
+                         WHERE barberoId = ?
+                         AND fecha = ?
+                         AND hora IN (?)
+                         AND cliente = ?
+                         AND (
+                             id = ?
+                             OR servicio = ?
+                         )`,
+
+                        [
+                            req.usuario.id,
+                            fechaCita,
+                            horasCita,
+                            cita.cliente,
+                            cita.id,
+                            `${servicio} (Bloqueo Continuo)`
+                        ]
+
+                    );
+
+
+                bloques.forEach(
+                    bloque => {
+
+                        const id =
+                            Number(
+                                bloque.id
+                            );
+
+
+                        if (
+                            !idsEliminar.includes(
+                                id
+                            )
+                        ) {
+
+                            idsEliminar.push(
+                                id
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            await conexion.query(
+
+                `DELETE FROM agendamientos
+                 WHERE id IN (?)`,
+
+                [
+                    idsEliminar
+                ]
+
+            );
+
+
+            await conexion.commit();
+
+            conexion.release();
+
+            conexion =
+                null;
 
 
             const perfiles =
                 await obtenerMapaPerfiles();
 
 
-            const nombreBarbero =
-                perfiles[cita.barberoId] ||
-                'Tu Barbero';
+            const notificado =
+                await enviarCorreoCancelacionCita({
+
+                    email:
+                        cita.email,
+
+                    cliente:
+                        cita.cliente,
+
+                    barbero:
+                        perfiles[
+                            cita.barberoId
+                        ] ||
+                        'Tu Barbero',
+
+                    servicio,
+
+                    fecha:
+                        fechaCita,
+
+                    hora:
+                        cita.hora
+
+                });
 
 
-            await pool.query(
-                'DELETE FROM agendamientos WHERE id = ?',
-                [idCita]
-            );
+            return res.json({
 
-
-            if (cita.email) {
-
-    try {
-
-        const { data, error } = await resend.emails.send({
-
-            from: EMAIL_REMITENTE,
-
-            to: [cita.email],
-
-            subject:
-                '⚠️ Tu cita ha sido cancelada por un imprevisto',
-
-            html:
-                `<div style="font-family: Arial; padding: 25px; max-width: 500px; margin: auto; background-color: #0a0a0a; color: #fff; border-radius: 12px; border: 1px solid #333;">
-
-                    <h1 style="color: #ff3333; text-align:center;">
-                        Cita Cancelada
-                    </h1>
-
-                    <p>
-                        Hola <strong>${cita.cliente}</strong>,
-                    </p>
-
-                    <p>
-                        Lamentamos informarte que tu barbero
-                        <strong>${nombreBarbero}</strong>
-                        ha tenido un imprevisto de fuerza mayor
-                        y tuvimos que cancelar tu cita programada
-                        para el <strong>${cita.fecha}</strong>
-                        a las <strong>${cita.hora}</strong>.
-                    </p>
-
-                    <div style="background: #151515; padding: 15px; border-left: 4px solid #ffb700; margin-top: 15px;">
-
-                        <p style="margin: 0;">
-                            ¡Pero no te preocupes!
-                            Queremos atenderte.
-                            Por favor,
-                            <strong>reagenda tu hora</strong>
-                            en nuestro sistema.
-                        </p>
-
-                    </div>
-
-                </div>`
-        });
-
-        if (error) {
-
-            console.error(
-                '❌ Error enviando cancelación con Resend:',
-                error
-            );
-
-        } else {
-
-            console.log(
-                '📧 Correo de cancelación enviado:',
-                data?.id
-            );
-        }
-
-    } catch (error) {
-
-        console.error(
-            '❌ Error inesperado enviando correo de cancelación:',
-            error
-        );
-    }
-}
-
-            res.json({
                 success: true,
+
+                notificado,
+
                 message:
-                    'Cita cancelada y cliente notificado.'
+                    notificado
+
+                        ? 'Cita cancelada correctamente y cliente notificado por correo.'
+
+                        : 'Cita cancelada correctamente. El cliente no tenía un email registrado.'
+
             });
 
 
         } catch (error) {
+
+            if (conexion) {
+
+                try {
+
+                    await conexion.rollback();
+
+                } catch (_) {}
+
+
+                conexion.release();
+
+            }
+
 
             console.error(
                 'Error cancelando cita del barbero:',
                 error
             );
 
-            res.status(500).json({
+
+            return res.status(500).json({
                 success: false,
                 message:
-                    'Error en el servidor.'
+                    'No se pudo cancelar la cita.'
             });
+
         }
+
     }
 );
 

@@ -4456,3 +4456,112 @@ footer .footer-gestionar a:hover {
     }
 
 }
+
+/* ============================================================
+   ACCIONES DE CITA — PANEL BARBERO
+============================================================ */
+
+.agenda-appointment-wrap {
+    min-width: 0;
+    margin: 10px 0;
+}
+
+
+.agenda-appointment-wrap .appointment-slot {
+    margin: 0;
+}
+
+
+.agenda-appointment-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    margin-top: 8px;
+}
+
+
+.agenda-action-btn {
+    min-height: 38px;
+
+    border-radius: 9px;
+
+    font-size: .7rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease;
+}
+
+
+.agenda-action-btn:hover {
+    transform: translateY(-1px);
+}
+
+
+.agenda-action-edit {
+    border:
+        1px solid
+        rgba(255,183,0,.28);
+
+    background:
+        rgba(255,183,0,.07);
+
+    color:
+        #ffca3a;
+}
+
+
+.agenda-action-edit:hover {
+    border-color:
+        rgba(255,183,0,.55);
+
+    background:
+        rgba(255,183,0,.12);
+}
+
+
+.agenda-action-cancel {
+    border:
+        1px solid
+        rgba(224,0,0,.28);
+
+    background:
+        rgba(224,0,0,.07);
+
+    color:
+        #ff6b6b;
+}
+
+
+.agenda-action-cancel:hover {
+    border-color:
+        rgba(224,0,0,.55);
+
+    background:
+        rgba(224,0,0,.12);
+}
+
+
+#modal-cambiar-cita input[readonly] {
+    color: #aaa;
+    background: #141414;
+}
+
+
+@media (max-width: 600px) {
+
+    .agenda-appointment-actions {
+        grid-template-columns: 1fr;
+    }
+
+
+    .agenda-action-btn {
+        min-height: 42px;
+    }
+
+}
