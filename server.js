@@ -1253,241 +1253,1384 @@ if (
 
 // ============================================================
 // AGENDADO RÁPIDO
+// SINCRONIZADO CON HORARIOS DE CADA BARBERO
 // ============================================================
 
-app.post('/api/agendado-rapido', async (req, res) => {
+app.post(
+    '/api/agendado-rapido',
+    async (req, res) => {
 
-    try {
-
-        const {
-            servicio,
-            cliente,
-            telefono,
-            email
-        } = req.body;
+        let conexion = null;
 
 
-        const horasPermitidas = [
-            '10:00',
-            '11:00',
-            '12:00',
-            '13:00',
-            '14:00',
-            '15:00',
-            '16:00',
-            '17:00',
-            '18:00',
-            '19:00'
-        ];
+        try {
+
+            const servicio =
+                String(
+                    req.body.servicio || ''
+                ).trim();
 
 
-        // SOLO BARBEROS ACTIVOS
-        const [barberosBD] = await pool.query(
-            `SELECT id
-             FROM barberos
-             WHERE activo = 1
-             ORDER BY id ASC`
-        );
+            const cliente =
+                String(
+                    req.body.cliente || ''
+                ).trim();
 
 
-        const barberosIds =
-            barberosBD.map(
-                b => Number(b.id)
-            );
+            const telefono =
+                String(
+                    req.body.telefono || ''
+                ).trim();
 
 
-        if (barberosIds.length === 0) {
-
-            return res.json({
-                success: false,
-                message:
-                    'No hay barberos disponibles en el sistema.'
-            });
-        }
+            const email =
+                String(
+                    req.body.email || ''
+                ).trim();
 
 
-        let hoy = new Date();
+            // ====================================================
+            // VALIDAR DATOS
+            // ====================================================
 
-        let fechaAsignada = null;
-        let horaAsignada = null;
-        let barberoAsignado = null;
+            if (
+                !servicio ||
+                !cliente ||
+                !telefono ||
+                !email
+            ) {
 
+                return res.status(400).json({
 
-        const hoyStr =
-            hoy.toISOString().split('T')[0];
+                    success: false,
 
+                    message:
+                        'Completa servicio, nombre, teléfono y correo antes de continuar.'
 
-        const [citasOcupadas] =
-            await pool.query(
-                `SELECT barberoId, fecha, hora
-                 FROM agendamientos
-                 WHERE fecha >= ?`,
-                [hoyStr]
-            );
+                });
 
-
-        for (let d = 0; d < 7; d++) {
-
-    const fechaPrueba =
-        new Date(hoy);
-
-    fechaPrueba.setDate(
-        hoy.getDate() + d
-    );
+            }
 
 
-    // ========================================================
-    // DOMINGOS NO LABORABLES
-    // ========================================================
+            // ====================================================
+            // NORMALIZAR HORAS
+            // ====================================================
 
-    if (fechaPrueba.getDay() === 0) {
-        continue;
-    }
+            function normalizarHora(
+                valor
+            ) {
+
+                const coincidencia =
+                    /^(\d{1,2}):(\d{2})/.exec(
+                        String(
+                            valor || ''
+                        ).trim()
+                    );
 
 
-            const fechaStr =
-                fechaPrueba
-                    .toISOString()
-                    .split('T')[0];
+                if (!coincidencia) {
+                    return null;
+                }
 
 
-            for (const hora of horasPermitidas) {
+                const hora =
+                    Number(
+                        coincidencia[1]
+                    );
 
-                if (d === 0) {
 
-                    const horaActual =
-                        hoy.getHours();
+                const minutos =
+                    Number(
+                        coincidencia[2]
+                    );
 
-                    const horaEval =
-                        parseInt(
-                            hora.split(':')[0]
+
+                if (
+                    hora < 0 ||
+                    hora > 23 ||
+                    minutos < 0 ||
+                    minutos > 59
+                ) {
+
+                    return null;
+
+                }
+
+
+                return (
+                    `${String(
+                        hora
+                    ).padStart(
+                        2,
+                        '0'
+                    )}:${String(
+                        minutos
+                    ).padStart(
+                        2,
+                        '0'
+                    )}`
+                );
+
+            }
+
+
+            function horaAMinutos(
+                hora
+            ) {
+
+                const [
+                    h,
+                    m
+                ] =
+                    hora
+                        .split(':')
+                        .map(Number);
+
+
+                return (
+                    h * 60 + m
+                );
+
+            }
+
+
+            function sumarHoras(
+                hora,
+                cantidad
+            ) {
+
+                const minutosBase =
+                    horaAMinutos(
+                        hora
+                    );
+
+
+                const resultado =
+                    [];
+
+
+                for (
+                    let i = 0;
+                    i < cantidad;
+                    i++
+                ) {
+
+                    const total =
+                        minutosBase +
+                        i * 60;
+
+
+                    if (
+                        total >=
+                        24 * 60
+                    ) {
+
+                        return null;
+
+                    }
+
+
+                    const h =
+                        Math.floor(
+                            total / 60
                         );
 
-                    if (horaEval <= horaActual) {
-                        continue;
+
+                    const m =
+                        total % 60;
+
+
+                    resultado.push(
+
+                        `${String(
+                            h
+                        ).padStart(
+                            2,
+                            '0'
+                        )}:${String(
+                            m
+                        ).padStart(
+                            2,
+                            '0'
+                        )}`
+
+                    );
+
+                }
+
+
+                return resultado;
+
+            }
+
+
+            // ====================================================
+            // HORA ACTUAL EN CHILE
+            // ====================================================
+
+            const partesChile =
+                new Intl.DateTimeFormat(
+
+                    'en-US',
+
+                    {
+
+                        timeZone:
+                            'America/Santiago',
+
+                        year:
+                            'numeric',
+
+                        month:
+                            '2-digit',
+
+                        day:
+                            '2-digit',
+
+                        hour:
+                            '2-digit',
+
+                        minute:
+                            '2-digit',
+
+                        hourCycle:
+                            'h23'
+
                     }
+
+                )
+                    .formatToParts(
+                        new Date()
+                    );
+
+
+            const ahoraChile =
+                {};
+
+
+            partesChile.forEach(
+                parte => {
+
+                    if (
+                        parte.type !==
+                        'literal'
+                    ) {
+
+                        ahoraChile[
+                            parte.type
+                        ] =
+                            parte.value;
+
+                    }
+
+                }
+            );
+
+
+            const anioHoy =
+                Number(
+                    ahoraChile.year
+                );
+
+
+            const mesHoy =
+                Number(
+                    ahoraChile.month
+                );
+
+
+            const diaHoy =
+                Number(
+                    ahoraChile.day
+                );
+
+
+            const minutosAhora =
+                Number(
+                    ahoraChile.hour
+                ) * 60
+                +
+                Number(
+                    ahoraChile.minute
+                );
+
+
+            // ====================================================
+            // GENERAR FECHAS
+            // ====================================================
+
+            function datosFecha(
+                diasAdelante
+            ) {
+
+                const fecha =
+                    new Date(
+
+                        Date.UTC(
+
+                            anioHoy,
+
+                            mesHoy - 1,
+
+                            diaHoy +
+                                diasAdelante,
+
+                            12
+
+                        )
+
+                    );
+
+
+                const anio =
+                    fecha
+                        .getUTCFullYear();
+
+
+                const mes =
+                    String(
+                        fecha
+                            .getUTCMonth() +
+                        1
+                    )
+                        .padStart(
+                            2,
+                            '0'
+                        );
+
+
+                const dia =
+                    String(
+                        fecha
+                            .getUTCDate()
+                    )
+                        .padStart(
+                            2,
+                            '0'
+                        );
+
+
+                return {
+
+                    fecha:
+                        `${anio}-${mes}-${dia}`,
+
+                    diaSemana:
+                        fecha.getUTCDay()
+
+                };
+
+            }
+
+
+            const primeraFecha =
+                datosFecha(
+                    0
+                ).fecha;
+
+
+            const ultimaFecha =
+                datosFecha(
+                    6
+                ).fecha;
+
+
+            // ====================================================
+            // OBTENER BARBEROS
+            // CON SUS HORARIOS REALES
+            // ====================================================
+
+            const [
+                barberosBD
+            ] =
+                await pool.query(
+
+                    `SELECT
+                        id,
+                        nombre,
+                        horarios
+                     FROM barberos
+                     WHERE activo = 1
+                     ORDER BY id ASC`
+
+                );
+
+
+            const barberos =
+                barberosBD
+
+                    .map(
+                        barbero => {
+
+
+                            const horarios =
+                                String(
+                                    barbero.horarios ||
+                                    ''
+                                )
+
+                                    .split(',')
+
+                                    .map(
+                                        normalizarHora
+                                    )
+
+                                    .filter(
+                                        Boolean
+                                    );
+
+
+                            return {
+
+                                id:
+                                    Number(
+                                        barbero.id
+                                    ),
+
+                                nombre:
+                                    barbero.nombre,
+
+                                horarios:
+                                    [
+                                        ...new Set(
+                                            horarios
+                                        )
+                                    ]
+
+                            };
+
+                        }
+                    )
+
+                    /*
+                     * Si un barbero no tiene
+                     * horarios configurados,
+                     * el agendado rápido NO
+                     * puede asignarle una cita.
+                     */
+                    .filter(
+                        barbero =>
+                            barbero
+                                .horarios
+                                .length >
+                            0
+                    );
+
+
+            if (
+                barberos.length === 0
+            ) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            'No hay barberos con horarios disponibles.'
+
+                    });
+
+            }
+
+
+            // ====================================================
+            // CARGAR CITAS YA OCUPADAS
+            // ====================================================
+
+            const [
+                citasOcupadas
+            ] =
+                await pool.query(
+
+                    `SELECT
+                        barberoId,
+                        CAST(fecha AS CHAR)
+                            AS fecha,
+                        LEFT(
+                            CAST(hora AS CHAR),
+                            5
+                        ) AS hora
+                     FROM agendamientos
+                     WHERE fecha
+                     BETWEEN ?
+                     AND ?`,
+
+                    [
+                        primeraFecha,
+                        ultimaFecha
+                    ]
+
+                );
+
+
+            const ocupadasSet =
+                new Set(
+
+                    citasOcupadas.map(
+                        cita => {
+
+                            return (
+
+                                `${Number(
+                                    cita.barberoId
+                                )}|${
+                                    String(
+                                        cita.fecha
+                                    )
+                                        .slice(
+                                            0,
+                                            10
+                                        )
+                                }|${
+                                    normalizarHora(
+                                        cita.hora
+                                    )
+                                }`
+
+                            );
+
+                        }
+                    )
+
+                );
+
+
+            // ====================================================
+            // DÍAS BLOQUEADOS
+            // ====================================================
+
+            const [
+                diasBloqueados
+            ] =
+                await pool.query(
+
+                    `SELECT
+                        barberoId,
+                        CAST(fecha AS CHAR)
+                            AS fecha
+                     FROM dias_bloqueados
+                     WHERE fecha
+                     BETWEEN ?
+                     AND ?`,
+
+                    [
+                        primeraFecha,
+                        ultimaFecha
+                    ]
+
+                );
+
+
+            const diasBloqueadosSet =
+                new Set(
+
+                    diasBloqueados.map(
+                        dia =>
+
+                            `${Number(
+                                dia.barberoId
+                            )}|${
+                                String(
+                                    dia.fecha
+                                )
+                                    .slice(
+                                        0,
+                                        10
+                                    )
+                            }`
+
+                    )
+
+                );
+
+
+            // ====================================================
+            // SERVICIOS ESPECIALES
+            // ====================================================
+
+            const serviciosJesus =
+                [
+
+                    'Rulos permanentes',
+
+                    'Ondulado permanente'
+
+                ];
+
+
+            const serviciosParce =
+                [
+
+                    'Tintura de pelo (visos)',
+
+                    'Tintura de pelo (global)'
+
+                ];
+
+
+            function barberoPuedeRealizarServicio(
+                barberoId
+            ) {
+
+                /*
+                 * Servicios exclusivos
+                 * de Jesús.
+                 */
+
+                if (
+                    serviciosJesus
+                        .includes(
+                            servicio
+                        )
+                ) {
+
+                    return (
+                        Number(
+                            barberoId
+                        ) === 2
+                    );
+
                 }
 
 
-                for (const bId of barberosIds) {
+                /*
+                 * Servicios exclusivos
+                 * de Parce.
+                 */
 
-    // ========================================================
-    // COMPROBAR SI EL BARBERO BLOQUEÓ EL DÍA COMPLETO
-    // ========================================================
+                if (
+                    serviciosParce
+                        .includes(
+                            servicio
+                        )
+                ) {
 
-    const diaBloqueado =
-        await esDiaBloqueado(
-            bId,
-            fechaStr
-        );
+                    return (
+                        Number(
+                            barberoId
+                        ) === 1
+                    );
 
-
-    if (diaBloqueado) {
-        continue;
-    }
-
-
-    // ========================================================
-    // COMPROBAR SI LA HORA ESTÁ OCUPADA
-    // ========================================================
-
-    const ocupado =
-        citasOcupadas.find(
-            a =>
-                a.fecha === fechaStr &&
-                a.hora === hora &&
-                Number(a.barberoId) === Number(bId)
-        );
+                }
 
 
-    if (!ocupado) {
+                /*
+                 * Servicios normales.
+                 */
 
-        fechaAsignada = fechaStr;
-        horaAsignada = hora;
-        barberoAsignado = bId;
+                return true;
 
-        break;
-    }
-}
+            }
 
 
-                if (fechaAsignada) {
+            function horasServicio(
+                barberoId
+            ) {
+
+                if (
+                    Number(
+                        barberoId
+                    ) === 2
+                    &&
+                    serviciosJesus
+                        .includes(
+                            servicio
+                        )
+                ) {
+
+                    return 4;
+
+                }
+
+
+                if (
+                    Number(
+                        barberoId
+                    ) === 1
+                    &&
+                    serviciosParce
+                        .includes(
+                            servicio
+                        )
+                ) {
+
+                    return 4;
+
+                }
+
+
+                return 1;
+
+            }
+
+
+            // ====================================================
+            // BUSCAR LA HORA MÁS CERCANA
+            // ====================================================
+
+            let fechaAsignada =
+                null;
+
+
+            let horaAsignada =
+                null;
+
+
+            let barberoAsignado =
+                null;
+
+
+            let horasRequeridasAsignadas =
+                null;
+
+
+            /*
+             * Buscamos máximo
+             * los próximos 7 días.
+             */
+
+            for (
+                let d = 0;
+                d < 7 &&
+                !fechaAsignada;
+                d++
+            ) {
+
+                const infoFecha =
+                    datosFecha(
+                        d
+                    );
+
+
+                // ================================
+                // DOMINGO
+                // ================================
+
+                if (
+                    infoFecha
+                        .diaSemana ===
+                    0
+                ) {
+
+                    continue;
+
+                }
+
+
+                /*
+                 * Aquí juntamos TODAS
+                 * las horas reales de
+                 * todos los barberos.
+                 */
+
+                const candidatos =
+                    [];
+
+
+                for (
+                    const barbero
+                    of barberos
+                ) {
+
+                    // ============================
+                    // SERVICIO EXCLUSIVO
+                    // ============================
+
+                    if (
+                        !barberoPuedeRealizarServicio(
+                            barbero.id
+                        )
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    // ============================
+                    // DÍA BLOQUEADO
+                    // ============================
+
+                    if (
+                        diasBloqueadosSet
+                            .has(
+
+                                `${barbero.id}|${infoFecha.fecha}`
+
+                            )
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    // ============================
+                    // HORARIO REAL DEL BARBERO
+                    // ============================
+
+                    for (
+                        const hora
+                        of barbero.horarios
+                    ) {
+
+                        /*
+                         * Si estamos buscando
+                         * para hoy, no usamos
+                         * horas que ya pasaron.
+                         */
+
+                        if (
+                            d === 0
+                            &&
+                            horaAMinutos(
+                                hora
+                            )
+                            <=
+                            minutosAhora
+                        ) {
+
+                            continue;
+
+                        }
+
+
+                        candidatos.push({
+
+                            barbero,
+
+                            hora
+
+                        });
+
+                    }
+
+                }
+
+
+                /*
+                 * Ordenar primero por
+                 * la hora más cercana.
+                 */
+
+                candidatos.sort(
+
+                    (a, b) =>
+
+                        horaAMinutos(
+                            a.hora
+                        )
+                        -
+                        horaAMinutos(
+                            b.hora
+                        )
+
+                        ||
+
+                        a.barbero.id
+                        -
+                        b.barbero.id
+
+                );
+
+
+                // ================================
+                // ENCONTRAR PRIMERA DISPONIBLE
+                // ================================
+
+                for (
+                    const candidato
+                    of candidatos
+                ) {
+
+                    const barbero =
+                        candidato
+                            .barbero;
+
+
+                    const hora =
+                        candidato
+                            .hora;
+
+
+                    const cantidad =
+                        horasServicio(
+                            barbero.id
+                        );
+
+
+                    const horasRequeridas =
+                        sumarHoras(
+
+                            hora,
+
+                            cantidad
+
+                        );
+
+
+                    if (
+                        !horasRequeridas
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    /*
+                     * MUY IMPORTANTE:
+                     *
+                     * Si necesita 4 horas,
+                     * las 4 deben existir
+                     * dentro del horario
+                     * configurado del barbero.
+                     */
+
+                    const dentroDelHorario =
+                        horasRequeridas
+                            .every(
+                                h =>
+
+                                    barbero
+                                        .horarios
+                                        .includes(
+                                            h
+                                        )
+                            );
+
+
+                    if (
+                        !dentroDelHorario
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    /*
+                     * Verificar que ninguna
+                     * de las horas esté ocupada.
+                     */
+
+                    const algunaOcupada =
+                        horasRequeridas
+                            .some(
+                                h =>
+
+                                    ocupadasSet
+                                        .has(
+
+                                            `${barbero.id}|${infoFecha.fecha}|${h}`
+
+                                        )
+                            );
+
+
+                    if (
+                        algunaOcupada
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    // ============================
+                    // ENCONTRAMOS HORA
+                    // ============================
+
+                    fechaAsignada =
+                        infoFecha
+                            .fecha;
+
+
+                    horaAsignada =
+                        hora;
+
+
+                    barberoAsignado =
+                        barbero;
+
+
+                    horasRequeridasAsignadas =
+                        horasRequeridas;
+
+
                     break;
+
                 }
+
             }
 
 
-            if (fechaAsignada) {
-                break;
+            // ====================================================
+            // NO HAY DISPONIBILIDAD
+            // ====================================================
+
+            if (
+                !fechaAsignada ||
+                !horaAsignada ||
+                !barberoAsignado
+            ) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            'No hay horas disponibles dentro de los horarios configurados de los barberos durante los próximos 7 días.'
+
+                    });
+
             }
-        }
 
 
-        if (!fechaAsignada) {
+            // ====================================================
+            // TRANSACCIÓN
+            // ====================================================
+
+            conexion =
+                await pool
+                    .getConnection();
+
+
+            await conexion
+                .beginTransaction();
+
+
+            // ====================================================
+            // VOLVER A COMPROBAR DÍA BLOQUEADO
+            // ====================================================
+
+            const [
+                bloqueoFinal
+            ] =
+                await conexion.query(
+
+                    `SELECT id
+                     FROM dias_bloqueados
+                     WHERE barberoId = ?
+                     AND fecha = ?
+                     LIMIT 1`,
+
+                    [
+                        barberoAsignado.id,
+                        fechaAsignada
+                    ]
+
+                );
+
+
+            if (
+                bloqueoFinal.length >
+                0
+            ) {
+
+                await conexion
+                    .rollback();
+
+
+                conexion.release();
+
+
+                conexion =
+                    null;
+
+
+                return res
+                    .status(409)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            'El barbero acaba de bloquear ese día. Intenta nuevamente.'
+
+                    });
+
+            }
+
+
+            // ====================================================
+            // VOLVER A COMPROBAR HORAS
+            // ====================================================
+
+            const [
+                conflictos
+            ] =
+                await conexion.query(
+
+                    `SELECT id
+                     FROM agendamientos
+                     WHERE barberoId = ?
+                     AND fecha = ?
+                     AND hora IN (?)`,
+
+                    [
+
+                        barberoAsignado.id,
+
+                        fechaAsignada,
+
+                        horasRequeridasAsignadas
+
+                    ]
+
+                );
+
+
+            if (
+                conflictos.length >
+                0
+            ) {
+
+                await conexion
+                    .rollback();
+
+
+                conexion.release();
+
+
+                conexion =
+                    null;
+
+
+                return res
+                    .status(409)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            'La hora acaba de ser tomada. Intenta nuevamente para buscar la siguiente disponible.'
+
+                    });
+
+            }
+
+
+            // ====================================================
+            // GUARDAR CITA
+            // ====================================================
+
+            for (
+                let i = 0;
+                i <
+                horasRequeridasAsignadas.length;
+                i++
+            ) {
+
+                const servicioGuardado =
+                    i === 0
+
+                        ? servicio
+
+                        : `${servicio} (Bloqueo Continuo)`;
+
+
+                await conexion.query(
+
+                    `INSERT INTO agendamientos
+                    (
+                        barberoId,
+                        servicio,
+                        fecha,
+                        hora,
+                        cliente,
+                        telefono,
+                        email
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+
+                    [
+
+                        barberoAsignado.id,
+
+                        servicioGuardado,
+
+                        fechaAsignada,
+
+                        horasRequeridasAsignadas[i],
+
+                        cliente,
+
+                        telefono,
+
+                        email
+
+                    ]
+
+                );
+
+            }
+
+
+            // ====================================================
+            // HISTORIAL VIP
+            // ====================================================
+
+            const contacto =
+                email ||
+                telefono;
+
+
+            if (
+                contacto
+            ) {
+
+                await conexion.query(
+
+                    `INSERT INTO clientes_cortes
+                    (
+                        contacto,
+                        cantidad
+                    )
+                    VALUES (?, 1)
+                    ON DUPLICATE KEY UPDATE
+                    cantidad = cantidad + 1`,
+
+                    [
+                        contacto
+                    ]
+
+                );
+
+            }
+
+
+            await conexion
+                .commit();
+
+
+            conexion.release();
+
+
+            conexion =
+                null;
+
+
+            // ====================================================
+            // CORREO
+            // ====================================================
+
+            await enviarCorreo(
+
+                email,
+
+                cliente,
+
+                barberoAsignado.nombre ||
+                    'Especialista',
+
+                servicio,
+
+                fechaAsignada,
+
+                horaAsignada
+
+            );
+
+
+            // ====================================================
+            // RESPUESTA
+            // ====================================================
 
             return res.json({
-                success: false,
-                message: 'No hay horas disponibles.'
+
+                success:
+                    true,
+
+                asignado: {
+
+                    barbero:
+                        barberoAsignado.nombre ||
+                        'Especialista',
+
+                    fecha:
+                        fechaAsignada,
+
+                    hora:
+                        horaAsignada
+
+                }
+
             });
+
+
+        } catch (error) {
+
+            if (
+                conexion
+            ) {
+
+                try {
+
+                    await conexion
+                        .rollback();
+
+                } catch (_) {}
+
+
+                conexion.release();
+
+            }
+
+
+            console.error(
+
+                'Error en agendado rápido:',
+
+                error
+
+            );
+
+
+            if (
+                error.code ===
+                'ER_DUP_ENTRY'
+            ) {
+
+                return res
+                    .status(409)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            'La hora acaba de ser tomada. Intenta nuevamente.'
+
+                    });
+
+            }
+
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    message:
+                        'Error interno del servidor.'
+
+                });
+
         }
 
-
-        await pool.query(
-            `INSERT INTO agendamientos
-            (barberoId, servicio, fecha, hora, cliente, telefono, email)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-                barberoAsignado,
-                servicio,
-                fechaAsignada,
-                horaAsignada,
-                cliente,
-                telefono,
-                email
-            ]
-        );
-
-
-        const perfiles =
-            await obtenerMapaPerfiles();
-
-
-        await enviarCorreo(
-            email,
-            cliente,
-            perfiles[barberoAsignado] || 'Especialista',
-            servicio,
-            fechaAsignada,
-            horaAsignada
-        );
-
-
-        res.json({
-            success: true,
-            asignado: {
-                barbero:
-                    perfiles[barberoAsignado] ||
-                    'Especialista',
-                fecha: fechaAsignada,
-                hora: horaAsignada
-            }
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            'Error en agendado rápido:',
-            error
-        );
-
-        res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor.'
-        });
     }
-});
-
+);
 
 // ============================================================
 // MIS CITAS CLIENTE
