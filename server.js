@@ -69,6 +69,33 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
+// ============================================================
+// ASEGURAR TABLA DE SUGERENCIAS
+// ============================================================
+
+async function asegurarTablaSugerencias() {
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS sugerencias (
+            id INT NOT NULL AUTO_INCREMENT,
+            mensaje VARCHAR(1000) NOT NULL,
+            leida TINYINT(1) NOT NULL DEFAULT 0,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            PRIMARY KEY (id),
+
+            INDEX idx_sugerencias_leida_fecha (
+                leida,
+                creado_en
+            )
+        )
+        ENGINE=InnoDB
+        DEFAULT CHARSET=utf8mb4
+        COLLATE=utf8mb4_unicode_ci
+    `);
+
+}
+
 
 // ============================================================
 // CORREO
@@ -7443,19 +7470,33 @@ app.listen(PORT, async () => {
 
         await pool.query('SELECT 1');
 
+
+        // Aseguramos que la tabla de sugerencias exista.
+        await asegurarTablaSugerencias();
+
+
         console.log(
             `✅ Servidor ONLINE en http://localhost:${PORT}`
         );
+
 
         console.log(
             '💾 Base de Datos MySQL CONECTADA correctamente.'
         );
 
+
+        console.log(
+            '💬 Tabla de sugerencias lista.'
+        );
+
+
     } catch (error) {
 
         console.error(
-            '❌ Error de BD',
+            '❌ Error preparando la base de datos:',
             error
         );
+
     }
+
 });
