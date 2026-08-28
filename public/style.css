@@ -4565,3 +4565,122 @@ footer .footer-gestionar a:hover {
     }
 
 }
+
+/* ============================================================
+   BLOQUEO POR RANGO — PANEL BARBERO
+============================================================ */
+
+.barbero-block-date {
+    grid-column: 1 / -1;
+}
+
+
+.barbero-optional-label {
+    color: #666;
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+
+.barbero-block-range-note {
+    margin:
+        -2px
+        0
+        14px;
+
+    color: #777;
+
+    font-size: .72rem;
+    line-height: 1.55;
+}
+
+/* ============================================================
+   DESBLOQUEAR HORARIOS
+============================================================ */
+
+.agenda-blocked-clickable {
+    cursor: pointer;
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease;
+}
+
+
+.agenda-blocked-clickable:hover {
+    transform: translateX(3px);
+
+    border-color:
+        rgba(76, 175, 80, .45);
+
+    background:
+        rgba(76, 175, 80, .04);
+}
+
+
+.agenda-unlock-hint {
+    margin-top: 7px;
+
+    color: #5f8d68;
+
+    font-size: .62rem;
+    font-weight: 700;
+
+    letter-spacing: .2px;
+}
+
+
+.agenda-blocked-clickable:hover
+.agenda-unlock-hint {
+    color: #72b27f;
+}
+
+
+/* BOTONES BLOQUEAR / DESBLOQUEAR */
+
+.barbero-block-actions {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 8px;
+}
+
+
+.barbero-unblock-btn {
+    width: 100%;
+
+    padding: 11px 15px;
+
+    background:
+        rgba(76, 175, 80, .10);
+
+    border:
+        1px solid
+        rgba(76, 175, 80, .25);
+
+    color: #7bc889;
+
+    box-shadow: none;
+}
+
+
+.barbero-unblock-btn:hover {
+    background:
+        rgba(76, 175, 80, .16);
+
+    border-color:
+        rgba(76, 175, 80, .45);
+}
+
+
+@media (max-width: 600px) {
+
+    .barbero-block-actions {
+        grid-template-columns:
+            1fr;
+    }
+
+}

@@ -1107,53 +1107,96 @@
 
 
                 <p class="barbero-card-description">
-                    Reserva un bloque para descanso, inasistencia u otro motivo.
-                    El cliente no podrá tomar esa hora.
-                </p>
+    Bloquea una sola hora o varias horas seguidas para descanso,
+    inasistencia u otro motivo. Los clientes no podrán reservarlas.
+</p>
 
 
-                <div class="barbero-form-grid">
+<div class="barbero-form-grid">
 
-                    <div>
+    <div class="barbero-block-date">
 
-                        <label for="b-fecha">
-                            FECHA
-                        </label>
+        <label for="b-fecha">
+            FECHA
+        </label>
 
-                        <input
-                            type="date"
-                            id="b-fecha"
-                            class="inputs-urban"
-                        >
+        <input
+            type="date"
+            id="b-fecha"
+            class="inputs-urban"
+        >
 
-                    </div>
-
-
-                    <div>
-
-                        <label for="b-hora">
-                            HORA
-                        </label>
-
-                        <input
-                            type="time"
-                            id="b-hora"
-                            class="inputs-urban"
-                            value="13:00"
-                        >
-
-                    </div>
-
-                </div>
+    </div>
 
 
-                <button
-                    class="btn-urban barbero-block-btn"
-                    onclick="bloquearHora()"
-                >
-                    Bloquear horario
-                    <span>⊘</span>
-                </button>
+    <div>
+
+        <label for="b-hora">
+            DESDE
+        </label>
+
+        <input
+            type="time"
+            id="b-hora"
+            class="inputs-urban"
+            value="13:00"
+            step="3600"
+        >
+
+    </div>
+
+
+    <div>
+
+        <label for="b-hora-hasta">
+            HASTA
+            <span class="barbero-optional-label">
+                (OPCIONAL)
+            </span>
+        </label>
+
+        <input
+            type="time"
+            id="b-hora-hasta"
+            class="inputs-urban"
+            step="3600"
+        >
+
+    </div>
+
+</div>
+
+
+<p class="barbero-block-range-note">
+    Si dejas “Hasta” vacío, se bloqueará solo una hora.
+    Ejemplo: desde 13:00 hasta 15:00 bloqueará 13:00, 14:00 y 15:00.
+</p>
+
+
+<div class="barbero-block-actions">
+
+    <button
+        type="button"
+        id="btn-bloquear-horario"
+        class="btn-urban barbero-block-btn"
+        onclick="bloquearHora()"
+    >
+        Bloquear horario
+        <span>⊘</span>
+    </button>
+
+
+    <button
+        type="button"
+        id="btn-desbloquear-horario"
+        class="btn-urban barbero-unblock-btn"
+        onclick="desbloquearRango()"
+    >
+        Desbloquear selección
+        <span>↺</span>
+    </button>
+
+</div>
 
 
                 <!-- ====================================================
@@ -2706,43 +2749,59 @@ function renderHorarioAgenda() {
 }
 
 
-                    /*
-                       HORA BLOQUEADA
-                    */
+                   /*
+   HORA BLOQUEADA
+*/
 
-                    if (bloqueado) {
+if (bloqueado) {
 
-                        return `
+    return `
 
-                            <div class="agenda-time-row blocked">
+        <div class="agenda-time-row blocked">
 
-                                <div class="agenda-time">
-                                    ${hora}
-                                </div>
+            <div class="agenda-time">
+                ${hora}
+            </div>
 
-                                <div class="agenda-slot blocked-slot">
 
-                                    <div class="agenda-slot-icon">
-                                        ⊘
-                                    </div>
+            <button
+                type="button"
+                class="agenda-slot blocked-slot agenda-blocked-clickable"
+                onclick="desbloquearHora(
+                    '${fecha}',
+                    '${hora}'
+                )"
+            >
 
-                                    <div>
-                                        <strong>
-                                            Horario bloqueado
-                                        </strong>
+                <div class="agenda-slot-icon">
+                    ⊘
+                </div>
 
-                                        <small>
-                                            Descanso / inasistencia
-                                        </small>
-                                    </div>
 
-                                </div>
+                <div>
 
-                            </div>
+                    <strong>
+                        Horario bloqueado
+                    </strong>
 
-                        `;
+                    <small>
+                        Descanso / inasistencia
+                    </small>
 
-                    }
+
+                    <div class="agenda-unlock-hint">
+                        Toca para desbloquear →
+                    </div>
+
+                </div>
+
+            </button>
+
+        </div>
+
+    `;
+
+}
 
                     if (
     continuacionServicio
@@ -3722,6 +3781,21 @@ async function bloquearHora() {
             .value;
 
 
+    const horaHasta =
+        document
+            .getElementById(
+                'b-hora-hasta'
+            )
+            .value;
+
+
+    const boton =
+        document
+            .getElementById(
+                'btn-bloquear-horario'
+            );
+
+
     if (!fecha) {
 
         return alert(
@@ -3734,7 +3808,19 @@ async function bloquearHora() {
     if (!hora) {
 
         return alert(
-            'Selecciona una hora válida.'
+            'Selecciona una hora de inicio.'
+        );
+
+    }
+
+
+    if (
+        horaHasta &&
+        horaHasta < hora
+    ) {
+
+        return alert(
+            'La hora final debe ser igual o posterior a la hora de inicio.'
         );
 
     }
@@ -3742,19 +3828,34 @@ async function bloquearHora() {
 
     try {
 
+        boton.disabled =
+            true;
+
+
+        boton.innerHTML =
+            'Bloqueando... <span>⊘</span>';
+
+
         const res =
             await fetch(
                 '/api/barbero/bloquear',
                 {
-                    method: 'POST',
+
+                    method:
+                        'POST',
+
                     headers: {
                         'Content-Type':
                             'application/json'
                     },
-                    body: JSON.stringify({
-                        fecha,
-                        hora
-                    })
+
+                    body:
+                        JSON.stringify({
+                            fecha,
+                            hora,
+                            horaHasta
+                        })
+
                 }
             );
 
@@ -3763,7 +3864,10 @@ async function bloquearHora() {
             await res.json();
 
 
-        if (!data.success) {
+        if (
+            !res.ok ||
+            !data.success
+        ) {
 
             return alert(
                 data.message ||
@@ -3774,8 +3878,17 @@ async function bloquearHora() {
 
 
         alert(
-            'Bloqueo de horario establecido con éxito.'
+            data.message ||
+            'Bloqueo establecido correctamente.'
         );
+
+
+        document
+            .getElementById(
+                'b-hora-hasta'
+            )
+            .value =
+                '';
 
 
         await cargarAgendaBarbero();
@@ -3787,10 +3900,282 @@ async function bloquearHora() {
             'No se pudo bloquear el horario.'
         );
 
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+
+        boton.innerHTML =
+            'Bloquear horario <span>⊘</span>';
+
     }
 
 }
 
+/* ============================================================
+   DESBLOQUEAR UNA HORA DESDE LA AGENDA
+============================================================ */
+
+async function desbloquearHora(
+    fecha,
+    hora
+) {
+
+    const confirmar =
+        confirm(
+            `¿Quieres desbloquear esta hora?
+
+${fecha} · ${hora}
+
+La hora volverá a estar disponible para reservas.`
+        );
+
+
+    if (!confirmar) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                '/api/barbero/desbloquear',
+                {
+
+                    method:
+                        'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+                            fecha,
+                            hora
+                        })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo desbloquear la hora.'
+            );
+
+        }
+
+
+        await cargarAgendaBarbero(
+            true
+        );
+
+
+        alert(
+            data.message
+        );
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo desbloquear la hora.'
+        );
+
+    }
+
+}
+
+/* ============================================================
+   DESBLOQUEAR DESDE / HASTA
+============================================================ */
+
+async function desbloquearRango() {
+
+    const fecha =
+        document
+            .getElementById(
+                'b-fecha'
+            )
+            .value;
+
+
+    const hora =
+        document
+            .getElementById(
+                'b-hora'
+            )
+            .value;
+
+
+    const horaHasta =
+        document
+            .getElementById(
+                'b-hora-hasta'
+            )
+            .value;
+
+
+    const boton =
+        document
+            .getElementById(
+                'btn-desbloquear-horario'
+            );
+
+
+    if (!fecha) {
+
+        return alert(
+            'Selecciona la fecha que quieres desbloquear.'
+        );
+
+    }
+
+
+    if (!hora) {
+
+        return alert(
+            'Selecciona una hora inicial.'
+        );
+
+    }
+
+
+    if (
+        horaHasta &&
+        horaHasta < hora
+    ) {
+
+        return alert(
+            'La hora final debe ser igual o posterior a la inicial.'
+        );
+
+    }
+
+
+    const textoRango =
+        horaHasta
+
+            ? `${hora} hasta ${horaHasta}`
+
+            : hora;
+
+
+    const confirmar =
+        confirm(
+            `¿Quieres desbloquear ${textoRango} del ${fecha}?`
+        );
+
+
+    if (!confirmar) {
+        return;
+    }
+
+
+    try {
+
+        boton.disabled =
+            true;
+
+
+        boton.innerHTML =
+            'Desbloqueando... <span>↺</span>';
+
+
+        const response =
+            await fetch(
+                '/api/barbero/desbloquear',
+                {
+
+                    method:
+                        'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+                            fecha,
+                            hora,
+                            horaHasta
+                        })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo desbloquear la selección.'
+            );
+
+        }
+
+
+        document
+            .getElementById(
+                'b-hora-hasta'
+            )
+            .value =
+                '';
+
+
+        await cargarAgendaBarbero(
+            true
+        );
+
+
+        alert(
+            data.message
+        );
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo desbloquear la selección.'
+        );
+
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+
+        boton.innerHTML =
+            'Desbloquear selección <span>↺</span>';
+
+    }
+
+}
 
 /* ============================================================
    BLOQUEAR DÍA COMPLETO

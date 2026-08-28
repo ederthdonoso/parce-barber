@@ -4857,6 +4857,7 @@ app.delete(
 
 // ============================================================
 // BLOQUEAR HORARIO DEL BARBERO
+// UNA HORA O UN RANGO DE HORAS
 // ============================================================
 
 app.post(
@@ -4865,71 +4866,911 @@ app.post(
     requiereBarberoActivo,
     async (req, res) => {
 
+        let conexion =
+            null;
+
+
         try {
 
-            const {
-                fecha,
-                hora
-            } = req.body;
+            const fecha =
+                String(
+                    req.body.fecha ||
+                    ''
+                )
+                    .trim();
 
 
-            if (!fecha || !hora) {
+            const hora =
+                String(
+                    req.body.hora ||
+                    ''
+                )
+                    .trim();
+
+
+            const horaHasta =
+                String(
+                    req.body.horaHasta ||
+                    ''
+                )
+                    .trim();
+
+
+            // ====================================================
+            // VALIDAR DATOS
+            // ====================================================
+
+            if (
+                !fecha ||
+                !hora
+            ) {
 
                 return res.status(400).json({
-                    success: false,
+
+                    success:
+                        false,
+
                     message:
-                        'Fecha y hora son obligatorias.'
+                        'La fecha y la hora de inicio son obligatorias.'
+
                 });
+
             }
 
 
-            // IMPORTANTE:
-            // NO usamos barberoId enviado por el navegador.
-            // Usamos el ID de la sesión.
-            await pool.query(
-                `INSERT INTO agendamientos
-                (
-                    barberoId,
-                    servicio,
-                    fecha,
-                    hora,
-                    cliente,
-                    telefono,
-                    email,
-                    estado
+            if (
+                !/^\d{4}-\d{2}-\d{2}$/
+                    .test(
+                        fecha
+                    )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'La fecha seleccionada no es válida.'
+
+                });
+
+            }
+
+
+            const patronHora =
+                /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+
+            if (
+                !patronHora.test(
+                    hora
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'La hora de inicio no es válida.'
+
+                });
+
+            }
+
+
+            if (
+                horaHasta &&
+                !patronHora.test(
+                    horaHasta
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'La hora final no es válida.'
+
+                });
+
+            }
+
+
+            // ====================================================
+            // DOMINGOS
+            // ====================================================
+
+            const fechaLocal =
+                new Date(
+                    `${fecha}T12:00:00`
+                );
+
+
+            if (
+                fechaLocal.getDay() === 0
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'Los domingos son días no laborables y ya están bloqueados.'
+
+                });
+
+            }
+
+
+            // ====================================================
+            // COMPROBAR DÍA COMPLETO BLOQUEADO
+            // ====================================================
+
+            if (
+                await esDiaBloqueado(
                     req.usuario.id,
-                    'BLOQUEADO',
-                    fecha,
-                    hora,
-                    'Descanso / Inasistencia',
-                    '-',
-                    '-',
-                    'Bloqueado'
-                ]
-            );
+                    fecha
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'Ese día ya está bloqueado completamente.'
+
+                });
+
+            }
 
 
-            res.json({
-                success: true
+            // ====================================================
+            // CONVERSIÓN DE HORAS
+            // ====================================================
+
+            function horaAMinutos(
+                valor
+            ) {
+
+                const [
+                    h,
+                    m
+                ] =
+                    valor
+                        .split(':')
+                        .map(Number);
+
+
+                return (
+                    h * 60 + m
+                );
+
+            }
+
+
+            function minutosAHora(
+                total
+            ) {
+
+                const h =
+                    Math.floor(
+                        total / 60
+                    );
+
+
+                const m =
+                    total % 60;
+
+
+                return (
+                    `${String(
+                        h
+                    ).padStart(
+                        2,
+                        '0'
+                    )}:` +
+                    `${String(
+                        m
+                    ).padStart(
+                        2,
+                        '0'
+                    )}`
+                );
+
+            }
+
+
+            const inicio =
+                horaAMinutos(
+                    hora
+                );
+
+
+            const fin =
+                horaHasta
+
+                    ? horaAMinutos(
+                        horaHasta
+                    )
+
+                    : inicio;
+
+
+            // ====================================================
+            // VALIDAR RANGO
+            // ====================================================
+
+            if (
+                fin < inicio
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'La hora final debe ser igual o posterior a la hora de inicio.'
+
+                });
+
+            }
+
+
+            if (
+                horaHasta &&
+                (
+                    fin -
+                    inicio
+                ) % 60 !== 0
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'El rango debe avanzar por bloques de una hora. Ejemplo: 13:00 a 15:00.'
+
+                });
+
+            }
+
+
+            // ====================================================
+            // GENERAR TODAS LAS HORAS DEL RANGO
+            // ====================================================
+
+            const horas =
+                [];
+
+
+            for (
+                let minuto =
+                    inicio;
+
+                minuto <= fin;
+
+                minuto += 60
+            ) {
+
+                horas.push(
+                    minutosAHora(
+                        minuto
+                    )
+                );
+
+            }
+
+
+            if (
+                horas.length > 24
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        'El rango seleccionado es demasiado amplio.'
+
+                });
+
+            }
+
+
+            // ====================================================
+            // TRANSACCIÓN
+            // ====================================================
+
+            conexion =
+                await pool
+                    .getConnection();
+
+
+            await conexion
+                .beginTransaction();
+
+
+            // ====================================================
+            // VER SI HAY CITAS O BLOQUEOS
+            // ====================================================
+
+            const [
+                existentes
+            ] =
+                await conexion.query(
+
+                    `SELECT
+                        id,
+                        hora,
+                        servicio,
+                        estado,
+                        cliente
+                     FROM agendamientos
+                     WHERE barberoId = ?
+                     AND fecha = ?
+                     AND hora IN (?)
+                     FOR UPDATE`,
+
+                    [
+                        req.usuario.id,
+                        fecha,
+                        horas
+                    ]
+
+                );
+
+
+            // ====================================================
+            // NO BLOQUEAR ENCIMA DE UNA CITA REAL
+            // ====================================================
+
+            const conflictos =
+                existentes.filter(
+                    registro =>
+
+                        registro.servicio !==
+                            'BLOQUEADO'
+
+                        &&
+
+                        registro.estado !==
+                            'Bloqueado'
+                );
+
+
+            if (
+                conflictos.length > 0
+            ) {
+
+                const horasOcupadas =
+                    conflictos
+
+                        .map(
+                            registro =>
+
+                                String(
+                                    registro.hora
+                                )
+                                    .slice(
+                                        0,
+                                        5
+                                    )
+                        )
+
+                        .join(
+                            ', '
+                        );
+
+
+                await conexion
+                    .rollback();
+
+
+                conexion
+                    .release();
+
+
+                conexion =
+                    null;
+
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        `No se puede crear el bloqueo porque ya existe una cita en: ${horasOcupadas}.`
+
+                });
+
+            }
+
+
+            // ====================================================
+            // HORAS QUE YA ESTABAN BLOQUEADAS
+            // ====================================================
+
+            const yaBloqueadas =
+                new Set(
+
+                    existentes
+
+                        .filter(
+                            registro =>
+
+                                registro.servicio ===
+                                    'BLOQUEADO'
+
+                                ||
+
+                                registro.estado ===
+                                    'Bloqueado'
+                        )
+
+                        .map(
+                            registro =>
+
+                                String(
+                                    registro.hora
+                                )
+                                    .slice(
+                                        0,
+                                        5
+                                    )
+                        )
+
+                );
+
+
+            // ====================================================
+            // SOLO INSERTAR LAS NUEVAS
+            // ====================================================
+
+            const horasNuevas =
+                horas.filter(
+                    horaBloqueo =>
+
+                        !yaBloqueadas
+                            .has(
+                                horaBloqueo
+                            )
+                );
+
+
+            for (
+                const horaBloqueo
+                of horasNuevas
+            ) {
+
+                await conexion.query(
+
+                    `INSERT INTO agendamientos
+                    (
+                        barberoId,
+                        servicio,
+                        fecha,
+                        hora,
+                        cliente,
+                        telefono,
+                        email,
+                        estado
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+
+                    [
+                        req.usuario.id,
+                        'BLOQUEADO',
+                        fecha,
+                        horaBloqueo,
+                        'Descanso / Inasistencia',
+                        '-',
+                        '-',
+                        'Bloqueado'
+                    ]
+
+                );
+
+            }
+
+
+            await conexion
+                .commit();
+
+
+            conexion
+                .release();
+
+
+            conexion =
+                null;
+
+
+            // ====================================================
+            // RESPUESTA
+            // ====================================================
+
+            if (
+                horasNuevas.length ===
+                0
+            ) {
+
+                return res.json({
+
+                    success:
+                        true,
+
+                    message:
+                        horas.length === 1
+
+                            ? 'Esa hora ya estaba bloqueada.'
+
+                            : 'Todo ese rango ya estaba bloqueado.'
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    horas.length === 1
+
+                        ? 'Horario bloqueado correctamente.'
+
+                        : `Rango bloqueado correctamente: ${hora} a ${horaHasta}.`
+
             });
 
 
         } catch (error) {
+
+            if (
+                conexion
+            ) {
+
+                try {
+
+                    await conexion
+                        .rollback();
+
+                } catch (_) {}
+
+
+                conexion
+                    .release();
+
+            }
+
 
             console.error(
                 'Error al bloquear horario:',
                 error
             );
 
-            res.status(500).json({
-                success: false,
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
                 message:
                     'No se pudo bloquear el horario.'
+
             });
+
         }
+
+    }
+);
+
+// ============================================================
+// DESBLOQUEAR HORARIO DEL BARBERO
+// UNA HORA O UN RANGO
+// ============================================================
+
+app.post(
+    '/api/barbero/desbloquear',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        try {
+
+            const fecha =
+                String(
+                    req.body.fecha || ''
+                ).trim();
+
+
+            const hora =
+                String(
+                    req.body.hora || ''
+                ).trim();
+
+
+            const horaHasta =
+                String(
+                    req.body.horaHasta || ''
+                ).trim();
+
+
+            // ====================================================
+            // VALIDAR DATOS
+            // ====================================================
+
+            if (
+                !fecha ||
+                !hora
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La fecha y la hora son obligatorias.'
+                });
+
+            }
+
+
+            if (
+                !/^\d{4}-\d{2}-\d{2}$/.test(
+                    fecha
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La fecha seleccionada no es válida.'
+                });
+
+            }
+
+
+            const patronHora =
+                /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+
+            if (
+                !patronHora.test(
+                    hora
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La hora inicial no es válida.'
+                });
+
+            }
+
+
+            if (
+                horaHasta &&
+                !patronHora.test(
+                    horaHasta
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La hora final no es válida.'
+                });
+
+            }
+
+
+            // ====================================================
+            // CONVERTIR HORAS
+            // ====================================================
+
+            function horaAMinutos(
+                valor
+            ) {
+
+                const [
+                    h,
+                    m
+                ] =
+                    valor
+                        .split(':')
+                        .map(Number);
+
+
+                return (
+                    h * 60 +
+                    m
+                );
+
+            }
+
+
+            function minutosAHora(
+                total
+            ) {
+
+                const h =
+                    Math.floor(
+                        total / 60
+                    );
+
+
+                const m =
+                    total % 60;
+
+
+                return (
+                    `${String(h).padStart(2, '0')}:` +
+                    `${String(m).padStart(2, '0')}`
+                );
+
+            }
+
+
+            const inicio =
+                horaAMinutos(
+                    hora
+                );
+
+
+            const fin =
+                horaHasta
+
+                    ? horaAMinutos(
+                        horaHasta
+                    )
+
+                    : inicio;
+
+
+            if (
+                fin < inicio
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'La hora final debe ser igual o posterior a la hora inicial.'
+                });
+
+            }
+
+
+            if (
+                horaHasta &&
+                (
+                    fin -
+                    inicio
+                ) % 60 !== 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'El rango debe avanzar en bloques de una hora.'
+                });
+
+            }
+
+
+            // ====================================================
+            // CREAR LISTA DE HORAS
+            // ====================================================
+
+            const horas =
+                [];
+
+
+            for (
+                let minuto = inicio;
+                minuto <= fin;
+                minuto += 60
+            ) {
+
+                horas.push(
+                    minutosAHora(
+                        minuto
+                    )
+                );
+
+            }
+
+
+            // ====================================================
+            // BORRAR ÚNICAMENTE BLOQUEOS
+            // ====================================================
+
+            const [
+                resultado
+            ] =
+                await pool.query(
+
+                    `DELETE FROM agendamientos
+                     WHERE barberoId = ?
+                     AND fecha = ?
+                     AND hora IN (?)
+                     AND
+                     (
+                         servicio = 'BLOQUEADO'
+                         OR estado = 'Bloqueado'
+                     )`,
+
+                    [
+                        req.usuario.id,
+                        fecha,
+                        horas
+                    ]
+
+                );
+
+
+            if (
+                resultado.affectedRows === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        horas.length === 1
+                            ? 'Esa hora no está bloqueada.'
+                            : 'No hay horas bloqueadas dentro de ese rango.'
+                });
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                desbloqueadas:
+                    resultado.affectedRows,
+
+                message:
+                    resultado.affectedRows === 1
+
+                        ? 'Horario desbloqueado correctamente.'
+
+                        : `${resultado.affectedRows} horarios fueron desbloqueados correctamente.`
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error al desbloquear horario:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo desbloquear el horario.'
+            });
+
+        }
+
     }
 );
 
