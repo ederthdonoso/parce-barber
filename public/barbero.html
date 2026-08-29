@@ -1048,32 +1048,66 @@
                 </p>
 
 
-                <label for="b-mis-horarios">
-                    HORAS DISPONIBLES
-                </label>
+                <div class="barbero-hours-selector-header">
+
+    <div>
+
+        <span class="barbero-hours-selector-title">
+            HORAS DE TRABAJO
+        </span>
+
+        <p class="barbero-hours-selector-subtitle">
+            Toca las horas en las que estarás disponible.
+        </p>
+
+    </div>
 
 
-                <input
-                    type="text"
-                    id="b-mis-horarios"
-                    class="inputs-urban barbero-hours-input"
-                    placeholder="10:00, 11:00, 12:00..."
-                >
+    <div class="barbero-hours-legend">
+
+        <span class="barbero-hours-legend-dot"></span>
+
+        Seleccionada
+
+    </div>
+
+</div>
 
 
-                <p class="barbero-helper">
-                    Sepáralas por coma.
-                    Ejemplo: 10:00, 11:00, 12:00, 13:00.
-                </p>
+<div
+    id="selector-horarios"
+    class="barbero-hours-selector"
+></div>
 
 
-                <button
-                    class="btn-urban barbero-save-btn"
-                    onclick="guardarMisHorarios()"
-                >
-                    Guardar horarios
-                    <span>✓</span>
-                </button>
+<div class="barbero-hours-summary">
+
+    <span>
+        Horas seleccionadas
+    </span>
+
+    <strong id="horarios-seleccionados-count">
+        0
+    </strong>
+
+</div>
+
+
+<p class="barbero-helper">
+    Las horas en verde estarán disponibles para que
+    los clientes puedan reservar contigo.
+</p>
+
+
+<button
+    type="button"
+    id="btn-guardar-horarios"
+    class="btn-urban barbero-save-btn"
+    onclick="guardarMisHorarios()"
+>
+    Guardar horarios
+    <span>✓</span>
+</button>
 
             </section>
 
@@ -2264,9 +2298,170 @@ function iniciarActualizacionAutomaticaAgenda() {
 
 let agendaCitas = [];
 let agendaHorarios = [];
-let agendaHoraAlmuerzo = null;
 let agendaFechaSeleccionada = null;
 let agendaMesActual = new Date();
+
+
+/* ============================================================
+   SELECTOR DE HORARIOS
+============================================================ */
+
+const HORAS_DISPONIBLES_SELECTOR = [
+
+    '08:00',
+    '09:00',
+    '10:00',
+    '11:00',
+
+    '12:00',
+    '13:00',
+    '14:00',
+    '15:00',
+
+    '16:00',
+    '17:00',
+    '18:00',
+    '19:00',
+
+    '20:00',
+    '21:00',
+    '22:00',
+    '23:00'
+
+];
+
+
+let horariosSeleccionados =
+    new Set();
+
+
+function renderSelectorHorarios() {
+
+    const contenedor =
+        document.getElementById(
+            'selector-horarios'
+        );
+
+
+    if (!contenedor) {
+        return;
+    }
+
+
+    contenedor.innerHTML =
+        HORAS_DISPONIBLES_SELECTOR
+            .map(
+                hora => {
+
+                    const seleccionada =
+                        horariosSeleccionados
+                            .has(
+                                hora
+                            );
+
+
+                    return `
+
+                        <button
+                            type="button"
+                            class="
+                                barbero-hour-option
+                                ${
+                                    seleccionada
+                                        ? 'selected'
+                                        : ''
+                                }
+                            "
+                            onclick="
+                                alternarHorario(
+                                    '${hora}'
+                                )
+                            "
+                            aria-pressed="
+                                ${
+                                    seleccionada
+                                        ? 'true'
+                                        : 'false'
+                                }
+                            "
+                        >
+
+                            <span class="barbero-hour-check">
+                                ${
+                                    seleccionada
+                                        ? '✓'
+                                        : ''
+                                }
+                            </span>
+
+                            <span>
+                                ${hora}
+                            </span>
+
+                        </button>
+
+                    `;
+
+                }
+            )
+            .join('');
+
+
+    actualizarResumenHorarios();
+
+}
+
+
+function alternarHorario(
+    hora
+) {
+
+    if (
+        horariosSeleccionados
+            .has(
+                hora
+            )
+    ) {
+
+        horariosSeleccionados
+            .delete(
+                hora
+            );
+
+    }
+
+    else {
+
+        horariosSeleccionados
+            .add(
+                hora
+            );
+
+    }
+
+
+    renderSelectorHorarios();
+
+}
+
+
+function actualizarResumenHorarios() {
+
+    const contador =
+        document.getElementById(
+            'horarios-seleccionados-count'
+        );
+
+
+    if (!contador) {
+        return;
+    }
+
+
+    contador.textContent =
+        horariosSeleccionados.size;
+
+}
 
 
 function fechaLocalAgenda(fecha) {
@@ -3215,24 +3410,33 @@ async function cargarAgendaBarbero(
 
 
         agendaHorarios =
-            horarios
-                .split(',')
-                .map(
-                    h => h.trim()
-                )
-                .filter(Boolean);
+    horarios
+        .split(',')
+        .map(
+            h => h.trim()
+        )
+        .filter(Boolean);
 
 
-        document.getElementById(
-            'b-mis-horarios'
-        ).value =
-            horarios;
+/*
+ * Marcamos automáticamente
+ * las horas que el barbero
+ * ya tiene guardadas.
+ */
+
+horariosSeleccionados =
+    new Set(
+        agendaHorarios
+    );
 
 
-        document.getElementById(
-            'stat-horarios'
-        ).textContent =
-            agendaHorarios.length;
+renderSelectorHorarios();
+
+
+document.getElementById(
+    'stat-horarios'
+).textContent =
+    agendaHorarios.length;
 
 
         /*
@@ -3658,40 +3862,73 @@ function cerrarPerfilCliente() {
 
 async function guardarMisHorarios() {
 
-    const misNuevasHoras =
-        document
-            .getElementById(
-                'b-mis-horarios'
-            )
-            .value;
+    /*
+     * Conservamos el orden correcto
+     * de 08:00 a 23:00.
+     */
+
+    const horasOrdenadas =
+        HORAS_DISPONIBLES_SELECTOR
+            .filter(
+                hora =>
+                    horariosSeleccionados
+                        .has(
+                            hora
+                        )
+            );
 
 
     if (
-        !misNuevasHoras.trim()
+        horasOrdenadas.length === 0
     ) {
 
         return alert(
-            '¡No puedes dejar tus horas en blanco!'
+            'Debes seleccionar al menos una hora de trabajo.'
         );
 
     }
 
 
+    const misNuevasHoras =
+        horasOrdenadas
+            .join(', ');
+
+
+    const boton =
+        document.getElementById(
+            'btn-guardar-horarios'
+        );
+
+
     try {
+
+        boton.disabled =
+            true;
+
+
+        boton.innerHTML =
+            'Guardando... <span>✓</span>';
+
 
         const res =
             await fetch(
                 '/api/barbero/guardar-horarios',
                 {
-                    method: 'POST',
+
+                    method:
+                        'POST',
+
                     headers: {
                         'Content-Type':
                             'application/json'
                     },
-                    body: JSON.stringify({
-                        horarios:
-                            misNuevasHoras
-                    })
+
+                    body:
+                        JSON.stringify({
+                            horarios:
+                                misNuevasHoras
+                        })
+
                 }
             );
 
@@ -3701,44 +3938,65 @@ async function guardarMisHorarios() {
 
 
         if (
-            data.success
+            !res.ok ||
+            !data.success
         ) {
 
-            document
-                .getElementById(
-                    'stat-horarios'
-                )
-                .textContent =
-                    misNuevasHoras
-                        .split(',')
-                        .map(
-                            h => h.trim()
-                        )
-                        .filter(Boolean)
-                        .length;
-
-
-            alert(
-                data.message
+            throw new Error(
+                data.message ||
+                'No se pudieron guardar los horarios.'
             );
 
         }
 
-        else {
 
-            alert(
-                'Ocurrió un error: ' +
-                data.message
-            );
+        /*
+         * Actualizamos también la agenda
+         * local inmediatamente.
+         */
 
-        }
+        agendaHorarios =
+            [...horasOrdenadas];
+
+
+        document
+            .getElementById(
+                'stat-horarios'
+            )
+            .textContent =
+                horasOrdenadas.length;
+
+
+        /*
+         * Volvemos a dibujar la agenda
+         * para mostrar el horario nuevo.
+         */
+
+        renderHorarioAgenda();
+
+
+        alert(
+            data.message ||
+            'Tus horarios se guardaron correctamente.'
+        );
 
 
     } catch (error) {
 
         alert(
+            error.message ||
             'No se pudieron guardar los horarios.'
         );
+
+
+    } finally {
+
+        boton.disabled =
+            false;
+
+
+        boton.innerHTML =
+            'Guardar horarios <span>✓</span>';
 
     }
 

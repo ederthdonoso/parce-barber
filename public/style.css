@@ -4773,3 +4773,333 @@ small {
     color:
         #ffbf27;
 }
+
+/* ============================================================
+   SELECTOR VISUAL DE HORARIOS — PANEL BARBERO
+============================================================ */
+
+.barbero-hours-selector-header {
+    display: flex;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 14px;
+}
+
+
+.barbero-hours-selector-title {
+    display: block;
+
+    color: #d8d8d8;
+
+    font-size: .68rem;
+    font-weight: 900;
+
+    letter-spacing: .1em;
+}
+
+
+.barbero-hours-selector-subtitle {
+    margin: 5px 0 0;
+
+    color: #666;
+
+    font-size: .68rem;
+    line-height: 1.4;
+}
+
+
+/* LEYENDA VERDE */
+
+.barbero-hours-legend {
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    flex-shrink: 0;
+
+    color: #777;
+
+    font-size: .63rem;
+    font-weight: 700;
+}
+
+
+.barbero-hours-legend-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #36a65c;
+
+    box-shadow:
+        0 0 8px
+        rgba(54, 166, 92, .35);
+}
+
+
+/* ============================================================
+   REJILLA DE HORAS
+============================================================ */
+
+.barbero-hours-selector {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 8px;
+
+    margin-bottom: 14px;
+}
+
+
+/* HORA NO SELECCIONADA */
+
+.barbero-hour-option {
+    position: relative;
+
+    min-height: 48px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 10px 8px;
+
+    border:
+        1px solid #292929;
+
+    border-radius: 10px;
+
+    background:
+        #111111;
+
+    color:
+        #747474;
+
+    font-family: inherit;
+
+    font-size: .77rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform .16s ease,
+        background .16s ease,
+        border-color .16s ease,
+        color .16s ease,
+        box-shadow .16s ease;
+}
+
+
+.barbero-hour-option:hover {
+    transform:
+        translateY(-1px);
+
+    border-color:
+        #3a3a3a;
+
+    background:
+        #171717;
+
+    color:
+        #aaa;
+}
+
+
+/* ============================================================
+   HORA SELECCIONADA
+============================================================ */
+
+.barbero-hour-option.selected {
+    border-color:
+        rgba(54, 166, 92, .65);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(54, 166, 92, .23),
+            rgba(54, 166, 92, .10)
+        );
+
+    color:
+        #8ee0a9;
+
+    box-shadow:
+        inset 0 0 0 1px
+        rgba(54, 166, 92, .05);
+}
+
+
+.barbero-hour-option.selected:hover {
+    border-color:
+        rgba(54, 166, 92, .85);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(54, 166, 92, .29),
+            rgba(54, 166, 92, .13)
+        );
+
+    color:
+        #abebbf;
+}
+
+
+/* CHECK */
+
+.barbero-hour-check {
+    width: 17px;
+    height: 17px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid #303030;
+
+    border-radius: 50%;
+
+    color: transparent;
+
+    font-size: .58rem;
+
+    transition:
+        .16s ease;
+}
+
+
+.barbero-hour-option.selected
+.barbero-hour-check {
+
+    border-color:
+        #42b768;
+
+    background:
+        #329b54;
+
+    color:
+        #fff;
+}
+
+
+/* ============================================================
+   RESUMEN
+============================================================ */
+
+.barbero-hours-summary {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 4px;
+
+    padding:
+        10px 12px;
+
+    border:
+        1px solid #242424;
+
+    border-radius:
+        9px;
+
+    background:
+        #0c0c0c;
+}
+
+
+.barbero-hours-summary span {
+    color:
+        #666;
+
+    font-size:
+        .67rem;
+
+    font-weight:
+        700;
+}
+
+
+.barbero-hours-summary strong {
+    min-width:
+        28px;
+
+    height:
+        28px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+    justify-content:
+        center;
+
+    border-radius:
+        8px;
+
+    background:
+        rgba(54, 166, 92, .12);
+
+    color:
+        #72cf91;
+
+    font-size:
+        .78rem;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 700px) {
+
+    .barbero-hours-selector {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 420px) {
+
+    .barbero-hours-selector-header {
+        align-items:
+            flex-start;
+
+        flex-direction:
+            column;
+    }
+
+
+    .barbero-hours-selector {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .barbero-hour-option {
+        min-height:
+            46px;
+    }
+
+}
