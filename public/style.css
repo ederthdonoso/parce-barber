@@ -5103,3 +5103,195 @@ small {
     }
 
 }
+
+/* ============================================================
+   SERVICIO FINALIZADO — PANEL BARBERO
+============================================================ */
+
+.agenda-appointment-actions-three {
+    grid-template-columns:
+        1.2fr
+        1fr
+        1fr;
+}
+
+
+/* BOTÓN FINALIZAR */
+
+.agenda-action-finish {
+    border:
+        1px solid
+        rgba(73, 208, 126, .32);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(73, 208, 126, .12),
+            rgba(73, 208, 126, .05)
+        );
+
+    color:
+        #7be6a5;
+}
+
+
+.agenda-action-finish:hover {
+    border-color:
+        rgba(73, 208, 126, .65);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(73, 208, 126, .19),
+            rgba(73, 208, 126, .08)
+        );
+}
+
+
+/* BADGE FINALIZADO */
+
+.agenda-finished-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        5px
+        9px;
+
+    border:
+        1px solid
+        rgba(73, 208, 126, .28);
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(73, 208, 126, .09);
+
+    color:
+        #7be6a5;
+
+    font-size:
+        .62rem;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .08em;
+}
+
+
+/* BLOQUE QUE REEMPLAZA LOS BOTONES */
+
+.agenda-finished-panel {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 8px;
+
+    padding:
+        13px
+        14px;
+
+    border:
+        1px solid
+        rgba(73, 208, 126, .19);
+
+    border-radius:
+        11px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(73, 208, 126, .08),
+            rgba(255, 255, 255, .015)
+        );
+}
+
+
+.agenda-finished-icon {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex:
+        0 0
+        34px;
+
+    width:
+        34px;
+
+    height:
+        34px;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(73, 208, 126, .13);
+
+    border:
+        1px solid
+        rgba(73, 208, 126, .28);
+
+    color:
+        #7be6a5;
+
+    font-size:
+        1rem;
+
+    font-weight:
+        900;
+}
+
+
+.agenda-finished-copy {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+}
+
+
+.agenda-finished-copy strong {
+    color:
+        #f5f5f5;
+
+    font-size:
+        .76rem;
+
+    font-weight:
+        850;
+}
+
+
+.agenda-finished-copy small {
+    color:
+        #777;
+
+    font-size:
+        .66rem;
+
+    line-height:
+        1.4;
+}
+
+
+@media (max-width: 700px) {
+
+    .agenda-appointment-actions-three {
+        grid-template-columns:
+            1fr;
+    }
+
+}

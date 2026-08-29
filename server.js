@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const crypto = require('crypto');
 const { Resend } = require('resend');
 const mysql = require('mysql2/promise');
 
@@ -93,6 +94,115 @@ async function asegurarTablaSugerencias() {
         DEFAULT CHARSET=utf8mb4
         COLLATE=utf8mb4_unicode_ci
     `);
+
+}
+
+// ============================================================
+// ASEGURAR TABLA DE VALORACIONES
+// ============================================================
+
+async function asegurarTablaValoraciones() {
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS valoraciones (
+
+            id INT NOT NULL AUTO_INCREMENT,
+
+            agendamiento_id INT NOT NULL,
+
+            barbero_id INT NOT NULL,
+
+            cliente VARCHAR(120) NOT NULL,
+
+            servicio VARCHAR(180) NOT NULL,
+
+            token CHAR(64) NOT NULL,
+
+            puntuacion DECIMAL(2,1) DEFAULT NULL,
+
+            comentario VARCHAR(1200) DEFAULT NULL,
+
+            creado_en TIMESTAMP NOT NULL
+                DEFAULT CURRENT_TIMESTAMP,
+
+            valorado_en TIMESTAMP NULL
+                DEFAULT NULL,
+
+            PRIMARY KEY (id),
+
+            UNIQUE KEY unica_valoracion_cita (
+                agendamiento_id
+            ),
+
+            UNIQUE KEY unico_token_valoracion (
+                token
+            ),
+
+            INDEX idx_valoraciones_barbero (
+                barbero_id,
+                valorado_en
+            ),
+
+            INDEX idx_valoraciones_promedio (
+                barbero_id,
+                puntuacion
+            )
+
+        )
+        ENGINE=InnoDB
+        DEFAULT CHARSET=utf8mb4
+        COLLATE=utf8mb4_unicode_ci
+    `);
+
+}
+
+
+// ============================================================
+// GENERAR TOKEN SEGURO PARA VALORACIÓN
+// ============================================================
+
+function crearTokenValoracion() {
+
+    return crypto
+        .randomBytes(32)
+        .toString('hex');
+
+}
+
+// ============================================================
+// URL PÚBLICA DEL SISTEMA
+// ============================================================
+
+function obtenerUrlPublica() {
+
+    const configurada =
+        String(
+            process.env.APP_URL || ''
+        )
+            .trim()
+            .replace(/\/+$/, '');
+
+
+    if (configurada) {
+        return configurada;
+    }
+
+
+    const dominioRailway =
+        String(
+            process.env.RAILWAY_PUBLIC_DOMAIN || ''
+        ).trim();
+
+
+    if (dominioRailway) {
+
+        return `https://${dominioRailway}`;
+
+    }
+
+
+    // En desarrollo local.
+    return `http://localhost:${PORT}`;
 
 }
 
@@ -2864,6 +2974,27 @@ app.post('/api/cancelar-cita', async (req, res) => {
             });
         }
 
+        const cita =
+    citas[0];
+
+
+if (
+    String(
+        cita.estado || ''
+    )
+        .trim()
+        .toLowerCase() ===
+    'finalizada'
+) {
+
+    return res.status(409).json({
+        success: false,
+        message:
+            'Este servicio ya fue realizado y no puede cancelarse.'
+    });
+
+}
+
 
         // ====================================================
         // CANCELAR
@@ -2966,8 +3097,30 @@ app.post('/api/modificar-cita', async (req, res) => {
         const cita = citas[0];
 
 
-        // ====================================================
-        // 2. COMPROBAR QUE EL NUEVO BARBERO ESTÉ ACTIVO
+// ====================================================
+// NO MODIFICAR UNA CITA YA FINALIZADA
+// ====================================================
+
+if (
+    String(
+        cita.estado || ''
+    )
+        .trim()
+        .toLowerCase() ===
+    'finalizada'
+) {
+
+    return res.status(409).json({
+        success: false,
+        message:
+            'Este servicio ya fue realizado y no puede modificarse.'
+    });
+
+}
+
+
+// ====================================================
+// 2. COMPROBAR QUE EL NUEVO BARBERO ESTÉ ACTIVO
         // ====================================================
 
         if (!(await esBarberoDisponible(nuevoBarberoId))) {
@@ -6249,10 +6402,31 @@ app.post(
 
 
             const cita =
-                citas[0];
+    citas[0];
 
 
-            const fechaAnterior =
+// Una cita finalizada forma parte del historial
+// y ya no debe poder modificarse.
+
+if (
+    String(
+        cita.estado || ''
+    )
+        .trim()
+        .toLowerCase() ===
+    'finalizada'
+) {
+
+    return res.status(409).json({
+        success: false,
+        message:
+            'Este servicio ya fue finalizado y no puede modificarse.'
+    });
+
+}
+
+
+const fechaAnterior =
                 fechaISODesdeBD(
                     cita.fecha
                 );
@@ -6784,6 +6958,970 @@ app.post(
 );
 
 // ============================================================
+// CORREO DE VALORACIÓN
+// ============================================================
+
+async function enviarCorreoValoracion({
+    email,
+    cliente,
+    barbero,
+    servicio,
+    token
+}) {
+
+    if (
+        !email ||
+        !emailValidoBasico(email)
+    ) {
+
+        return false;
+
+    }
+
+
+    try {
+
+        const url =
+            `${obtenerUrlPublica()}/valorar.html?t=${encodeURIComponent(token)}`;
+
+
+        const { data, error } =
+            await resend.emails.send({
+
+                from:
+                    EMAIL_REMITENTE,
+
+                to:
+                    [email],
+
+                subject:
+                    `¿Cómo estuvo tu experiencia con ${barbero}? ⭐`,
+
+                html: `
+                    <div
+                        style="
+                            margin:0;
+                            padding:36px 18px;
+                            background:#080808;
+                            font-family:Arial,sans-serif;
+                            color:#ffffff;
+                        "
+                    >
+
+                        <div
+                            style="
+                                max-width:560px;
+                                margin:auto;
+                                overflow:hidden;
+                                background:#111111;
+                                border:1px solid #292929;
+                                border-radius:18px;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    height:4px;
+                                    background:#d30000;
+                                "
+                            ></div>
+
+
+                            <div
+                                style="
+                                    padding:36px 34px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        color:#d30000;
+                                        font-size:12px;
+                                        font-weight:800;
+                                        letter-spacing:3px;
+                                        margin-bottom:14px;
+                                    "
+                                >
+                                    PARCE BARBER
+                                </div>
+
+
+                                <h1
+                                    style="
+                                        margin:0 0 12px;
+                                        color:#ffffff;
+                                        font-size:28px;
+                                        line-height:1.15;
+                                    "
+                                >
+                                    Tu corte terminó.
+                                </h1>
+
+
+                                <p
+                                    style="
+                                        color:#a9a9a9;
+                                        line-height:1.7;
+                                        font-size:15px;
+                                        margin-bottom:28px;
+                                    "
+                                >
+                                    Hola
+                                    <strong style="color:#ffffff;">
+                                        ${cliente}
+                                    </strong>.
+                                    Queremos saber cómo fue tu experiencia
+                                    con
+                                    <strong style="color:#ffffff;">
+                                        ${barbero}
+                                    </strong>.
+                                </p>
+
+
+                                <div
+                                    style="
+                                        background:#171717;
+                                        border:1px solid #262626;
+                                        border-radius:13px;
+                                        padding:18px 20px;
+                                        margin-bottom:28px;
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            letter-spacing:1.5px;
+                                            color:#777777;
+                                            font-weight:700;
+                                            margin-bottom:6px;
+                                        "
+                                    >
+                                        SERVICIO
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:16px;
+                                            color:#ffffff;
+                                            font-weight:700;
+                                        "
+                                    >
+                                        ${servicio}
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    style="
+                                        text-align:center;
+                                        margin:10px 0 30px;
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            color:#e4b552;
+                                            letter-spacing:5px;
+                                            font-size:27px;
+                                            margin-bottom:15px;
+                                        "
+                                    >
+                                        ★★★★★
+                                    </div>
+
+
+                                    <a
+                                        href="${url}"
+                                        style="
+                                            display:inline-block;
+                                            background:#d30000;
+                                            color:#ffffff;
+                                            text-decoration:none;
+                                            font-size:13px;
+                                            font-weight:800;
+                                            letter-spacing:1px;
+                                            padding:15px 28px;
+                                            border-radius:9px;
+                                        "
+                                    >
+                                        VALORAR MI EXPERIENCIA
+                                    </a>
+
+                                </div>
+
+
+                                <p
+                                    style="
+                                        color:#666666;
+                                        font-size:12px;
+                                        line-height:1.6;
+                                        text-align:center;
+                                        margin:0;
+                                    "
+                                >
+                                    La puntuación ayuda a mejorar el servicio.
+                                    El comentario es opcional y será recibido
+                                    por tu barbero.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `
+
+            });
+
+
+        if (error) {
+
+            console.error(
+                '❌ Error enviando correo de valoración:',
+                error
+            );
+
+            return false;
+
+        }
+
+
+        console.log(
+            '⭐ Correo de valoración enviado:',
+            data?.id
+        );
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            '❌ Error inesperado enviando valoración:',
+            error
+        );
+
+        return false;
+
+    }
+
+}
+
+// ============================================================
+// OBTENER VALORACIÓN MEDIANTE TOKEN
+// ============================================================
+
+app.get(
+    '/api/valoracion/:token',
+    async (req, res) => {
+
+        try {
+
+            const token =
+                String(
+                    req.params.token || ''
+                ).trim();
+
+
+            if (
+                !/^[a-f0-9]{64}$/i.test(
+                    token
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'El enlace de valoración no es válido.'
+                });
+
+            }
+
+
+            const [rows] =
+                await pool.query(
+
+                    `SELECT
+                        v.id,
+                        v.cliente,
+                        v.servicio,
+                        v.puntuacion,
+                        v.comentario,
+                        v.valorado_en,
+
+                        b.id AS barberoId,
+                        b.nombre AS barbero,
+
+                        a.fecha,
+                        a.hora,
+                        a.estado
+
+                     FROM valoraciones v
+
+                     INNER JOIN barberos b
+                        ON b.id = v.barbero_id
+
+                     INNER JOIN agendamientos a
+                        ON a.id = v.agendamiento_id
+
+                     WHERE v.token = ?
+
+                     LIMIT 1`,
+
+                    [
+                        token
+                    ]
+
+                );
+
+
+            if (
+                rows.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'Esta valoración no existe o el enlace ya no es válido.'
+                });
+
+            }
+
+
+            const valoracion =
+                rows[0];
+
+
+            const yaValorada =
+                valoracion.puntuacion !== null;
+
+
+            return res.json({
+
+                success: true,
+
+                valoracion: {
+
+                    cliente:
+                        valoracion.cliente,
+
+                    servicio:
+                        valoracion.servicio,
+
+                    barberoId:
+                        valoracion.barberoId,
+
+                    barbero:
+                        valoracion.barbero,
+
+                    fecha:
+                        fechaISODesdeBD(
+                            valoracion.fecha
+                        ),
+
+                    hora:
+                        valoracion.hora,
+
+                    yaValorada,
+
+                    puntuacion:
+                        yaValorada
+                            ? Number(
+                                valoracion.puntuacion
+                            )
+                            : null
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error cargando valoración:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No pudimos cargar esta valoración.'
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// GUARDAR VALORACIÓN
+// ============================================================
+
+app.post(
+    '/api/valoracion/:token',
+    async (req, res) => {
+
+        try {
+
+            const token =
+                String(
+                    req.params.token || ''
+                ).trim();
+
+
+            const puntuacion =
+                Number(
+                    req.body.puntuacion
+                );
+
+
+            const comentario =
+                String(
+                    req.body.comentario || ''
+                ).trim();
+
+
+            if (
+                !/^[a-f0-9]{64}$/i.test(
+                    token
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'El enlace de valoración no es válido.'
+                });
+
+            }
+
+
+            // Solo permitimos:
+            // 0.5, 1, 1.5, 2 ... hasta 5.
+
+            if (
+                !Number.isFinite(
+                    puntuacion
+                )
+                ||
+                puntuacion < 0.5
+                ||
+                puntuacion > 5
+                ||
+                !Number.isInteger(
+                    puntuacion * 2
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Selecciona una valoración entre 0.5 y 5 estrellas.'
+                });
+
+            }
+
+
+            if (
+                comentario.length > 1200
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'El comentario es demasiado largo.'
+                });
+
+            }
+
+
+            const [rows] =
+                await pool.query(
+
+                    `SELECT
+                        v.id,
+                        v.puntuacion,
+                        a.estado
+
+                     FROM valoraciones v
+
+                     INNER JOIN agendamientos a
+                        ON a.id = v.agendamiento_id
+
+                     WHERE v.token = ?
+
+                     LIMIT 1`,
+
+                    [
+                        token
+                    ]
+
+                );
+
+
+            if (
+                rows.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'Esta valoración no existe.'
+                });
+
+            }
+
+
+            const valoracion =
+                rows[0];
+
+
+            if (
+                String(
+                    valoracion.estado || ''
+                )
+                    .trim()
+                    .toLowerCase() !==
+                'finalizada'
+            ) {
+
+                return res.status(409).json({
+                    success: false,
+                    message:
+                        'Este servicio todavía no puede ser valorado.'
+                });
+
+            }
+
+
+            if (
+                valoracion.puntuacion !== null
+            ) {
+
+                return res.status(409).json({
+                    success: false,
+                    yaValorada: true,
+                    message:
+                        'Esta experiencia ya fue valorada anteriormente.'
+                });
+
+            }
+
+
+            const [resultado] =
+                await pool.query(
+
+                    `UPDATE valoraciones
+
+                     SET
+                        puntuacion = ?,
+                        comentario = ?,
+                        valorado_en = CURRENT_TIMESTAMP
+
+                     WHERE id = ?
+                     AND puntuacion IS NULL`,
+
+                    [
+                        puntuacion,
+
+                        comentario ||
+                            null,
+
+                        valoracion.id
+                    ]
+
+                );
+
+
+            if (
+                resultado.affectedRows === 0
+            ) {
+
+                return res.status(409).json({
+                    success: false,
+                    yaValorada: true,
+                    message:
+                        'Esta experiencia ya fue valorada.'
+                });
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    'Gracias por compartir tu experiencia con Parce Barber.'
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                'Error guardando valoración:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No pudimos guardar tu valoración.'
+            });
+
+        }
+
+    }
+);
+
+// ============================================================
+// FINALIZAR SERVICIO — PANEL DEL BARBERO
+// ============================================================
+
+app.post(
+    '/api/barbero/finalizar-cita',
+    requiereSesion,
+    requiereBarberoActivo,
+    async (req, res) => {
+
+        let conexion;
+
+
+        try {
+
+            const idCita =
+                Number(
+                    req.body.idCita
+                );
+
+
+            if (
+                !Number.isInteger(idCita) ||
+                idCita <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Debes indicar una cita válida.'
+                });
+
+            }
+
+
+            // =================================================
+            // BUSCAR LA CITA
+            // Solo puede finalizar citas propias.
+            // =================================================
+
+            const [citas] =
+                await pool.query(
+
+                    `SELECT
+                        id,
+                        barberoId,
+                        servicio,
+                        fecha,
+                        hora,
+                        cliente,
+                        telefono,
+                        email,
+                        estado
+                     FROM agendamientos
+                     WHERE id = ?
+                     AND barberoId = ?
+                     LIMIT 1`,
+
+                    [
+                        idCita,
+                        req.usuario.id
+                    ]
+
+                );
+
+
+            if (
+                citas.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'La cita no existe o no pertenece a tu agenda.'
+                });
+
+            }
+
+
+            const cita =
+                citas[0];
+
+
+            // =================================================
+            // NO FINALIZAR BLOQUEOS
+            // =================================================
+
+            if (
+                String(
+                    cita.servicio || ''
+                ).trim().toUpperCase() ===
+                    'BLOQUEADO'
+                ||
+                esBloqueoContinuo(
+                    cita.servicio
+                )
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Este horario no corresponde a una cita que pueda finalizarse.'
+                });
+
+            }
+
+
+            // =================================================
+            // SI YA ESTÁ FINALIZADA, NO HACEMOS NADA DE NUEVO
+            // =================================================
+
+            if (
+                String(
+                    cita.estado || ''
+                )
+                    .trim()
+                    .toLowerCase() ===
+                'finalizada'
+            ) {
+
+                return res.json({
+                    success: true,
+                    yaFinalizada: true,
+                    message:
+                        'Este servicio ya estaba finalizado.'
+                });
+
+            }
+
+
+            const token =
+                crearTokenValoracion();
+
+
+            const servicio =
+                servicioBase(
+                    cita.servicio
+                );
+
+
+            conexion =
+                await pool.getConnection();
+
+
+            await conexion.beginTransaction();
+
+
+            // =================================================
+            // MARCAR CITA COMO FINALIZADA
+            // =================================================
+
+            await conexion.query(
+
+                `UPDATE agendamientos
+                 SET estado = 'Finalizada'
+                 WHERE id = ?
+                 AND barberoId = ?`,
+
+                [
+                    cita.id,
+                    req.usuario.id
+                ]
+
+            );
+
+
+            // =================================================
+            // PREPARAR SU VALORACIÓN
+            //
+            // INSERT IGNORE evita crear dos valoraciones
+            // para la misma cita.
+            // =================================================
+
+            await conexion.query(
+
+    `INSERT IGNORE INTO valoraciones
+    (
+        agendamiento_id,
+        barbero_id,
+        cliente,
+        servicio,
+        token
+    )
+    VALUES (?, ?, ?, ?, ?)`,
+
+    [
+        cita.id,
+        req.usuario.id,
+        cita.cliente ||
+            'Cliente',
+        servicio ||
+            'Servicio',
+        token
+    ]
+
+);
+
+
+// Leemos el token definitivo almacenado.
+// Esto evita cualquier problema si la valoración
+// ya había sido preparada anteriormente.
+
+const [valoracionesCita] =
+    await conexion.query(
+
+        `SELECT token
+         FROM valoraciones
+         WHERE agendamiento_id = ?
+         LIMIT 1`,
+
+        [
+            cita.id
+        ]
+
+    );
+
+
+const tokenValoracion =
+    valoracionesCita[0]?.token ||
+    token;
+
+
+await conexion.commit();
+
+
+            conexion.release();
+
+            conexion =
+                null;
+
+
+            const email =
+                String(
+                    cita.email || ''
+                ).trim();
+
+
+            const tieneCorreo =
+                Boolean(email) &&
+                emailValidoBasico(
+                    email
+                );
+
+            let correoValoracionEnviado =
+    false;
+
+
+if (tieneCorreo) {
+
+    const perfiles =
+        await obtenerMapaPerfiles();
+
+
+    const nombreBarbero =
+        perfiles[
+            req.usuario.id
+        ] ||
+        'Tu barbero';
+
+
+    correoValoracionEnviado =
+        await enviarCorreoValoracion({
+
+            email,
+
+            cliente:
+                cita.cliente ||
+                'Cliente',
+
+            barbero:
+                nombreBarbero,
+
+            servicio:
+                servicio ||
+                'Servicio',
+
+            token:
+                tokenValoracion
+
+        });
+
+}
+
+
+            return res.json({
+
+    success: true,
+
+    tieneCorreo,
+
+    correoValoracionEnviado,
+
+    message:
+        tieneCorreo
+
+            ? correoValoracionEnviado
+
+                ? 'Servicio finalizado. Enviamos al cliente su invitación para valorar la experiencia.'
+
+                : 'Servicio finalizado, pero no pudimos enviar el correo de valoración.'
+
+            : 'Servicio finalizado. Esta cita no tiene correo registrado.'
+
+});
+
+
+        } catch (error) {
+
+            if (conexion) {
+
+                try {
+
+                    await conexion.rollback();
+
+                } catch (_) {}
+
+
+                conexion.release();
+
+            }
+
+
+            console.error(
+                'Error finalizando servicio:',
+                error
+            );
+
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'No se pudo finalizar el servicio.'
+            });
+
+        }
+
+    }
+);
+
+// ============================================================
 // CANCELAR CITA DESDE PANEL DEL BARBERO
 // ============================================================
 
@@ -6849,10 +7987,31 @@ app.post(
 
 
             const cita =
-                citas[0];
+    citas[0];
 
 
-            const fechaCita =
+// Las citas finalizadas quedan registradas
+// en el historial y no pueden eliminarse.
+
+if (
+    String(
+        cita.estado || ''
+    )
+        .trim()
+        .toLowerCase() ===
+    'finalizada'
+) {
+
+    return res.status(409).json({
+        success: false,
+        message:
+            'Este servicio ya fue finalizado y no puede cancelarse.'
+    });
+
+}
+
+
+const fechaCita =
                 fechaISODesdeBD(
                     cita.fecha
                 );
@@ -7624,6 +8783,9 @@ app.listen(PORT, async () => {
         // Aseguramos que la tabla de sugerencias exista.
         await asegurarTablaSugerencias();
 
+        // Aseguramos que la tabla de valoraciones exista.
+await asegurarTablaValoraciones();
+
 
         console.log(
             `✅ Servidor ONLINE en http://localhost:${PORT}`
@@ -7638,6 +8800,10 @@ app.listen(PORT, async () => {
         console.log(
             '💬 Tabla de sugerencias lista.'
         );
+
+        console.log(
+    '⭐ Tabla de valoraciones lista.'
+);
 
 
     } catch (error) {

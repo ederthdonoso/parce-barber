@@ -3235,6 +3235,23 @@ const citaId =
         cita.id
     );
 
+const estadoNormalizado =
+    String(
+        cita.estado || ''
+    )
+        .trim()
+        .toLowerCase();
+
+
+const citaFinalizada =
+    estadoNormalizado ===
+    'finalizada';
+
+
+const citaHoraExtra =
+    estadoNormalizado ===
+    'hora extra';
+
 
                     return `
 
@@ -3266,15 +3283,19 @@ const citaId =
 
                                     <span
     class="${
-        String(cita.estado || '').toLowerCase() === 'hora extra'
-            ? 'hora-extra-badge'
-            : ''
+        citaFinalizada
+            ? 'agenda-finished-badge'
+            : citaHoraExtra
+                ? 'hora-extra-badge'
+                : ''
     }"
 >
     ${
-        String(cita.estado || '').toLowerCase() === 'hora extra'
-            ? 'HORA EXTRA'
-            : 'CONFIRMADO'
+        citaFinalizada
+            ? 'FINALIZADO'
+            : citaHoraExtra
+                ? 'HORA EXTRA'
+                : 'CONFIRMADO'
     }
 </span>
 
@@ -3296,39 +3317,100 @@ const citaId =
                                 </div>
 
                             </button>
-                            <div class="agenda-appointment-actions">
+                            ${
+    citaFinalizada
 
-    <button
-        type="button"
-        class="agenda-action-btn agenda-action-edit"
-        onclick="abrirModalCambiarCitaEncoded(
-            ${citaId},
-            '${nombreJS}',
-            '${servicioJS}',
-            '${fechaJS}',
-            '${horaJS}',
-            '${emailJS}',
-            '${estadoJS}'
-        )"
-    >
-        ↻ Cambiar cita
-    </button>
+        ? `
+
+            <div class="agenda-finished-panel">
+
+                <div class="agenda-finished-icon">
+                    ✓
+                </div>
+
+                <div class="agenda-finished-copy">
+
+                    <strong>
+                        Servicio finalizado
+                    </strong>
+
+                    <small>
+                        La experiencia ya puede pasar al sistema de valoración.
+                    </small>
+
+                </div>
+
+            </div>
+
+        `
+
+        : `
+
+            <div
+                class="
+                    agenda-appointment-actions
+                    agenda-appointment-actions-three
+                "
+            >
+
+                <button
+                    type="button"
+                    class="
+                        agenda-action-btn
+                        agenda-action-finish
+                    "
+                    onclick="finalizarCitaBarbero(
+                        ${citaId},
+                        '${nombreJS}',
+                        '${fechaJS}',
+                        '${horaJS}',
+                        '${emailJS}'
+                    )"
+                >
+                    ✓ Finalizar servicio
+                </button>
 
 
-    <button
-        type="button"
-        class="agenda-action-btn agenda-action-cancel"
-        onclick="cancelarCitaBarbero(
-            ${citaId},
-            '${nombreJS}',
-            '${fechaJS}',
-            '${horaJS}'
-        )"
-    >
-        × Cancelar
-    </button>
+                <button
+                    type="button"
+                    class="
+                        agenda-action-btn
+                        agenda-action-edit
+                    "
+                    onclick="abrirModalCambiarCitaEncoded(
+                        ${citaId},
+                        '${nombreJS}',
+                        '${servicioJS}',
+                        '${fechaJS}',
+                        '${horaJS}',
+                        '${emailJS}',
+                        '${estadoJS}'
+                    )"
+                >
+                    ↻ Cambiar cita
+                </button>
 
-</div>
+
+                <button
+                    type="button"
+                    class="
+                        agenda-action-btn
+                        agenda-action-cancel
+                    "
+                    onclick="cancelarCitaBarbero(
+                        ${citaId},
+                        '${nombreJS}',
+                        '${fechaJS}',
+                        '${horaJS}'
+                    )"
+                >
+                    × Cancelar
+                </button>
+
+            </div>
+
+        `
+}
 
 </div>
 
@@ -3997,6 +4079,132 @@ async function guardarMisHorarios() {
 
         boton.innerHTML =
             'Guardar horarios <span>✓</span>';
+
+    }
+
+}
+
+/* ============================================================
+   FINALIZAR SERVICIO
+============================================================ */
+
+async function finalizarCitaBarbero(
+    idCita,
+    nombreEncoded = '',
+    fechaEncoded = '',
+    horaEncoded = '',
+    emailEncoded = ''
+) {
+
+    const nombre =
+        decodeURIComponent(
+            nombreEncoded ||
+            'Cliente'
+        );
+
+
+    const fecha =
+        decodeURIComponent(
+            fechaEncoded ||
+            ''
+        );
+
+
+    const hora =
+        decodeURIComponent(
+            horaEncoded ||
+            ''
+        );
+
+
+    const email =
+        decodeURIComponent(
+            emailEncoded ||
+            ''
+        );
+
+
+    const textoCorreo =
+        email
+
+            ? '\n\nDespués de finalizar podremos enviarle su valoración.'
+
+            : '\n\nEsta cita no tiene correo registrado.';
+
+
+    const confirmacion =
+        confirm(
+            `¿Marcar este servicio como finalizado?
+
+${nombre}
+${fecha} · ${hora}${textoCorreo}
+
+Una vez finalizado ya no podrá cambiarse ni cancelarse.`
+        );
+
+
+    if (!confirmacion) {
+        return;
+    }
+
+
+    try {
+
+        const res =
+            await fetch(
+                '/api/barbero/finalizar-cita',
+                {
+
+                    method:
+                        'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify({
+                            idCita
+                        })
+
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        if (
+            !res.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                'No se pudo finalizar el servicio.'
+            );
+
+        }
+
+
+        await cargarAgendaBarbero(
+            true
+        );
+
+
+        alert(
+            data.message
+        );
+
+
+    } catch (error) {
+
+        alert(
+            error.message ||
+            'No se pudo finalizar el servicio.'
+        );
 
     }
 
